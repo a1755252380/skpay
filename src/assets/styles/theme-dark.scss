@@ -1,0 +1,4 @@
+/* 深色主题 */
+$--color-primary: #1f1f1f;  /* 深色主题的主色 */
+@import "~element-ui/packages/theme-chalk/src/common/var"; /* 引入 Element UI 的变量 */
+@import "~element-ui/packages/theme-chalk/src/index"; /* 引入 Element UI 的主样式 */

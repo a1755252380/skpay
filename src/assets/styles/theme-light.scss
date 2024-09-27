@@ -1,0 +1,4 @@
+/* 默认主题 */
+$--color-primary: #409EFF;  /* 默认的主题颜色 */
+@import "~element-ui/packages/theme-chalk/src/common/var"; /* 引入 Element UI 的变量 */
+@import "~element-ui/packages/theme-chalk/src/index"; /* 引入 Element UI 的主样式 */

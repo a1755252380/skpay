@@ -1,0 +1,62 @@
+.fulltable_div{
+  min-height: inherit;
+  display: flex;
+  flex-direction: column;
+}
+.FlexCenter{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.FlexCenterColumn{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.FlexBetween{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.FlexBetweenColumn{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+}
+.FlexStart{
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.FlexColumn{
+  display: flex;
+  flex-direction: column;
+}
+.FlexEnd{
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.FlexStartColumn{
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-direction: column;
+}
+.FlexEndColumn{
+  display: flex;
+}
+.FlexSpaceAround{
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+/* 单行文本省略号 */
+.truncate {
+  white-space: nowrap;         /* 防止文本换行 */
+  overflow: hidden;            /* 隐藏超出容器的文本 */
+  text-overflow: ellipsis;     /* 使用省略号表示超出文本 */
+              /* 可选：添加内边距 */
+}

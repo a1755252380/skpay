@@ -1,0 +1,177 @@
+import { Message } from "element-ui";
+//节流函数
+export function throttle(func, limit) {
+  let lastFunc;
+  let lastRan;
+  return function () {
+    const context = this,
+      args = arguments;
+    if (!lastRan) {
+      func.apply(context, args);
+      lastRan = Date.now();
+    } else {
+      clearTimeout(lastFunc);
+      lastFunc = setTimeout(function () {
+        if (Date.now() - lastRan >= limit) {
+          func.apply(context, args);
+          lastRan = Date.now();
+        }
+      }, limit - (Date.now() - lastRan));
+    }
+  };
+}
+
+//获取可视高度
+let tryGetRefNum = 0;
+export function getClientHeight(...refs) {
+  // 确保 mainRef 是 Vue 的 ref 对象
+  const mainElement = document.getElementById("app-main");
+  const mainHeight = mainElement ? mainElement.offsetHeight : 0;
+
+  // 计算其他元素的总高度
+  const totalElementHeight = refs.reduce((total, ref) => {
+    let element = ref;
+    if (typeof element === "number") {
+      return total + element;
+    }
+    if (ref.hasOwnProperty("$el")) {
+      element = ref.$el;
+    } else {
+      element = ref;
+    }
+    let margin = window.getComputedStyle(element);
+
+    if (element) {
+      console.log(element);
+      console.log(
+        element.offsetHeight +
+          (margin.marginTop ? parseFloat(margin.marginTop) : 0) +
+          (margin.marginRight ? parseFloat(margin.marginRight) : 0) +
+          (margin.marginBottom ? parseFloat(margin.marginBottom) : 0) +
+          (margin.marginLeft ? parseFloat(margin.marginLeft) : 0)
+      );
+
+      return (
+        total +
+        element.offsetHeight +
+        (margin.marginTop ? parseFloat(margin.marginTop) : 0) +
+        (margin.marginRight ? parseFloat(margin.marginRight) : 0) +
+        (margin.marginBottom ? parseFloat(margin.marginBottom) : 0) +
+        (margin.marginLeft ? parseFloat(margin.marginLeft) : 0)
+      );
+    }
+
+    return total ? total : 0;
+  }, 0);
+
+  // 计算并返回剩余的高度
+  const remainingHeight = mainHeight - totalElementHeight - 40;
+  console.log(remainingHeight);
+
+  return remainingHeight;
+}
+
+//复制到剪切板
+export const copyToClipboard = (event, key = "") => {
+  if (!event) {
+    return;
+  }
+  // 使用 Clipboard API 将文本写入剪贴板
+  event = event.toString();
+  navigator.clipboard
+    .writeText(event)
+    .then(() => {
+      Message.success((key ? key : "文本") + "已成功复制到剪贴板！");
+    })
+    .catch((err) => {
+      console.error("复制失败：", err);
+    });
+};
+import moment from "moment-timezone";
+//格式化成印度时间
+export const FormatUtc = (event) => {
+  if (!event) {
+    return;
+  }
+  // console.log("------------------------");
+
+  // console.log(moment(event).format());
+  // console.log(moment(event).tz("Asia/Kolkata").format());
+
+  return moment(event).utc().valueOf();
+};
+export const FormatUtcTime = (event) => {
+  if (!event) {
+    return;
+  }
+
+  return moment(event).tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+};
+export const getUtcTime = (inputTime) => {
+  // 传入时间可以是一个毫秒值或者可解析的时间字符串
+  inputTime = inputTime.split(" ");
+  let da = inputTime[0] + "T" + inputTime[1] + "+05:30";
+
+  let date = new Date(da);
+
+  // 获取 UTC 时间的毫秒值
+  const utcTimeInMillis = Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+    date.getUTCHours(),
+    date.getUTCMinutes(),
+    date.getUTCSeconds(),
+    date.getUTCMilliseconds()
+  );
+
+  return utcTimeInMillis;
+};
+//隐藏中间部分
+export const hideMiddle = (context) => {
+  if (!context) {
+    return "";
+  }
+  context = String(context);
+  let length = context.length;
+  if (length <= 5) {
+    return context;
+  }
+
+  let show =
+    context.substring(0, 2) +
+    "*".repeat(context.length - 4) +
+    context.substring(length - 2);
+
+  // if (length >= 12) {
+  //   show =
+  //     context.substring(0, 4) +
+  //     "*".repeat(context.length - 4) +
+  //     context.substring(length - 4);
+  // } else {
+  //   show =
+  //     context.substring(0, 2) +
+  //     "*".repeat(context.length - 4) +
+  //     context.substring(length - 2);
+  // }
+
+  return show;
+};
+//开始全屏动画
+export const startAnimation = () => {
+  const div = document.getElementById("loader-wrapper");
+
+  // 显示并执行动画
+  div.classList.remove("remove");
+  div.classList.add("show");
+
+  setTimeout(() => {
+    div.classList.add("hidden"); // 触发渐隐效果
+
+    // 延迟执行完全隐藏和删除操作
+    setTimeout(() => {
+      div.classList.remove("show", "hidden");
+      div.classList.add("remove"); // 完全删除或隐藏
+    }, 2000); // 与 CSS transition 时间一致
+  }, 2000);
+};

@@ -1,0 +1,4 @@
+function setCustomTheme() {
+        return null;
+      }
+export default setCustomTheme;

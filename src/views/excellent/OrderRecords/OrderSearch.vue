@@ -1,0 +1,270 @@
+<template>
+  <div style="
+        " class="OrderRecords_table_search">
+    <el-form :model="queryParams" ref="queryForm" size="mini" :inline="true" v-show="showSearch" label-position="top"
+      label-width="140px">
+      <div class="search_option_div">
+        <el-form-item label="商户" prop="mch_number" v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
+          <el-select v-model="queryParams.mch_num" placeholder="请选择商户" clearable class="w100_input">
+            <el-option v-for="dict in MainAccount" :key="dict.id" :label="dict.mch_num" :value="dict.mch_num" />
+          </el-select>
+
+        </el-form-item>
+        <el-form-item label="支付通道" prop="chnl_id" v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
+          <el-select v-model="queryParams.chnl_id" placeholder="请选择支付通道" clearable class="w100_input">
+            <el-option v-for="dict in ChannelAccount" :key="dict.id" :label="dict.chnl_name" :value="dict.id" />
+          </el-select>
+
+        </el-form-item>
+        <!-- <el-form-item label="主体账号" prop="MainAccount">
+          <el-select   v-model="queryParams.MainAccount" placeholder="请选择主体账号" clearable
+            class="w100_input">
+            <el-option v-for="dict in MainAccount" :key="dict.id" :label="dict.accountName" :value="dict.id" />
+          </el-select>
+        </el-form-item> -->
+
+
+        <el-form-item :label="'商户' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" prop="merchant_order_id">
+          <el-input v-model="queryParams.merchant_order_id"
+            :placeholder="'请输入商户' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" clearable @clear="handleQuery" />
+        </el-form-item>
+        <el-form-item :label="'系统' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" prop="order_id">
+          <el-input v-model="queryParams.order_id"
+            :placeholder="'请输入系统' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" clearable @clear="handleQuery" />
+        </el-form-item>
+        <el-form-item :label="'三方平台' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" prop="platform_order_id">
+          <el-input v-model="queryParams.platform_order_id"
+            :placeholder="'请输入三方平台' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" clearable @clear="handleQuery" />
+        </el-form-item>
+        <el-form-item label="订单状态" prop="status">
+          <el-select v-model="queryParams.status" placeholder="请选择订单状态" clearable class="w100_input">
+            <el-option v-for="dict in OrderStatus" :key="dict.value" :label="dict.name" :value="dict.value"
+              v-show="dict.show == TabsChangeStatus" />
+          </el-select>
+
+        </el-form-item>
+        <el-form-item label="回调状态" prop="callback_status">
+          <el-select v-model="queryParams.callback_status" placeholder="请选择订单状态" clearable class="w100_input">
+            <el-option v-for="dict in callbackStatus" :key="dict.value" :label="dict.name" :value="dict.value" />
+          </el-select>
+
+        </el-form-item>
+        <el-form-item label="查询起始时间" prop="create_time">
+          <el-date-picker v-model="timedata.create_time" value-format="yyyy-MM-dd HH:mm:ss" type="datetime"
+            placeholder="请选择查询起始时间" class="w100_input" @change="parseTime($event, 'create_time')">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="查询截止时间" prop="end_time">
+          <el-date-picker v-model="timedata.end_time" type="datetime" value-format="yyyy-MM-dd HH:mm:ss"
+            placeholder="请选择查询截止时间" class="w100_input" @change="parseTime($event, 'end_time')">
+          </el-date-picker>
+
+        </el-form-item>
+        <!-- <el-form-item class="NoShowLabel" label="订单状态">
+
+
+        </el-form-item> -->
+      </div>
+      <div class="FlexStart">
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+        <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport">导出</el-button>
+        <slot name="btn"></slot>
+
+      </div>
+    </el-form>
+
+  </div>
+</template>
+
+<script>
+import { listChnlSetting } from "@/api/excellent/chnlSetting";
+import { listMchSetting } from "@/api/excellent/MchSetting"
+import { SubmitDownloadOrder } from "@/api/excellent/OrderRecords";
+import moment from "moment-timezone";
+export default {
+  name: 'WorkspaceJsonOrderSearch',
+  props: ['showSearch', 'TabsChangeStatus',],
+  data() {
+    return {
+      queryParams: {
+        mch_number: null,
+        merchant_order_id: null,
+        order_id: null,
+        platform_order_id: null,
+        chnl_id: null,
+        // MainAccount: null, //商户的主体账户 暂不用
+        create_time: null,
+        status: null,
+        end_time: null,
+        callback_status: null //回调状态
+
+      },
+      //展示用
+      timedata: {
+        create_time: null,
+        end_time: null
+      },
+      //支付通道
+      PaymentChannel: [],
+      //商户列表
+      MainAccount: [],
+      //通道账户配置列表
+      ChannelAccount: [],
+      //订单状态
+      // （0-成功，1-失败，2-超时，5-已处理，6-已提交）
+      OrderStatus: [
+        {
+          name: '成功',
+          value: 0,
+          show: 'history'
+        },
+        {
+          name: '失败',
+          value: 1,
+          show: 'history'
+        },
+        {
+          name: '超时',
+          value: 2,
+          show: 'history'
+        },
+        {
+          name: '已处理',
+          value: 5,
+          show: 'now'
+        },
+        {
+          name: '已提交',
+          value: 6,
+          show: 'now'
+        }
+
+      ],
+      callbackStatus: [
+        {
+          name: '已回调',
+          value: 1,
+        },
+        {
+          name: '未回调',
+          value: 0,
+        },
+
+      ]
+    };
+  },
+
+  mounted() {
+    this.handleQuery();
+
+  },
+  created() {
+    if (this.hasPermiVisible(['excellent:OrderRecords:platform'])) {
+      this.getChnl(),
+        this.getMainAccount(),
+        this.getChnlAccConfig()
+    }
+
+  },
+
+
+  methods: {
+    // 时间格式化
+    parseTime(value, index) {
+      let utcTime = this.$util.getUtcTime(value) / 1000;
+      this.$set(this.timedata, index, value);
+      this.$set(this.queryParams, index, utcTime ? utcTime : null);
+    },
+    /** 搜索按钮操作 */
+    handleQuery() {
+      this.$emit('ReturnSearch', this.queryParams);
+    },
+    RequestingDataAgain() {
+
+      this.$emit('RequestingDataAgain', this.queryParams);
+    },
+    /** 重置按钮操作 */
+    resetQuery() {
+      this.resetForm("queryForm");
+      this.timedata = {
+        create_time: null,
+        end_time: null
+      },
+        this.queryParams.end_time = null
+      this.queryParams.create_time = null
+      this.handleQuery();
+    },
+
+    //导出功能
+    handleExport() {
+      if (this.timedata.create_time && this.timedata.end_time && this.queryParams.create_time && this.queryParams.end_time) {
+        let params = {
+          ...this.queryParams,
+
+        }
+        params['time_type'] = this.TabsChangeStatus
+        params['type'] = this.$route.query.type
+        SubmitDownloadOrder(params).then(res => {
+          console.log(res);
+
+
+
+        })
+      } else {
+        this.$message({
+          message: '请选择时间',
+          type: 'warning'
+        })
+        return
+      }
+    },
+    //查询支付通道
+    getChnl() {
+
+
+    },
+    //查询主账户
+    getMainAccount() {
+      listMchSetting().then(response => {
+        this.MainAccount = response.rows
+
+        return response.rows
+      });
+    },
+    //查询通道账户列表
+    getChnlAccConfig() {
+      listChnlSetting().then(response => {
+        this.ChannelAccount = response.rows
+        return response.rows
+      });
+
+    }
+  },
+};
+</script>
+<style lang="scss" scoped>
+::v-deep .el-form-item--mini.el-form-item {
+  margin-bottom: 8px;
+}
+
+::v-deep .el-form--label-top .el-form-item__label {
+  padding: 0 0 6px 0;
+}
+
+.OrderRecords_table_search {
+  padding: 0 16px 8px 16px;
+  // margin-bottom: 20px;
+
+  .search_option_div {
+    display: grid;
+    grid-auto-rows: 1fr;
+    gap: 0 8px;
+    /* 行高均等 */
+    // grid-template-rows: repeat(2, 1fr);
+    /* 强制分为两行 */
+    grid-template-columns: repeat(auto-fill, minmax(245px, 19.5%));
+
+  }
+}
+</style>

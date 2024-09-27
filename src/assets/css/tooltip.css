@@ -1,0 +1,46 @@
+.CopyHoverTooltip {
+  position: relative;
+  /* display: inline-block; */
+  cursor: pointer;
+}
+
+.CopyHoverTooltip::after {
+  content: '双击复制文本';
+  position: absolute;
+  top: 100%; /* 控制提示框位置 */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  padding: 5px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  font-size: 12px;
+  transition: opacity 0.3s;
+  pointer-events: none; /* 防止悬停时鼠标与提示框的交互 */
+}
+
+.CopyHoverTooltip::before {
+  content: '';
+  position: absolute;
+  top: 80%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent #333  transparent;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s;
+}
+
+.CopyHoverTooltip:hover::after,
+.CopyHoverTooltip:hover::before {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0.8s;
+  opacity: 0.6;
+  z-index: 99;
+}
