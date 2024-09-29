@@ -128,7 +128,8 @@
           <el-col :lg="16" :md="16" :sm="24" class="ipWhiteList_add_list">
             <span v-for="(item, index) in ip_white_list" :key="index" class="ipWhiteList_add_options">
 
-              <span title="双击可进行修改" style="cursor: pointer;" @dblclick="UpDateWhiteList(index)">
+              <span data-tooltip="双击可进行修改" data-delay="0.3s" class="HoverTooltip" style="cursor: pointer;"
+                @dblclick="UpDateWhiteList(index)">
                 {{ item
                 }}
               </span>

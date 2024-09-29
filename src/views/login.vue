@@ -2,7 +2,7 @@
   <div class="login">
     <el-card>
       <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form">
-        <h3 class="title">PayOu后台管理系统</h3>
+        <h3 class="title">Buddy后台管理系统</h3>
         <el-form-item prop="username">
           <el-input v-model="loginForm.username" type="text" auto-complete="off" placeholder="账号">
             <svg-icon slot="prefix" icon-class="user" class="el-input__icon input-icon" />
@@ -38,7 +38,7 @@
     </el-card>
     <!--  底部  -->
     <div class="el-login-footer">
-      <span>Copyright © 2023-2024 PayOu.vip All Rights Reserved.</span>
+      <span>Copyright © 2023-2024 Buddy.in All Rights Reserved.</span>
     </div>
   </div>
 </template>
@@ -109,9 +109,9 @@ export default {
       });
     },
     getCookie() {
-      const username = Cookies.get("username");
-      const password = Cookies.get("password");
-      const rememberMe = Cookies.get('rememberMe')
+      const username = Cookies.get("Buddy-username");
+      const password = Cookies.get("Buddy-password");
+      const rememberMe = Cookies.get('Buddy-rememberMe')
       this.loginForm = {
         username: username === undefined ? this.loginForm.username : username,
         password: password === undefined ? this.loginForm.password : decrypt(password),
@@ -127,13 +127,13 @@ export default {
             this.$util.startAnimation()
 
             if (this.loginForm.rememberMe) {
-              Cookies.set("username", this.loginForm.username, { expires: 30 });
-              Cookies.set("password", encrypt(this.loginForm.password), { expires: 30 });
-              Cookies.set('rememberMe', this.loginForm.rememberMe, { expires: 30 });
+              Cookies.set("Buddy-username", this.loginForm.username, { expires: 30 });
+              Cookies.set("Buddy-password", encrypt(this.loginForm.password), { expires: 30 });
+              Cookies.set('Buddy-rememberMe', this.loginForm.rememberMe, { expires: 30 });
             } else {
-              Cookies.remove("username");
-              Cookies.remove("password");
-              Cookies.remove('rememberMe');
+              Cookies.remove("Buddy-username");
+              Cookies.remove("Buddy-password");
+              Cookies.remove('Buddy-rememberMe');
             }
             console.log("login");
 

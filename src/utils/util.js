@@ -1,4 +1,4 @@
-import { Message } from "element-ui";
+import { Message, Notification } from "element-ui";
 //节流函数
 export function throttle(func, limit) {
   let lastFunc;
@@ -81,7 +81,19 @@ export const copyToClipboard = (event, key = "") => {
   navigator.clipboard
     .writeText(event)
     .then(() => {
-      Message.success((key ? key : "文本") + "已成功复制到剪贴板！");
+      if (key) {
+        Message.success(key + "已成功复制到剪贴板！");
+      } else {
+        Notification({
+          title: "成功复制到剪贴板",
+          customClass: "NotificationMessage",
+          message: event,
+          // "<div style='width:200px;'><strong >" + event + "</strong></div>",
+          duration: 1000,
+          dangerouslyUseHTMLString: true,
+          type: "success",
+        });
+      }
     })
     .catch((err) => {
       console.error("复制失败：", err);

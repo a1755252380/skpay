@@ -58,13 +58,18 @@ var SVGElement = (function () {
 })();
 
 var colors = [
-  { main: "#2291F6", shades: ["#FAE073", "#FCE790", "#FADD65", "#E4C650"] },
-  { main: "#F63433", shades: ["#F7B989", "#F9CDAA", "#DD8644", "#F39C59"] },
-  { main: "#F6B169", shades: ["#EE7293", "#F191AB", "#D64D72", "#C04567"] },
-  { main: "#2291F6", shades: ["#B084B6", "#C19FC7", "#916198", "#82588A"] },
-  { main: "#06A281", shades: ["#6382B9", "#829BC7", "#4D6CA3", "#3E5782"] },
-  { main: "#2BB19B", shades: ["#4DBFAD", "#73CDBF", "#27A18D", "#1F8171"] },
-  { main: "#70B984", shades: ["#7FBE90", "#98CBA6", "#68A87A", "#5E976E"] },
+  { main: " #15E7D6", shades: ["#FAE073", "#FCE790", "#FADD65", "#E4C650"] },
+  { main: "#2D2C2C", shades: ["#F7B989", "#F9CDAA", "#DD8644", "#F39C59"] },
+  { main: "#15E7D6", shades: ["#EE7293", "#F191AB", "#D64D72", "#C04567"] },
+  { main: "#15E7D6", shades: ["#B084B6", "#C19FC7", "#916198", "#82588A"] },
+  { main: "#2D2C2C", shades: ["#6382B9", "#829BC7", "#4D6CA3", "#3E5782"] },
+  // { main: "#2291F6", shades: ["#FAE073", "#FCE790", "#FADD65", "#E4C650"] },
+  // { main: "#F63433", shades: ["#F7B989", "#F9CDAA", "#DD8644", "#F39C59"] },
+  // { main: "#F6B169", shades: ["#EE7293", "#F191AB", "#D64D72", "#C04567"] },
+  // { main: "#2291F6", shades: ["#B084B6", "#C19FC7", "#916198", "#82588A"] },
+  // { main: "#06A281", shades: ["#6382B9", "#829BC7", "#4D6CA3", "#3E5782"] },
+  // { main: "#2BB19B", shades: ["#4DBFAD", "#73CDBF", "#27A18D", "#1F8171"] },
+  // { main: "#70B984", shades: ["#7FBE90", "#98CBA6", "#68A87A", "#5E976E"] },
 ];
 var svg = selectSVG("svg");
 var text = document.getElementById("text");
@@ -75,7 +80,8 @@ var height = window.innerHeight;
 var textSize = 0;
 var textCenter = 0;
 var letters = [];
-var prompt = ["P", "a", "y", "o", "u"];
+// 2-buddy
+var prompt = ["B", "u", "d", "d", "y"];
 var runPrompt = true;
 var First = true;
 var resizePage = function resizePage() {

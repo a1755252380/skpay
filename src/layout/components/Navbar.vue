@@ -29,7 +29,8 @@
       <el-dropdown class="avatar-container right-menu-item hover-effect" trigger="click">
         <div class="avatar-wrapper">
           <!-- <img :src="avatar" class="user-avatar"> -->
-          <el-avatar :size="30">{{ $store.state.user.name[0] | NameFilters }}</el-avatar>
+          <el-avatar :size="30" :style="{ '--color': this.$store.state.settings.theme }">{{ $store.state.user.name[0] |
+            NameFilters }}</el-avatar>
           <i class="el-icon-caret-bottom" style="    right: -10px;
     top: 28px;" />
         </div>
@@ -121,7 +122,7 @@ export default {
 
 <style lang="scss" scoped>
 ::v-deep .el-avatar {
-  background: #a86a59 !important;
+  background: var(--color) !important;
   font-size: 18px !important;
   line-height: 30px !important;
   margin-top: 5px !important;

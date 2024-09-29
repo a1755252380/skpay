@@ -3,8 +3,8 @@
     :style="{ backgroundColor: sideTheme === 'theme-dark' ? variables.menuBackground : variables.menuLightBackground }">
     <transition name="sidebarLogoFade">
       <router-link v-if="collapse" key="collapse" class="sidebar-logo-link" to="/">
-        <img :src="logo" class="sidebar-logo" v-if="!collapse" />
-        <span v-else class="logo_title"> P</span>
+        <img :src="sideTheme === 'theme-dark' ? darkImg : logo" class="sidebar-logo" v-if="!collapse" />
+        <span v-else class="logo_title" :style="{ 'background': $store.state.settings.theme }"> B</span>
 
         <!-- <img v-if="logo" :src="logo" class="sidebar-logo" />
         <h1 v-else class="sidebar-title"
@@ -12,8 +12,8 @@
             title }} </h1> -->
       </router-link>
       <router-link v-else key="expand" class="sidebar-logo-link" to="/">
-        <img :src="logo" class="sidebar-logo" v-if="!collapse" />
-        <span v-else class="logo_title"> P</span>
+        <img :src="sideTheme === 'theme-dark' ? darkImg : logo" class="sidebar-logo" v-if="!collapse" />
+        <span v-else class="logo_title" :style="{ 'background': $store.state.settings.theme }"> B</span>
         <!-- <img v-if="logo" :src="logo" class="sidebar-logo" />
         <h1 class="sidebar-title"
           :style="{ color: sideTheme === 'theme-dark' ? variables.logoTitleColor : variables.logoLightTitleColor }">{{
@@ -25,6 +25,7 @@
 
 <script>
 import logoImg from '@/assets/logo/logo2.png'
+import logoImgDark from '@/assets/logo/buddy_black.png'
 import variables from '@/assets/styles/variables.scss'
 
 export default {
@@ -46,7 +47,8 @@ export default {
   data() {
     return {
       title: process.env.VUE_APP_TITLE,
-      logo: logoImg
+      logo: logoImg,
+      darkImg: logoImgDark
     }
   }
 }
@@ -83,11 +85,11 @@ export default {
     //   margin-right: 12px;
     // }
     & .sidebar-logo {
-      width: 115px;
-      height: 62px;
+      width: 115%;
       vertical-align: middle;
-      margin-right: 12px;
-      margin-top: 17px;
+      margin-left: -10px;
+      margin-top: -32px;
+      margin-bottom: 0px;
     }
 
     & .sidebar-title {
@@ -111,7 +113,7 @@ export default {
 
 .logo_title {
   padding: 3px 12px;
-  background: #2192F5;
+
   color: #fff;
   font-size: 20px;
   position: relative;

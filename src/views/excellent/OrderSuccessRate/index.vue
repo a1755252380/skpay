@@ -16,7 +16,7 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </div>
 
-    <dynamicTableVue :loading="loading" :tableData="OrderSuccessRateListSort" :cellClassName="'CopyHoverTooltip'"
+    <dynamicTableVue :loading="loading" :tableData="OrderSuccessRateListSort" :cellClassName="'HoverTooltipCopy'"
       @cellDblclick="cellDblclick">
       <el-table-column prop="mch_number" label="商户号" align="center">
 

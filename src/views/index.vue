@@ -94,7 +94,7 @@ export default {
           name: "代付总数",
           value: 0, key: 'payout_total_count',
           precision: 0,
-          color: 'rgb(59 130 246)'
+          color: this.$store.state.settings.theme
         },
         {
           name: "代付成功金额",
@@ -108,7 +108,7 @@ export default {
           value: 0, key: 'payout_total_amount',
           precision: 2,
           currency: '$',
-          color: 'rgb(59 130 246)'
+          color: this.$store.state.settings.theme
         },
         {
           name: "代付在途订单数",
@@ -136,7 +136,7 @@ export default {
           value: 0, key: 'payout_pending_total_amount',
           precision: 2,
           currency: '$',
-          color: 'rgb(59 130 246)'
+          color: this.$store.state.settings.theme
         },
 
 
@@ -159,7 +159,7 @@ export default {
           value: 0,
           key: 'payin_total_count',
           precision: 0,
-          color: 'rgb(59 130 246)'
+          color: this.$store.state.settings.theme
         },
 
         {
@@ -174,7 +174,7 @@ export default {
           name: "代收总金额",
           value: 0,
           key: 'payin_total_amount',
-          color: 'rgb(59 130 246)',
+          color: this.$store.state.settings.theme,
           precision: 2,
           currency: '$'
         },
@@ -189,7 +189,7 @@ export default {
           name: "代收在途总金额",
           value: 0,
           key: 'payin_pending_total_amount',
-          color: "rgb(59 130 246)",
+          color: this.$store.state.settings.theme,
           precision: 2,
           currency: '$'
         },
@@ -209,7 +209,7 @@ export default {
           key: 'payin_service_amount',
 
           precision: 2,
-          currency: '$', color: 'rgb(59 130 246)'
+          currency: '$', color: this.$store.state.settings.theme
         },
 
 

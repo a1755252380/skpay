@@ -24,85 +24,59 @@
         <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
       </OrderSearch>
 
-      <dynamicTableVue :loading="loading" :tableData="paginatedItems" ref="myTable"
-        @handleSelectionChange="handleSelectionChange">
+      <dynamicTableVue :loading="loading" :tableData="paginatedItems" ref="myTable" @cellDblclick="(row, column, cell, event) => {
+        this.$util.copyToClipboard(cell.innerText);
+      }" :cellClassName="'HoverTooltipCopy'" @handleSelectionChange="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center"
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
         </el-table-column>
         <!-- <el-table-column label="订单id" align="center" prop="id" /> -->
         <el-table-column label="商户号" align="center" prop="mch_number" width="100"
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
-          <template slot-scope="scope">
-            <div @click="$util.onPaste(scope.row.mch_number)">
-              {{ scope.row.mch_number }}
-            </div>
-          </template>
+
         </el-table-column>
         <el-table-column label="商户订单号" align="center" prop="merchant_order_id" min-width="200">
-          <template slot-scope="scope">
-            <div @click="$util.copyToClipboard(scope.row.merchant_order_id)">
-              {{ scope.row.merchant_order_id }}
-            </div>
-          </template>
+
         </el-table-column>
         <el-table-column label="系统订单号" align="center" prop="_id" min-width="130">
-          <template slot-scope="scope">
-            <div @click="$util.copyToClipboard(scope.row._id)">
-              {{ scope.row._id }}
-            </div>
-          </template>
+
         </el-table-column>
         <el-table-column label="三方订单号" align="center" prop="platform_order_id"
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" min-width="180" show-overflow-tooltip>
-          <template slot-scope="scope">
-            <div class="" style="display: flex; justify-content: center; width: 100%">
-              <div @click="$util.copyToClipboard(scope.row.platform_order_id)" class="truncate"
-                style="width: 80%; text-align: center">
-                {{ scope.row.platform_order_id }}
-              </div>
-            </div>
-          </template>
+
         </el-table-column>
 
-        <el-table-column label="金额" align="center" width="100">
-          <template slot-scope="scope">
-            <span>{{ scope.row.amount | formatValue }}</span>
-          </template>
+        <el-table-column label="金额" align="center" width="100" prop="amount" :formatter="Formatter.TableAmount">
+
         </el-table-column>
-        <el-table-column label="创建时间" align="center" prop="create_time" min-width="155">
-          <template slot-scope="scope">
-            <span>{{ scope.row.create_time | formatTime }}</span>
-          </template>
+        <el-table-column label="创建时间" align="center" prop="create_time" min-width="155"
+          :formatter="Formatter.TableTimeSecond">
+
         </el-table-column>
-        <el-table-column label="更新时间" align="center" prop="update_time" min-width="155">
-          <template slot-scope="scope">
-            <span>{{ scope.row.update_time | formatTime }}</span>
-          </template>
+        <el-table-column label="更新时间" align="center" prop="update_time" min-width="155"
+          :formatter="Formatter.TableTimeSecond">
+
         </el-table-column>
         <!-- <el-table-column label="用户手机号" align="center" prop="user_phone" /> -->
 
-        <el-table-column label="状态" align="center" prop="status" width="100">
+        <el-table-column label="状态" align="center" prop="status" width="100" class-name="NoTooltip">
           <template slot-scope="scope">
             <el-tag :type="formatStatus(scope.row.status).type">{{
               formatStatus(scope.row.status).name
-              }}</el-tag>
+            }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="回调状态" align="center" prop="callback_status" width="100">
+        <el-table-column label="回调状态" align="center" prop="callback_status" width="100" class-name="NoTooltip">
           <template slot-scope="scope">
             <el-tag :type="formatCallbackStatus(scope.row.callback_status).type">{{
               formatCallbackStatus(scope.row.callback_status).name
-            }}</el-tag>
+              }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="通道名称" align="center" prop="chnl_name"
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" />
         <el-table-column label="UTR" align="center" prop="utr" width="170">
-          <template slot-scope="scope">
-            <div @click="$util.copyToClipboard(scope.row.utr)">
-              {{ scope.row.utr }}
-            </div>
-          </template>
+
         </el-table-column>
         <!-- <el-table-column label="通道费率" align="center" prop="chnl_fee_ratio" width="80" />
         <el-table-column label="商户费率" align="center" prop="mch_fee_ratio" width="80" />

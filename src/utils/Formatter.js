@@ -1,3 +1,5 @@
+import moment from "moment";
+
 export function TableAmount(row, column, cellValue, index) {
   let value = (cellValue / 100).toFixed(2);
   if (value) {
@@ -13,8 +15,13 @@ export function TableRate(row, column, cellValue, index) {
     return "0.00%";
   }
 }
+
+export function TableTimeSecond(row, column, cellValue, index) {
+  return moment(cellValue * 1000)
+    .tz("Asia/Kolkata")
+    .format("YYYY-MM-DD HH:mm:ss");
+}
 //格式化时间
-import moment from "moment";
 export function FormatTime(event, type = "YYYY-MM-DD HH:mm:ss") {
   return moment(event).tz("Asia/Kolkata").format(type);
 }

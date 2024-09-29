@@ -5,8 +5,8 @@
       <el-table :data="tableData" border :key="tableId" @selection-change="handleSelectionChange" class="DynamicTable"
         header-cell-class-name="DynamicTable_header" :height="height" :resizable="false" :default-sort="defaultSort"
         :highlight-selection-row="false" :ref="'DynamicTable' + tableId" row-class-name="DynamicTable_row"
-        :cell-class-name="'DynamicTable_cell ' + cellClassName" v-table-move="['DynamicTable' + tableId]"
-        @cell-dblclick="cellDblclick" @sort-change="handleSort">
+        :cell-class-name="cellClassNameFunction" v-table-move="['DynamicTable' + tableId]" @cell-dblclick="cellDblclick"
+        @sort-change="handleSort">
         <slot></slot>
       </el-table>
     </transition>
@@ -127,6 +127,24 @@ export default {
       console.log(column, prop, order);
 
       this.$emit("handleSortChange", { prop, order });
+    },
+    cellClassNameFunction({ row, column, rowIndex, columnIndex }) {
+      console.log(row, column, rowIndex, columnIndex);
+      if (column.type == "selection" || column.label == "操作") {
+        return 'DynamicTable_cell'
+      } else {
+        if (typeof this.cellClassName == "string") {
+          return this.cellClassName
+        } else {
+          let classname = 'DynamicTable_cell '
+          for (let index = 0; index < this.cellClassName.length; index++) {
+            classname += this.cellClassName[index] + ' '
+
+          }
+          return classname
+        }
+
+      }
     }
   },
 };
@@ -134,6 +152,7 @@ export default {
 <style lang="scss" scoped>
 .table-container {
   flex: 1;
+  margin: 0 4px;
 }
 
 // #f7f7f7
