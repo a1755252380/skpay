@@ -11,34 +11,29 @@
         :TabsChangeStatus="queryPage.type" @RequestingDataAgain="RequestingDataAgain"></mchAccFlowSearchVue>
       <dynamicTableVue :loading="loading" :tableData="paginatedItems" @cellDblclick="cellDblclick"
         :cellClassName="' CopyHoverTooltip'" ref="myTable">
+        <el-table-column label="流水号" align="center" prop="_id" width="230" />
+
         <el-table-column label="商户号 " align="center" prop="mch_number" />
-        <el-table-column label="账户初期金额" align="center" prop="mch_start_balance">
+        <el-table-column label="账户初期金额" align="center" prop="mch_start_balance" :formatter="Formatter.TableAmount">
+
+
+        </el-table-column>
+        <el-table-column label="账户末期金额" align="center" prop="mch_final_balance" :formatter="Formatter.TableAmount">
+
+
+        </el-table-column>
+        <el-table-column label="订单金额" align="center" prop="amount" :formatter="Formatter.TableAmount">
+
+        </el-table-column>
+        <el-table-column label="订单变动金额 " align="center" prop="settle_amount" :formatter="Formatter.TableAmount">
           <template slot-scope="scope">
-            <span>{{ scope.row.mch_start_balance | NumFormat }}</span>
+            <span>{{ NumFormat(scope.row.settle_amount, scope.row.msg) }}</span>
           </template>
 
         </el-table-column>
-        <el-table-column label="账户末期金额" align="center" prop="mch_final_balance">
-          <template slot-scope="scope">
-            <span>{{ scope.row.mch_final_balance | NumFormat }}</span>
-          </template>
 
-        </el-table-column>
-        <el-table-column label="订单变动金额 " align="center" prop="settle_amount">
-          <template slot-scope="scope">
-            <span>{{ scope.row.settle_amount | NumFormat }}</span>
-          </template>
-
-        </el-table-column>
-        <el-table-column label="手续费变动金额" align="center" prop="service_charge">
-          <template slot-scope="scope">
-            <span>{{ scope.row.service_charge | NumFormat }}</span>
-          </template>
-
-        </el-table-column>
         <el-table-column label="资金变动原因" align="center" prop="msg" :show-overflow-tooltip="true" />
         <el-table-column label="资金变动类型" align="center" prop="operation" :formatter="typeFormatter" />
-        <el-table-column label="订单号" align="center" prop="_id" width="230" />
         <el-table-column label="相关订单号" align="center" prop="merchant_order_id" />
         <el-table-column label="创建时间" align="center" prop="update_time">
           <template slot-scope="scope">
@@ -60,15 +55,7 @@ import mchAccFlowSearchVue from './mchAccFlowSearch.vue';
 
 export default {
   name: "MchAccFlow",
-  filters: {
-    NumFormat(val) {
-      if (val) {
-        return (val / 100).toFixed(2);
-      } else {
-        return 0.00;
-      }
-    }
-  },
+
   data() {
     return {
       loading: true,
@@ -101,6 +88,16 @@ export default {
     },
   },
   methods: {
+    //订单变动金额格式化
+    NumFormat(value, index) {
+      if (index == 'Reduce' || index == 'Frozen') {
+        return -(Math.floor(value) / 100).toFixed(2)
+      } else if (index == 'Increase' || index == 'Refund') {
+        return (Math.floor(value) / 100).toFixed(2)
+      } else {
+        return (Math.floor(value) / 100).toFixed(2)
+      }
+    },
     TabsChange(value) {
       if (value.name) {
         this.queryPage.type = null

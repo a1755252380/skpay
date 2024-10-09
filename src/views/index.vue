@@ -8,14 +8,17 @@
   -->
     <template v-if="$store.state.user.roles.includes('admin')">
       <!-- <el-card header="当日代收数据统计" class="index_card"> -->
+      <div class="index_title">当日代收数据统计</div>
+
       <MerchantAccountStatistics :LineTitle="'代收成功率'" ref="MerchantAccountStatistics" class="index_card"
         :CardData="AgencyAccountStatisticsCard">
       </MerchantAccountStatistics>
       <!-- </el-card> -->
       <!-- v-if="userType === 0" -->
       <!-- <el-card header="当日代付数据统计" class="index_card"> -->
+      <div class="index_title">当日代付数据统计</div>
       <DailyPaymentDataStatisticsVue :LineTitle="'代付成功率'" ref="SuccessRateOfProxyPayment" class="index_card"
-        style="background: #F8FAFC; padding:  2rem;" :CardData="PaymentDataStatistics">
+        :CardData="PaymentDataStatistics">
       </DailyPaymentDataStatisticsVue>
       <!-- </el-card> -->
 
@@ -304,8 +307,6 @@ export default {
       for (let index = 0; index < this.PaymentDataStatistics.length; index++) {
         let reslut;
         if (this.PaymentDataStatistics[index].key == 'rate') {
-          console.log((data.payout_success_count / data.payout_total_count).toFixed(4));
-
           reslut = (data.payout_success_count / data.payout_total_count) && !isNaN((data.payout_success_count / data.payout_total_count).toFixed(4)) ? (data.payout_success_count / data.payout_total_count).toFixed(4) * 100 : 0
 
         } else {
@@ -332,9 +333,8 @@ export default {
       let reslut;
       for (let index = 0; index < this.AgencyAccountStatisticsCard.length; index++) {
         if (this.AgencyAccountStatisticsCard[index].key == 'rate') {
-          console.log((data.payin_success_count / data.payin_total_count).toFixed(4) * 100);
 
-          reslut = (data.payin_success_count / data.payin_total_count).toFixed(4) ? (data.payin_success_count / data.payin_total_count).toFixed(4) * 100 : 0;
+          reslut = (data.payin_success_count / data.payin_total_count).toFixed(4) && !isNaN((data.payin_success_count / data.payin_total_count).toFixed(4)) ? (data.payin_success_count / data.payin_total_count).toFixed(4) * 100 : 0;
 
         } else {
           reslut = data[this.AgencyAccountStatisticsCard[index].key] ? data[this.AgencyAccountStatisticsCard[index].key] : 0
@@ -388,6 +388,7 @@ export default {
 .ele-body-card {
   padding: 0;
   // background: rgb(241, 244, 249) ;
+  min-height: inherit;
   background: #F8FAFC;
 }
 
@@ -406,6 +407,17 @@ export default {
   border-bottom: none !important;
   font-size: 18px;
   font-weight: 600;
+}
+
+.index_title {
+  border-bottom: none !important;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 0 16px;
+}
+
+.index_title:first-child {
+  padding-top: 16px;
 }
 </style>
 <!--<style scoped lang="scss">-->

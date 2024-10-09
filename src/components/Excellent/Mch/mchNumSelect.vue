@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import { listMchAccConfig } from "@/api/excellent/mchAccConfig";
+import { listMchSetting } from "@/api/excellent/MchSetting";
 export default {
   name: 'ClientSearchList',
   // 自定义 v-model 的 prop 和事件
@@ -75,7 +75,7 @@ export default {
         mch_number: value,
         mch_name: null,
       };
-      listMchAccConfig(query).then((response) => {
+      listMchSetting(query).then((response) => {
         if (response.rows.length != 0) {
           this.ClientSearchList = response.rows;
         }

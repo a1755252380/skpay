@@ -1,7 +1,7 @@
 import { login, logout, getInfo, refreshToken } from "@/api/login";
 import { getToken, setToken, setExpiresIn, removeToken } from "@/utils/auth";
 import jsCookie from "js-cookie";
-
+import router from "@/router";
 const user = {
   state: {
     token: getToken(),
@@ -70,27 +70,33 @@ const user = {
     // 获取用户信息
     GetInfo({ commit, state }) {
       return new Promise((resolve, reject) => {
-        getInfo().then((res) => {
-          res = res.user_info;
-          // const avatar =
-          //   user.avatar == "" || user.avatar == null
-          //     ? require("@/assets/images/profile.jpg")
-          //     : user.avatar;
-          // if (res.roles && res.roles.length > 0) {
-          //   // 验证返回的roles是否是一个非空数组
-          //   commit("SET_ROLES", res.role_name);
-          //   commit("SET_PERMISSIONS", res.username);
-          // } else {
-          //   commit("SET_ROLES", ["ROLE_DEFAULT"]);
-          // }
+        getInfo()
+          .then((res) => {
+            res = res.user_info;
+            // const avatar =
+            //   user.avatar == "" || user.avatar == null
+            //     ? require("@/assets/images/profile.jpg")
+            //     : user.avatar;
+            // if (res.roles && res.roles.length > 0) {
+            //   // 验证返回的roles是否是一个非空数组
+            //   commit("SET_ROLES", res.role_name);
+            //   commit("SET_PERMISSIONS", res.username);
+            // } else {
+            //   commit("SET_ROLES", ["ROLE_DEFAULT"]);
+            // }
 
-          commit("SET_ROLES", res.power);
-          commit("SET_PERMISSIONS", res.username);
-          commit("SET_ID", res.user_id);
-          commit("SET_NAME", res.username);
-          // commit("SET_AVATAR", avatar);
-          resolve(res);
-        });
+            commit("SET_ROLES", res.power);
+            commit("SET_PERMISSIONS", res.username);
+            commit("SET_ID", res.user_id);
+            commit("SET_NAME", res.username);
+            // commit("SET_AVATAR", avatar);
+            resolve(res);
+          })
+          .catch((res) => {
+            commit("SET_ROLES", null);
+
+            router.push({ path: "/login" });
+          });
       });
     },
 

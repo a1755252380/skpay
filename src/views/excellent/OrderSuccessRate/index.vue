@@ -57,7 +57,7 @@
       <el-table-column prop="payout_success_count" label="代付成功订单总数" align="center">
 
       </el-table-column>
-      <el-table-column prop="payout_total_amount" label="代付成功订单总额" align="center" :formatter="Formatter.TableAmount">
+      <el-table-column prop="payout_success_amount" label="代付成功订单总额" align="center" :formatter="Formatter.TableAmount">
 
       </el-table-column>
 
@@ -74,6 +74,7 @@
       <el-table-column prop="payout_pending_count" label="代付在途金额总数" align="center" :formatter="Formatter.TableAmount">
 
       </el-table-column>
+
     </dynamicTableVue>
   </div>
 </template>
@@ -126,7 +127,7 @@ export default {
             payout_success_count: 0,
             payout_success_rate: 0,
             payout_total_amount: 0,
-            payout_total_count: 0,
+            payout_total_count: 0, payout_pending_amount_count: 0, payout_pending_count: 0
           });
         }
         this.getList();

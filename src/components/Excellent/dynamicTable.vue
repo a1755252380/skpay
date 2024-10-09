@@ -129,7 +129,7 @@ export default {
       this.$emit("handleSortChange", { prop, order });
     },
     cellClassNameFunction({ row, column, rowIndex, columnIndex }) {
-      console.log(row, column, rowIndex, columnIndex);
+      // console.log(row, column, rowIndex, columnIndex);
       if (column.type == "selection" || column.label == "操作") {
         return 'DynamicTable_cell'
       } else {

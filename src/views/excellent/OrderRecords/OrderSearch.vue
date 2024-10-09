@@ -5,7 +5,7 @@
       label-width="140px">
       <div class="search_option_div">
         <el-form-item label="商户" prop="mch_number" v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
-          <el-select v-model="queryParams.mch_num" placeholder="请选择商户" clearable class="w100_input">
+          <el-select v-model="queryParams.mch_number" placeholder="请选择商户" clearable class="w100_input">
             <el-option v-for="dict in MainAccount" :key="dict.id" :label="dict.mch_num" :value="dict.mch_num" />
           </el-select>
 
@@ -49,7 +49,19 @@
           </el-select>
 
         </el-form-item>
-        <el-form-item label="查询起始时间" prop="create_time">
+        <el-form-item label="创建时间" prop="create_time">
+          <el-date-picker v-model="timedata.create_time" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss"
+            range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间"
+            @change="parseTime($event, 'create_time')">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="更新时间" prop="update_time">
+          <el-date-picker v-model="timedata.update_time" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss"
+            range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间"
+            @change="parseTime($event, 'update_time')">
+          </el-date-picker>
+        </el-form-item>
+        <!-- <el-form-item label="查询起始时间" prop="create_time">
           <el-date-picker v-model="timedata.create_time" value-format="yyyy-MM-dd HH:mm:ss" type="datetime"
             placeholder="请选择查询起始时间" class="w100_input" @change="parseTime($event, 'create_time')">
           </el-date-picker>
@@ -59,11 +71,8 @@
             placeholder="请选择查询截止时间" class="w100_input" @change="parseTime($event, 'end_time')">
           </el-date-picker>
 
-        </el-form-item>
-        <!-- <el-form-item class="NoShowLabel" label="订单状态">
-
-
         </el-form-item> -->
+
       </div>
       <div class="FlexStart">
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -81,10 +90,9 @@
 import { listChnlSetting } from "@/api/excellent/chnlSetting";
 import { listMchSetting } from "@/api/excellent/MchSetting"
 import { SubmitDownloadOrder } from "@/api/excellent/OrderRecords";
-import moment from "moment-timezone";
 export default {
   name: 'WorkspaceJsonOrderSearch',
-  props: ['showSearch', 'TabsChangeStatus',],
+  props: ['showSearch', 'TabsChangeStatus'],
   data() {
     return {
       queryParams: {
@@ -94,16 +102,23 @@ export default {
         platform_order_id: null,
         chnl_id: null,
         // MainAccount: null, //商户的主体账户 暂不用
-        create_time: null,
         status: null,
         end_time: null,
-        callback_status: null //回调状态
-
+        callback_status: null, //回调状态
+        //创建时间
+        create_time: null,
+        create_end_time: null,
+        //更新时间
+        update_time: null,
+        update_end_time: null
       },
+
       //展示用
       timedata: {
-        create_time: null,
-        end_time: null
+        // create_time: null,
+        // end_time: null
+        create_time: [],
+        update_time: []
       },
       //支付通道
       PaymentChannel: [],
@@ -160,11 +175,9 @@ export default {
 
   },
   created() {
-    if (this.hasPermiVisible(['excellent:OrderRecords:platform'])) {
-      this.getChnl(),
-        this.getMainAccount(),
-        this.getChnlAccConfig()
-    }
+    this.getChnl()
+    this.getMainAccount()
+    this.getChnlAccConfig()
 
   },
 
@@ -172,9 +185,28 @@ export default {
   methods: {
     // 时间格式化
     parseTime(value, index) {
-      let utcTime = this.$util.getUtcTime(value) / 1000;
-      this.$set(this.timedata, index, value);
-      this.$set(this.queryParams, index, utcTime ? utcTime : null);
+      // console.log(value, index);
+      let utcTime, utcEndTime = null;
+      if (value) {
+        utcTime = this.$util.getUtcTime(value[0]) / 1000;
+        utcEndTime = this.$util.getUtcTime(value[1]) / 1000;
+      }
+
+      console.log(utcTime, utcEndTime);
+
+      if (index == 'create_time') {
+        this.$set(this.queryParams, 'create_time', utcTime ? utcTime : null);
+        this.$set(this.queryParams, 'create_end_time', utcEndTime ? utcEndTime : null);
+      }
+      if (index == 'update_time') {
+        this.$set(this.queryParams, 'update_time', utcTime ? utcTime : null);
+        this.$set(this.queryParams, 'update_end_time', utcEndTime ? utcEndTime : null);
+      }
+
+      // let utcTime = this.$util.getUtcTime(value) / 1000;
+
+      // this.$set(this.timedata, index, value);
+      // this.$set(this.queryParams, index, utcTime ? utcTime : null);
     },
     /** 搜索按钮操作 */
     handleQuery() {
@@ -188,32 +220,30 @@ export default {
     resetQuery() {
       this.resetForm("queryForm");
       this.timedata = {
-        create_time: null,
-        end_time: null
+        create_time: [],
+        end_time: []
       },
-        this.queryParams.end_time = null
+        this.queryParams.create_end_time = null
       this.queryParams.create_time = null
+      this.queryParams.update_time = null
+      this.queryParams.update_end_time = null
       this.handleQuery();
     },
 
     //导出功能
     handleExport() {
-      if (this.timedata.create_time && this.timedata.end_time && this.queryParams.create_time && this.queryParams.end_time) {
+      if ((this.queryParams.create_end_time && this.queryParams.create_time) || (this.queryParams.update_time && this.queryParams.update_end_time)) {
         let params = {
           ...this.queryParams,
-
         }
         params['time_type'] = this.TabsChangeStatus
         params['type'] = this.$route.query.type
         SubmitDownloadOrder(params).then(res => {
           console.log(res);
-
-
-
         })
       } else {
         this.$message({
-          message: '请选择时间',
+          message: '请选择创建时间/更新时间',
           type: 'warning'
         })
         return
@@ -221,6 +251,13 @@ export default {
     },
     //查询支付通道
     getChnl() {
+      if (!this.hasPermiVisible(['excellent:OrderRecords:platform'])) {
+        return
+      }
+      listChnlSetting().then(response => {
+        this.PaymentChannel = response.rows
+        return response.rows
+      });
 
 
     },
@@ -234,6 +271,9 @@ export default {
     },
     //查询通道账户列表
     getChnlAccConfig() {
+      if (!this.hasPermiVisible(['excellent:OrderRecords:platform'])) {
+        return
+      }
       listChnlSetting().then(response => {
         this.ChannelAccount = response.rows
         return response.rows
@@ -250,6 +290,15 @@ export default {
 
 ::v-deep .el-form--label-top .el-form-item__label {
   padding: 0 0 6px 0;
+}
+
+::v-deep .el-date-editor--datetimerange.el-input,
+.el-date-editor--datetimerange.el-input__inner {
+  width: 100%;
+}
+
+::v-deep .el-range-editor .el-range-input::placeholder {
+  font-size: 13px
 }
 
 .OrderRecords_table_search {

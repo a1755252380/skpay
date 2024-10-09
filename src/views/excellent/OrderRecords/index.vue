@@ -6,12 +6,7 @@
       <el-tab-pane :label="'历史' + (this.queryPage.type == 1 ? '代付' : '代收') + '订单'" name="history"></el-tab-pane>
     </el-tabs>
 
-    <!-- <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-          v-hasPermi="['excellent:OrderRecords:add']">新增</el-button>
-      </el-col>
-    </el-row> -->
+
     <div class="OrderRecords_table FlexColumn" v-loading="TabsChangeloading">
       <!-- 筛选条件模块 -->
       <OrderSearch :showSearch="showSearch" ref="search" @ReturnSearch="ReturnSearch"
@@ -28,6 +23,7 @@
         this.$util.copyToClipboard(cell.innerText);
       }" :cellClassName="'HoverTooltipCopy'" @handleSelectionChange="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center"
+          :selectable="(row, index) => { return row.status != 0 }"
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
         </el-table-column>
         <!-- <el-table-column label="订单id" align="center" prop="id" /> -->
@@ -87,7 +83,7 @@
             <el-button size="mini" type="text" icon="el-icon-refresh" @click="handleCallback(scope.row)"
               v-hasPermi="['excellent:OrderRecords:edit']">回调</el-button>
             <el-button size="mini" type="text" icon="el-icon-refresh" @click="handleChangeOrderStatus(scope.row)"
-              v-hasPermi="['excellent:OrderRecords:edit']">调整</el-button>
+              v-hasPermi="['excellent:OrderRecords:edit']" v-if="scope.row.status != 0">调整</el-button>
             <el-button size="mini" type="text" icon="el-icon-view" @click="WarchDeatil(scope.row)">详情</el-button>
           </template>
         </el-table-column>
@@ -165,7 +161,7 @@ export default {
       const date = new Date(milliseconds * 1000);
 
       // 使用 moment 进行格式化，指定时区为 IST
-      return moment(date).tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
+      return moment(date).tz("Asia/Kolkata").formatter("YYYY-MM-DD HH:mm:ss");
     },
   },
   components: {
@@ -309,16 +305,16 @@ export default {
               type: "tag",
               Jurisdiction: "",
             },
-            {
-              label: "订单时间",
-              key: "amount",
-              Jurisdiction: "",
-            },
-            {
-              label: "订单备注",
-              key: "amount",
-              Jurisdiction: "",
-            },
+            // {
+            //   label: "订单时间",
+            //   key: "amount",
+            //   Jurisdiction: "",
+            // },
+            // {
+            //   label: "订单备注",
+            //   key: "amount",
+            //   Jurisdiction: "",
+            // },
           ],
         },
         {
@@ -461,14 +457,30 @@ export default {
     },
     //点击回调
     handleCallback(value) {
-      let query = {
-        _id: value._id,
-        mch_number: value.mch_number,
-        order_type: parseInt(this.queryPage.type),
-        operation: 3,
-      };
+      this.$confirm('是否对该订单进行回调？', '确认信息', {
+        distinguishCancelAndClose: true,
+        confirmButtonText: '确定',
+        cancelButtonText: '取消'
+      })
+        .then(res => {
+          let query = {
+            _id: value._id,
+            mch_number: value.mch_number,
+            order_type: parseInt(this.queryPage.type),
+            operation: 3,
+          };
 
-      this.ChangeOrderStatus(query);
+          this.ChangeOrderStatus(query);
+
+
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消'
+          });
+        });
+
+
     },
 
     OpenBatchModification() {
@@ -495,6 +507,7 @@ export default {
     },
     /** 查询订单列表 */
     getList(queryParams) {
+
       // this.loading = true;
       let query = { ...queryParams, ...this.queryPage };
 

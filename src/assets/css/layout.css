@@ -1,3 +1,7 @@
+
+#app * {
+  font-family: 'Noto Sans SC';
+}
 .fulltable_div{
   min-height: inherit;
   display: flex;

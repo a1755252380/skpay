@@ -1,7 +1,7 @@
 <template>
   <el-select v-model="SelectData" clearable filterable :filter-method="ChannelQuerySearch" ref="ChannelQuery"
     placeholder="请选择/搜索通道" :loading="Loading" @change="ChannelQueryChange">
-    <el-option v-for="item in ChannelQueryList" :key="item.id" :label="item.channelName" :value="item.id"></el-option>
+    <el-option v-for="item in ChannelQueryList" :key="item.id" :label="item.chnl_name" :value="item.id"></el-option>
   </el-select>
 </template>
 

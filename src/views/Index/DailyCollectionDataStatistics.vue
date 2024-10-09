@@ -1,13 +1,13 @@
 <template>
   <el-row :gutter="20">
 
-    <el-col :md="16" :sm="16" :xs="24">
+    <!-- <el-col :md="16" :sm="16" :xs="24">
       <CollectionSuccessRateLine ref="CollectionSuccessRate" :id="'MerchantAccountStatistics' + index" :styles="{
         height: '28rem',
         padding: '1rem 0',
       }"></CollectionSuccessRateLine>
-    </el-col>
-    <el-col :md="4" :sm="4" :xs="12" v-for="(item, index) in CardData" :key="index" class="card-col ">
+    </el-col> -->
+    <el-col :md="6" :sm="6" :xs="12" v-for="(item, index) in CardData" :key="index" class="card-col ">
       <NumCard :name="item.name" :value="item.value" :color="item.color" :key="item.key" :precision="item.precision"
         :currency="item.currency" :position="item.position ? item.position : 'prefix'">
       </NumCard>

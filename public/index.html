@@ -9,24 +9,40 @@
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
     />
     <link rel="icon" href="<%= BASE_URL %>bitbug_favicon.ico" />
-
-    <title><%= webpackConfig.name %></title>
-    <link rel="stylesheet" href="/Resources/css/style.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-
-    <script src="/Resources/js/CSSPlugin.min.js"></script>
-    <script src="/Resources/js/EasePack.min.js"></script>
-    <script src="/Resources/js/TweenLite.min.js"></script>
-
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <title><%= webpackConfig.name %></title>
+    <link rel="stylesheet" href="/Resources/css/loading.css" />
     <!--[if lt IE 11
       ]><script>
         window.location.href = "/html/ie.html";
       </script><!
     [endif]-->
     <style>
+      /* 定义渐隐效果 */
+      .fade-out {
+        opacity: 1;
+        transition: all 1s ease-out; /* 渐隐效果持续 1 秒 */
+      }
+
+      .fade-out.fade-out-hidden {
+        opacity: 0;
+        /* top: 100%; */
+        /* left: 100%; */
+        /* width: 0; */
+        /* height: 0; */
+      }
+
+      /* 当元素 opacity 为 0 且完全隐藏后，可以通过 display:none 删除它 */
+      .remove {
+        display: none !important;
+      }
+      .show {
+        display: block;
+      }
       html,
       body,
       #app {
@@ -215,21 +231,14 @@
       <!-- id="loader-wrapper" -->
     </div>
     <div id="loader-wrapper" class="fade-out">
-      <!-- <p id="offscreen-text" class="offscreen-text"></p>
-      <p id="text" class="text"></p>
-      <svg id="svg"></svg>
-      <input type="text" class="input" id="input" style="display: none" /> -->
-      <!-- <div id="loader"></div>
-      <div class="loader-section section-left"></div>
-      <div class="loader-section section-right"></div>
-      <div class="load_title">正在加载系统资源，请耐心等待</div> -->
-
-      <p id="offscreen-text" class="offscreen-text"></p>
-      <p id="text" class="text"></p>
-      <svg id="svg"></svg>
-      <input type="text" class="input" id="input" style="display: none" />
+      <div class="background-pattern"></div>
+      <div class="loader">
+        <!-- <img class="bamboo" src="/Resources/image/bamboo.png" alt="Bamboo" /> -->
+        <!-- Bamboo image -->
+        <img class="panda2" src="/Resources/image/panda.png" alt="Panda" />
+        <!-- Panda image -->
+      </div>
+      <div class="loading-text">LOADING...</div>
     </div>
-
-    <script src="/Resources/js/start.js"></script>
   </body>
 </html>

@@ -2,8 +2,7 @@
   <div style="" class="OrderRecords_table_search">
     <el-form :model="queryParams" ref="queryForm" size="mini" :inline="true" v-show="showSearch" label-position="top"
       label-width="140px">
-      <div class="search_option_div"
-        :style="{ 'grid-template-columns': 'repeat(auto-fill, minmax(245px,' + gridwidth + ')) ' }">
+      <div class="search_option_div">
         <slot name="search_option"></slot>
       </div>
       <slot class="FlexStart">
@@ -28,10 +27,7 @@ export default {
       type: Boolean,
       default: true
     },
-    gridwidth: {
-      type: String,
-      default: '19.5%'
-    }
+
 
   },
   data() {
@@ -71,6 +67,33 @@ export default {
     /* 强制分为两行 */
 
 
+  }
+}
+
+.search_option_div {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .search_option_div {
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    /* 小屏幕时每行 3 个 */
+  }
+}
+
+@media (max-width: 600px) {
+  .search_option_div {
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
+    /* 更小屏幕时每行 2 个 */
+  }
+}
+
+@media (max-width: 400px) {
+  .search_option_div {
+    grid-template-columns: 1fr;
+    /* 最小屏幕时每行 1 个 */
   }
 }
 </style>

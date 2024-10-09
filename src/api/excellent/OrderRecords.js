@@ -3,6 +3,8 @@ import request from "@/utils/requestGo";
 import { Notification, MessageBox, Message, Loading } from "element-ui";
 // 查询订单列表
 export function listOrderRecords(query) {
+  console.log(query);
+
   return request({
     url: "/order",
     method: "get",

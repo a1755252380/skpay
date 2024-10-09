@@ -95,12 +95,12 @@ export default {
 
         // 如果是增长
         if (increment > 0 && this.displayValue >= newValue) {
-          this.displayValue == newValue;
+          this.displayValue = newValue;
           clearInterval(interval); // 达到目标值，停止动画
         }
         // 如果是减少
         else if (increment < 0 && this.displayValue <= newValue) {
-          this.displayValue == newValue;
+          this.displayValue = newValue;
           clearInterval(interval); // 达到目标值，停止动画
         }
         else {

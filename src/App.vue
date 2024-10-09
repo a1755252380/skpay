@@ -28,9 +28,16 @@ export default {
     }
   },
   mounted() {
-    this.$nextTick(() => {
 
-      this.$util.startAnimation()
+    this.$nextTick(() => {
+      let that = this
+
+      document.onreadystatechange = function () {
+
+        if (document.readyState === "complete") {
+          that.$util.startAnimation()
+        }
+      };
 
 
 
@@ -55,9 +62,4 @@ export default {
 //   src: url('assets/fonts/NotoSansCJKsc-Regular.otf') format('truetype');
 //   font-weight: normal;
 //   font-style: normal;
-// }
-
-* {
-  font-family: 'Noto Sans SC';
-}
-</style>
+// }</style>

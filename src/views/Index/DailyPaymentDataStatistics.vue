@@ -1,13 +1,12 @@
 <template>
   <el-row :gutter="20">
-
-    <el-col :md="16" :sm="16" :xs="24">
+    <!-- <el-col :md="16" :sm="16" :xs="24">
       <SuccessRateOfProxyPayment ref="SuccessRateOfProxyPayment" :id="'MerchantAccountStatistics' + index" :styles="{
         height: '28rem',
         padding: '1rem 0',
       }"></SuccessRateOfProxyPayment>
-    </el-col>
-    <el-col :md="4" :sm="4" :xs="12" class="card-col" v-for="(item, index) in CardData" :key="index">
+    </el-col> -->
+    <el-col :md="6" :sm="6" :xs="12" class="card-col" v-for="(item, index) in CardData" :key="index">
 
       <NumCard :name="item.name" :value="item.value" :key="item.key" :precision="item.precision"
         :currency="item.currency" :position="item.position ? item.position : 'prefix'" :color="item.color"></NumCard>

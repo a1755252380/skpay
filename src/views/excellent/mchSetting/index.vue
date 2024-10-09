@@ -7,7 +7,8 @@
         <!-- <el-input v-model="queryParams.mch_num" placeholder="请输入商户号" clearable @keyup.enter.native="handleQuery" /> -->
       </el-form-item>
       <el-form-item label="商户名称" prop="mch_name">
-        <el-input v-model="queryParams.mch_name" placeholder="请输入商户名称" clearable @keyup.enter.native="handleQuery" />
+        <mchNameVue v-model="queryParams.mch_name" @change="handleQuery"></mchNameVue>
+        <!-- <el-input  placeholder="请输入商户名称" clearable @keyup.enter.native="handleQuery" /> -->
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -26,8 +27,9 @@
 
     </el-row>
 
-    <dynamicTableVue :loading="loading" :tableData="MchSettingList"
-      :DomList="[this.$refs.queryForm, this.$refs.function, this.$refs.pagination]">
+    <dynamicTableVue :loading="loading" :tableData="MchSettingList" @cellDblclick="(row, column, cell, event) => {
+      this.$util.copyToClipboard(cell.innerText);
+    }" :cellClassName="'HoverTooltipCopy'">
       <!--      <el-table-column type="selection" width="55" align="center" />-->
       <el-table-column label="商户号" align="center" prop="mch_num" />
       <el-table-column label="商户名称" align="center" prop="mch_name" />
@@ -160,9 +162,11 @@
 import { listMchSetting, getMchSetting, delMchSetting, addMchSetting, updateMchSetting } from "@/api/excellent/MchSetting";
 import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
+import mchNameVue from '@/components/Excellent/Mch/mchName.vue';
 export default {
   name: "MchSetting",
-  components: { dynamicTableVue, MchNumSelect },
+
+  components: { dynamicTableVue, MchNumSelect, mchNameVue },
   data() {
     return {
       //商户号是否可修改

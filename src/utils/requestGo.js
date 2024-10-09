@@ -97,7 +97,8 @@ serviceOrder.interceptors.response.use(
     // 未设置状态码则默认成功状态
     const code = res.data.code || 200;
     // 获取错误信息
-    const msg = errorCode[code] || res.error || errorCode["default"];
+    const msg =
+      res.data.msg || errorCode[code] || res.error || errorCode["default"];
     // 二进制数据则直接返回
     if (
       res.request.responseType === "blob" ||
@@ -106,27 +107,28 @@ serviceOrder.interceptors.response.use(
       return res.data;
     }
     if (code === 401) {
-      if (!isRelogin.show) {
-        isRelogin.show = true;
-        MessageBox.confirm(
-          "登录状态已过期，您可以继续留在该页面，或者重新登录",
-          "系统提示",
-          {
-            confirmButtonText: "重新登录",
-            cancelButtonText: "取消",
-            type: "warning",
-          }
-        )
-          .then(() => {
-            isRelogin.show = false;
-            store.dispatch("LogOut").then(() => {
-              location.href = "/index";
-            });
-          })
-          .catch(() => {
-            isRelogin.show = false;
-          });
-      }
+      Message({ message: msg, type: "error" });
+      // if (!isRelogin.show) {
+      //   isRelogin.show = true;
+      //   MessageBox.confirm(
+      //     "登录状态已过期，您可以继续留在该页面，或者重新登录",
+      //     "系统提示",
+      //     {
+      //       confirmButtonText: "重新登录",
+      //       cancelButtonText: "取消",
+      //       type: "warning",
+      //     }
+      //   )
+      //     .then(() => {
+      //       isRelogin.show = false;
+      //       store.dispatch("LogOut").then(() => {
+      //         location.href = "/index";
+      //       });
+      //     })
+      //     .catch(() => {
+      //       isRelogin.show = false;
+      //     });
+      // }
       return Promise.reject("无效的会话，或者会话已过期，请重新登录。");
     } else if (code === 500) {
       Message({ message: msg, type: "error" });
@@ -143,7 +145,6 @@ serviceOrder.interceptors.response.use(
   },
   (error) => {
     let { message } = error;
-    console.log(isRelogin.show);
 
     //当用户登录状态过期时需让用户重新登录
     if (message.substr(message.length - 3) == 401) {

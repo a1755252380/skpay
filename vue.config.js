@@ -14,37 +14,36 @@ const commonConfig = {
     chunkFilename: "static/js/[name].[hash:8].js",
   },
   plugins: [
-    new ThemeCssExtractPlugin({
-      extract: true,
-      multipleScopeVars: [
-        {
-          scopeName: "theme-light",
-          path: path.resolve(__dirname, "src/assets/styles/theme-light.scss"), // 默认主题的 SCSS 文件
-        },
-        {
-          scopeName: "theme-dark",
-          path: path.resolve(__dirname, "src/assets/styles/theme-dark.scss"), // 深色主题的 SCSS 文件
-        },
-      ],
-      themeLinkTagId: "theme-style", // 注入主题样式的标签 id
-      themeLinkTagAppend: true,
-      arbitraryMode: true,
-      defaultScopeName: "theme-light",
-      defaultPrimaryColor: "#409EFF",
-
-      outputDir: path.resolve(__dirname, "public/theme/"), // 修改为相对于 dist 目录的正确路径
-      customThemeOutputPath: path.resolve(__dirname, "public/themes/"),
-      customThemeCssFileName: (scopeName) => {
-        return `${scopeName}`;
-      },
-      // customLinkHref: (scopeName) => {
-      //   // 根据 scopeName 返回不同的路径
-      //   if (scopeName === "theme-dark") {
-      //     return "/static/theme/theme-dark.css";
-      //   }
-      //   return "/static/theme/theme-light.css";
-      // }, // 自定义主题样式的 link 标签的 href 属性
-    }),
+    // new ThemeCssExtractPlugin({
+    //   extract: true,
+    //   multipleScopeVars: [
+    //     {
+    //       scopeName: "theme-light",
+    //       path: path.resolve(__dirname, "src/assets/styles/theme-light.scss"), // 默认主题的 SCSS 文件
+    //     },
+    //     {
+    //       scopeName: "theme-dark",
+    //       path: path.resolve(__dirname, "src/assets/styles/theme-dark.scss"), // 深色主题的 SCSS 文件
+    //     },
+    //   ],
+    //   themeLinkTagId: "theme-style", // 注入主题样式的标签 id
+    //   themeLinkTagAppend: true,
+    //   arbitraryMode: true,
+    //   defaultScopeName: "theme-light",
+    //   defaultPrimaryColor: "#409EFF",
+    //   outputDir: path.resolve(__dirname, "public/theme/"), // 修改为相对于 dist 目录的正确路径
+    //   customThemeOutputPath: path.resolve(__dirname, "public/themes/"),
+    //   customThemeCssFileName: (scopeName) => {
+    //     return `${scopeName}`;
+    //   },
+    //   // customLinkHref: (scopeName) => {
+    //   //   // 根据 scopeName 返回不同的路径
+    //   //   if (scopeName === "theme-dark") {
+    //   //     return "/static/theme/theme-dark.css";
+    //   //   }
+    //   //   return "/static/theme/theme-light.css";
+    //   // }, // 自定义主题样式的 link 标签的 href 属性
+    // }),
   ],
 };
 

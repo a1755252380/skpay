@@ -72,15 +72,45 @@ export function getClientHeight(...refs) {
 }
 
 //复制到剪切板
+//复制到剪切板
 export const copyToClipboard = (event, key = "") => {
   if (!event) {
     return;
   }
   // 使用 Clipboard API 将文本写入剪贴板
   event = event.toString();
-  navigator.clipboard
-    .writeText(event)
-    .then(() => {
+  if (
+    !!navigator.clipboard &&
+    typeof navigator.clipboard.writeText === "function"
+  ) {
+    navigator.clipboard
+      .writeText(event)
+      .then(() => {
+        if (key) {
+          Message.success(key + "已成功复制到剪贴板！");
+        } else {
+          Notification({
+            title: "成功复制到剪贴板",
+            customClass: "NotificationMessage",
+            message: event,
+            // "<div style='width:200px;'><strong >" + event + "</strong></div>",
+            duration: 1000,
+            dangerouslyUseHTMLString: true,
+            type: "success",
+          });
+        }
+      })
+      .catch((err) => {
+        console.error("复制失败：", err);
+      });
+  } else {
+    // 如果 Clipboard API 不支持，使用其他方式，如 document.execCommand
+    const textarea = document.createElement("textarea");
+    textarea.value = event;
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand("copy");
       if (key) {
         Message.success(key + "已成功复制到剪贴板！");
       } else {
@@ -94,10 +124,11 @@ export const copyToClipboard = (event, key = "") => {
           type: "success",
         });
       }
-    })
-    .catch((err) => {
-      console.error("复制失败：", err);
-    });
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
+    document.body.removeChild(textarea);
+  }
 };
 import moment from "moment-timezone";
 //格式化成印度时间
@@ -178,12 +209,11 @@ export const startAnimation = () => {
   div.classList.add("show");
 
   setTimeout(() => {
-    div.classList.add("hidden"); // 触发渐隐效果
-
-    // 延迟执行完全隐藏和删除操作
+    div.classList.add("fade-out-hidden"); // 触发渐隐效果
     setTimeout(() => {
-      div.classList.remove("show", "hidden");
+      // 延迟执行完全隐藏和删除操作
+      div.classList.remove("show", "fade-out-hidden");
       div.classList.add("remove"); // 完全删除或隐藏
-    }, 2000); // 与 CSS transition 时间一致
-  }, 2000);
+    }, 1000);
+  }, 1000); // 与 CSS transition 时间一致
 };

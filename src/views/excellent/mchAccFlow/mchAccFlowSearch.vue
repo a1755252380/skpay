@@ -34,8 +34,7 @@
       </el-form-item>
 
       <el-form-item label="交易类型" prop="msg">
-        <el-select v-model="queryParams.operation" placeholder="请选择操作类型" clearable class="w100_input"
-          @change="DealOperationList">
+        <el-select v-model="queryParams.operation" placeholder="请选择操作类型" class="w100_input" @change="DealOperationList">
           <template v-for="dict in operationList">
             <el-option :key="dict.value" :label="dict.name" :value="dict.value" />
 
@@ -44,7 +43,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="订单类型" prop="msg">
-        <el-select v-model="queryParams.type" placeholder="请选择交易类型" clearable class="w100_input">
+        <el-select v-model="queryParams.type" placeholder="请选择交易类型" class="w100_input">
           <template v-for="dict in typelist">
             <el-option :key="dict.value" :label="dict.name" :value="dict.value"
               v-show="dict.show.includes(queryParams.operation) || dict.show.includes('all')" />

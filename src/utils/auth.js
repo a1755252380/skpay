@@ -1,7 +1,6 @@
 import Cookies from "js-cookie";
 
-const TokenKey = "Token";
-import store from "@/store";
+const TokenKey = "Admin-Token";
 const ExpiresInKey = "Admin-Expires-In";
 
 export function getToken() {

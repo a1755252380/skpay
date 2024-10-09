@@ -6,7 +6,7 @@
 
       </el-form-item>
       <el-form-item label="商户名称" prop="mch_name">
-        <el-input v-model="queryParams.mch_name" placeholder="请输入商户名称" clearable @keyup.enter.native="handleQuery" />
+        <mchNameVue v-model="queryParams.mch_name" @change="handleQuery"></mchNameVue>
       </el-form-item>
       <el-form-item label="货币代号" prop="currency">
         <el-input v-model="queryParams.currency" placeholder="请输入货币代号" clearable @keyup.enter.native="handleQuery" />
@@ -18,21 +18,30 @@
         <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :search="false"></right-toolbar>
       </el-form-item>
     </el-form>
-
-    <dynamicTableVue :loading="loading" :tableData="mchAccList">
+    <div class="CalculationFormula" v-if="hasPermiVisible(['excellent:mchAcc:edit'])">
+      <strong>账户余额=待结算金额+账户可用余额+代付余额</strong>
+      <strong>代付余额=代付可用余额+代付冻结金额</strong>
+      <strong>商户下发使用可用余额调整</strong>
+    </div>
+    <dynamicTableVue :loading="loading" :tableData="mchAccList" @cellDblclick="(row, column, cell, event) => {
+      this.$util.copyToClipboard(cell.innerText);
+    }" :cellClassName="'HoverTooltipCopy'">
       <!--      <el-table-column label="商户id" align="center" prop="mchId" />-->
       <el-table-column label="商户号" align="center" prop="mch_num" fixed="left" />
       <el-table-column label="商户名称" align="center" prop="mch_name" />
       <el-table-column label="货币代号" align="center" prop="currency" />
       <el-table-column label="账户余额" align="center" prop="account_balance" :formatter="Formatter.TableAmount" />
+      <el-table-column label="待结算金额" align="center" prop="account_pending_settlement_balance"
+        :formatter="Formatter.TableAmount" />
       <el-table-column label="账户可用余额" align="center" prop="account_available_balance"
         :formatter="Formatter.TableAmount" />
       <el-table-column label="代付余额" align="center" prop="account_payout_balance" :formatter="Formatter.TableAmount" />
       <el-table-column label="代付可用余额" align="center" prop="account_payout_available_balance"
         :formatter="Formatter.TableAmount" />
-      <el-table-column label="待结算余额" align="center" prop="account_pending_settlement_balance"
-        :formatter="Formatter.TableAmount" />
+
       <el-table-column label="代付冻结金额" align="center" prop="payou_freeze_amount" :formatter="Formatter.TableAmount" />
+      <el-table-column label="代付冻结金额手续费" align="center" prop="payou_freeze_amount_service"
+        :formatter="Formatter.TableAmount" />
 
       <el-table-column label="操作" align="center" fixed="right" class-name="small-padding fixed-width"
         v-if="hasPermiVisible(['excellent:mchAcc:edit'])">
@@ -140,10 +149,11 @@ import { listMchSetting } from "@/api/excellent/MchSetting";
 import AdjustmentsToFunds from "./AdjustmentsToFunds.vue";
 import dynamicTableVue from "@/components/Excellent/dynamicTable.vue";
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
+import mchNameVue from '@/components/Excellent/Mch/mchName.vue';
 
 export default {
   name: "MchAcc",
-  components: { AdjustmentsToFunds, dynamicTableVue, MchNumSelect },
+  components: { AdjustmentsToFunds, dynamicTableVue, MchNumSelect, mchNameVue },
   data() {
     return {
       // 遮罩层
@@ -205,7 +215,6 @@ export default {
     /** 查询商户账户总金额列表 */
     getList() {
       this.loading = true;
-      this.queryParams.params = {};
 
       listMchAcc(this.queryParams).then((response) => {
         this.mchAccList = response.rows;
@@ -382,3 +391,13 @@ export default {
   },
 };
 </script>
+<style lang="scss" scoped>
+.CalculationFormula {
+  padding-bottom: 8px;
+
+  strong {
+    font-size: 14px;
+    padding-left: 24px;
+  }
+}
+</style>

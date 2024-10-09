@@ -1,16 +1,16 @@
 import moment from "moment";
 
 export function TableAmount(row, column, cellValue, index) {
-  let value = (cellValue / 100).toFixed(2);
+  let value = Math.floor(cellValue) / 100;
   if (value) {
-    return value;
+    return value.toFixed(2);
   } else {
     return "0.00";
   }
 }
 export function TableRate(row, column, cellValue, index) {
   if (cellValue) {
-    return value.toFixed(2) + "%";
+    return cellValue.toFixed(2) + "%";
   } else {
     return "0.00%";
   }

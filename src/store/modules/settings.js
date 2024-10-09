@@ -13,7 +13,7 @@ const {
 const storageSetting = JSON.parse(localStorage.getItem("layout-setting")) || "";
 const state = {
   title: "",
-  theme: storageSetting.theme || "#13c2c2",
+  theme: storageSetting.theme || "#2C8D91",
   sideTheme: storageSetting.sideTheme || sideTheme,
   showSettings: showSettings,
   topNav: storageSetting.topNav === undefined ? topNav : storageSetting.topNav,
