@@ -1,15 +1,18 @@
 <template>
   <!-- v-payouloading="loadingData" -->
   <div v-loading="loadingData" class="table-container" ref="DynamicTable_div">
-    <transition name="name">
-      <el-table :data="tableData" border :key="tableId" @selection-change="handleSelectionChange" class="DynamicTable"
-        header-cell-class-name="DynamicTable_header" :height="height" :resizable="false" :default-sort="defaultSort"
-        :highlight-selection-row="false" :ref="'DynamicTable' + tableId" row-class-name="DynamicTable_row"
-        :cell-class-name="cellClassNameFunction" v-table-move="['DynamicTable' + tableId]" @cell-dblclick="cellDblclick"
-        @sort-change="handleSort">
-        <slot></slot>
-      </el-table>
-    </transition>
+    <el-table :data="tableData" border :key="tableId" @selection-change="handleSelectionChange" class="DynamicTable"
+      header-cell-class-name="DynamicTable_header" :height="height" :resizable="false" :default-sort="defaultSort"
+      :highlight-selection-row="false" :ref="'DynamicTable' + tableId" row-class-name="DynamicTable_row"
+      :cell-class-name="cellClassNameFunction" v-table-move="['DynamicTable' + tableId]" @cell-dblclick="cellDblclick"
+      @sort-change="handleSort">
+      <!-- <transition-group tag="tbody" name="fade" class="el-table__body"> -->
+
+      <slot></slot>
+
+      <!-- </transition-group> -->
+
+    </el-table>
   </div>
 </template>
 
@@ -82,6 +85,7 @@ export default {
         this.handleResize();
       }, 150)
     ); // 在组件销毁时移除监听器
+    // this.removeTooltipListeners()
   },
   methods: {
     handleSelectionChange(value) {
@@ -144,6 +148,54 @@ export default {
           return classname
         }
 
+      }
+    },
+    //鼠标悬浮窗
+    // 为特定类名添加事件监听器
+    addTooltipListeners() {
+      console.log("表格数据加载完成");
+
+      const tableCells = document.querySelectorAll('.HoverTooltipCopy');
+
+      tableCells.forEach((cell) => {
+        cell.addEventListener('mouseenter', this.showTooltip);
+        cell.addEventListener('mouseleave', this.hideTooltip);
+      });
+    },
+    removeTooltipListeners() {
+      const tableCells = document.querySelectorAll('.HoverTooltipCopy');
+
+      tableCells.forEach((cell) => {
+        cell.removeEventListener('mouseenter', this.showTooltip);
+        cell.removeEventListener('mouseleave', this.hideTooltip);
+      });
+    },
+
+    // 创建并显示 Tooltip
+    showTooltip(event) {
+      const tooltip = document.createElement('div');
+      tooltip.classList.add('TooltipCopy');  // 使用现有的类名
+      tooltip.innerText = '双击复制文本'; // 使用提示内容
+      document.body.appendChild(tooltip);
+
+      const { top, left, width } = event.target.getBoundingClientRect();
+      tooltip.style.position = 'absolute';
+      tooltip.style.top = `${top + window.scrollY}px`; // 调整 tooltip 的位置
+      tooltip.style.left = `${left + width / 2}px`;
+      tooltip.style.transform = 'translateX(-50%)';
+      tooltip.style.opacity = '0.7';
+      tooltip.style.visibility = 'visible';
+      tooltip.style.zIndex = 9999;
+
+      event.target._tooltip = tooltip; // 存储到元素上，方便后续删除
+    },
+
+    // 隐藏 Tooltip
+    hideTooltip(event) {
+      const tooltip = event.target._tooltip;
+      if (tooltip) {
+        tooltip.remove(); // 从 DOM 中移除 tooltip
+        event.target._tooltip = null;
       }
     }
   },

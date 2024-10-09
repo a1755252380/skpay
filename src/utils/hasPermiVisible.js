@@ -8,7 +8,6 @@ import store from "@/store";
 export const hasPermiVisible = (value) => {
   const all_permission = "*:*:*";
   const permissions = store.getters && store.getters.permissions;
-  console.log(store.state.user.roles.includes("admin"));
 
   if (store.state.user.roles.includes("admin")) {
     return true;

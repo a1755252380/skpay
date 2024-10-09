@@ -1,10 +1,8 @@
 <template>
   <div class="app-container fulltable_div" ref="container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="90px">
-      <el-form-item label="商户号 " prop="mchNum">
-        <MchNumSelect v-model="queryParams.mchNum" @change="handleQuery" @clear="() => {
-          this.queryParams.mchNum = null; this.SearchIndex = -1
-        }"></MchNumSelect>
+      <el-form-item label="商户号 " prop="mch_num">
+        <MchNumSelect v-model="queryParams.mch_num" @change="handleQuery"></MchNumSelect>
       </el-form-item>
 
       <el-form-item>
@@ -15,20 +13,25 @@
     </el-form>
 
 
-    <dynamicTableVue :tableData="paginatedItems" @handleSelectionChange="handleSelectionChange" :loading="loading"
-      ref="myTable">
+    <dynamicTableVue :tableData="mchSettlementList" @handleSelectionChange="handleSelectionChange" :loading="loading"
+      ref="myTable" @cellDblclick="(row, column, cell, event) => {
+        this.$util.copyToClipboard(cell.innerText);
+      }" :cellClassName="'HoverTooltipCopy'">
 
-      <el-table-column label="商户号 " align="center" prop="mch_number" />
-      <el-table-column label="商户名称" align="center" prop="mch_name" />
-      <el-table-column label="货币代号" align="center" prop="currency" />
-      <el-table-column label="已结算代收金额" align="center" prop="payin_success_amount_count"
+      <el-table-column label="商户号" align="center" prop="mch_num" fixed="left" />
+      <!-- <el-table-column label="商户名称" align="center" prop="mch_name" /> -->
+      <!-- <el-table-column label="货币代号" align="center" prop="currency" /> -->
+      <el-table-column label="账户余额" align="center" prop="account_balance" :formatter="Formatter.TableAmount" />
+      <el-table-column label="待结算金额" align="center" prop="account_pending_settlement_balance"
         :formatter="Formatter.TableAmount" />
-      <el-table-column label="已结算代付金额" align="center" prop="pay_out_success_amount_count"
+      <el-table-column label="账户可用余额" align="center" prop="account_available_balance"
         :formatter="Formatter.TableAmount" />
-      <el-table-column label="在途代付金额" align="center" prop="pending_amount_count" :formatter="Formatter.TableAmount" />
-      <el-table-column label="总代收手续费" align="center" prop="pay_in_success_service_charge"
+      <el-table-column label="代付余额" align="center" prop="account_payout_balance" :formatter="Formatter.TableAmount" />
+      <el-table-column label="代付可用余额" align="center" prop="account_payout_available_balance"
         :formatter="Formatter.TableAmount" />
-      <el-table-column label="总代付手续费" align="center" prop="pay_out_success_service_charge"
+
+      <el-table-column label="代付冻结金额" align="center" prop="payou_freeze_amount" :formatter="Formatter.TableAmount" />
+      <el-table-column label="代付冻结金额手续费" align="center" prop="payou_freeze_amount_service"
         :formatter="Formatter.TableAmount" />
 
       <el-table-column label="操作" align="center" class-name="small-padding ">
@@ -41,8 +44,8 @@
 
     </dynamicTableVue>
 
-    <pagination ref="pagination" v-show="totalPages > 0" :total="total" :page.sync="pageData.currentPage"
-      :limit.sync="pageData.pageSize" @pagination="handleCurrentChange" />
+    <pagination ref="pagination" v-show="pageData.total > 0" :total="pageData.total" :page.sync="queryParams.page"
+      :limit.sync="queryParams.limit" @pagination="getList" />
 
     <!-- 详细弹窗 -->
 
@@ -55,10 +58,11 @@
 
 <script>
 
-import { listMchSettlement, getMchSettlementDay, delMchSettlement, addMchSettlement, updateMchSettlement } from "@/api/excellent/mchSettlement";
+import { listMchSettlement, getMchSettlementDay, delMchSettlement, addMchSettlement, updateMchSettlement } from "@/api/excellent/FinalSettlement";
 import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
 import DetailedContentVue from "./DetailedContent.vue";
+
 
 export default {
   name: "MchSettlement",
@@ -89,15 +93,15 @@ export default {
       daterangeCreateTime: [],
       // 查询参数
       queryParams: {
-        mchNum: null, // 商户号
-
-
+        mch_num: null, // 商户号
+        page: 1, // 当前页码
+        limit: 20, // 每页显示的条数
       },
       SearchIndex: -1, //搜索数据索引
+
       last_id: null,
       pageData: {
-        currentPage: 1, // 当前页码
-        pageSize: 20, // 每页显示的条数
+
         total: 1, // 数据总条数
       },
       // 表单参数
@@ -111,27 +115,7 @@ export default {
       DetailedContentNumber: 0
     };
   },
-  computed: {
-    // 计算当前页显示的数据
-    paginatedItems() {
 
-      const start = (this.pageData.currentPage - 1) * this.pageData.pageSize;
-      const end = this.pageData.currentPage * this.pageData.pageSize;
-      if (this.queryParams.mchNum) {
-        return this.mchSettlementList.slice(this.SearchIndex, this.SearchIndex + 1);
-
-      } else {
-        return this.mchSettlementList.slice(start, end);
-
-      }
-    },
-    // 计算总页数
-    totalPages() {
-      return Math.ceil(this.pageData.total / this.pageData.pageSize);
-    },
-
-
-  },
   created() {
 
   },
@@ -144,34 +128,14 @@ export default {
       this.loading = true;
       let query = { ...this.queryParams };
       listMchSettlement(query).then((response) => {
-        this.last_id = response["last_id"];
-        this.mchSettlementList = [...this.mchSettlementList, ...response.results];
-        this.pageData.total = this.mchSettlementList.length;
+
+        this.mchSettlementList = response.rows;
+        this.pageData.total = response.total;
         this.loading = false;
       });
 
     },
-    //分页处理
-    handleCurrentChange(page) {
-      this.pageData.currentPage = page.page;
-      this.loading = true;
-      this.$refs.myTable.Totop();
 
-      // 如果到达最后一页并且没有足够的数据，则加载更多数据
-      if (
-        this.pageData.currentPage === this.totalPages &&
-        this.mchSettlementList.length < this.pageData.total + 200
-      ) {
-        this.getList()
-      } else {
-        setTimeout(() => {
-          this.loading = false;
-        }, 380);
-      }
-    },
-    handleSizeChange(size) {
-      this.pageData.pageSize = size;
-    },
     // 取消按钮
     cancel() {
       this.open = false;
@@ -210,15 +174,9 @@ export default {
     /** 搜索按钮操作 */
     handleQuery() {
 
-      this.SearchIndex = this.mchSettlementList.findIndex(res => {
-
-        return this.queryParams.mchNum == res.mch_number
-      })
-
-      // this.pageData.page = 1;
-      // this.last_id = null
-      // this.mchSettlementList.splice(0)
-      // this.getList();
+      this.pageData.page = 1;
+      this.mchSettlementList.splice(0)
+      this.getList();
     },
     /** 重置按钮操作 */
     resetQuery() {
@@ -245,7 +203,7 @@ export default {
     handleUpdate(row) {
       this.DetailedContentShow = true
       this.DetailedContentListLoading = true
-      this.DetailedContentNumber = row.mch_number
+      this.DetailedContentNumber = row.mch_num
 
     },
     ReturnDetailedContentShow(value) {

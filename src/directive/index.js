@@ -6,6 +6,7 @@ import dialogDragHeight from "./dialog/dragHeight";
 import clipboard from "./module/clipboard";
 import hasPermiVisible from "../utils/hasPermiVisible";
 import payouloading from "./loading";
+import hover from "./tooltip/hover";
 const install = function (Vue) {
   Vue.directive("hasRole", hasRole);
   Vue.directive("hasPermi", hasPermi);
@@ -15,6 +16,7 @@ const install = function (Vue) {
   Vue.directive("dialogDragHeight", dialogDragHeight);
   Vue.directive("hasPermiVisible", hasPermiVisible);
   Vue.directive("payouloading", payouloading);
+  Vue.directive("tooltip-copy", hover);
 };
 
 if (window.Vue) {

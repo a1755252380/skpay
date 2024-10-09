@@ -192,7 +192,6 @@ export default {
         utcEndTime = this.$util.getUtcTime(value[1]) / 1000;
       }
 
-      console.log(utcTime, utcEndTime);
 
       if (index == 'create_time') {
         this.$set(this.queryParams, 'create_time', utcTime ? utcTime : null);

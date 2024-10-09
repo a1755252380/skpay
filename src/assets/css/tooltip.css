@@ -11,7 +11,7 @@
   top: 100%; /* 控制提示框位置 */
   left: 50%;
   transform: translateX(-50%);
-  background-color: #333;
+  background-color: #818181;
   color: #fff;
   padding: 5px 8px;
   border-radius: 4px;
@@ -31,7 +31,7 @@
   transform: translateX(-50%);
   border-width: 5px;
   border-style: solid;
-  border-color: transparent transparent #333 transparent;
+  border-color: transparent transparent #818181 transparent;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s;
@@ -39,7 +39,7 @@
 
 .HoverTooltipCopy:not(.NoTooltip):hover::after,
 .HoverTooltipCopy:not(.NoTooltip):hover::before {
-  opacity: 0.6;
+  opacity: 1;
   visibility: visible;
   transform: all 0.3s;
   transition-delay: 0.8s; /* 延迟0.5秒触发 */
@@ -60,7 +60,7 @@
   top: 155%; /* 控制提示框位置 */
   left: 50%;
   transform: translateX(-50%);
-  background-color: #333;
+  background-color: #5f5f5f;
   color: #fff;
   padding: 5px 8px;
   border-radius: 4px;

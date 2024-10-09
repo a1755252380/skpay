@@ -52,14 +52,16 @@
 
         </el-select>
       </el-form-item>
-      <el-form-item label="查询起始时间" prop="create_time">
-        <el-date-picker v-model="timedata.create_time" value-format="yyyy-MM-dd HH:mm:ss" type="datetime"
-          placeholder="请选择查询起始时间" class="w100_input" @change="parseTime($event, 'create_time')" />
+      <el-form-item label="订单创建时间" prop="create_time">
+        <el-date-picker v-model="timedata.create_time" value-format="yyyy-MM-dd HH:mm:ss" type="datetimerange"
+          range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间" class="w100_input"
+          @change="parseTime($event, 'create_time')" />
       </el-form-item>
 
-      <el-form-item label="查询截止时间" prop="end_time">
-        <el-date-picker v-model="timedata.end_time" type="datetime" value-format="yyyy-MM-dd HH:mm:ss"
-          placeholder="请选择查询截止时间" class="w100_input" @change="parseTime($event, 'end_time')" />
+      <el-form-item label="流水更新时间" prop="update_time">
+        <el-date-picker v-model="timedata.update_time" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss"
+          range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间" class="w100_input"
+          @change="parseTime($event, 'end_time')" />
       </el-form-item>
     </template>
 
@@ -87,15 +89,20 @@ export default {
         merchant_order_id: null,
         order_id: null,
         chnl_id: null,
-        create_time: null,
-        end_time: null,
+
         msg: null,
         operation: null,
-        type: null
+        type: null,
+        //创建时间
+        create_time: null,
+        create_end_time: null,
+        //更新时间
+        update_time: null,
+        update_end_time: null
       },
       timedata: {
-        create_time: null,
-        end_time: null
+        create_time: [],
+        update_time: []
       },
       PaymentChannel: [],
       MainAccount: [],
@@ -155,9 +162,20 @@ export default {
     },
     //输出utc时间
     parseTime(value, index) {
-      let utcTime = this.$util.getUtcTime(value) / 1000;
-      this.$set(this.timedata, index, value);
-      this.$set(this.queryParams, index, utcTime ? utcTime : null);
+      let utcTime, utcEndTime = null;
+      if (value) {
+        utcTime = this.$util.getUtcTime(value[0]) / 1000;
+        utcEndTime = this.$util.getUtcTime(value[1]) / 1000;
+      }
+      if (index == 'create_time') {
+        this.$set(this.queryParams, 'create_time', utcTime ? utcTime : null);
+        this.$set(this.queryParams, 'create_end_time', utcEndTime ? utcEndTime : null);
+      }
+      if (index == 'update_time') {
+        this.$set(this.queryParams, 'update_time', utcTime ? utcTime : null);
+        this.$set(this.queryParams, 'update_end_time', utcEndTime ? utcEndTime : null);
+      }
+
     },
 
     handleQuery() {
@@ -179,16 +197,23 @@ export default {
         operation: null,
         type: null
       }
-      this.queryParams.create_time = this.queryParams.end_time = null;
+      this.queryParams.create_end_time = null
+      this.queryParams.create_time = null
+      this.queryParams.update_time = null
+      this.queryParams.update_end_time = null
       this.handleQuery();
     },
 
     handleExport() {
-      if (this.timedata.create_time && this.timedata.end_time) {
+      if ((this.queryParams.create_end_time && this.queryParams.create_time) || (this.queryParams.update_time && this.queryParams.update_end_time)) {
         const params = { ...this.queryParams, type: this.TabsChangeStatus };
         this.download.mchAccFlowDownload('/stream/download/commit', params);
       } else {
-        this.$message({ message: '请选择时间', type: 'warning' });
+        this.$message({
+          message: '请选择创建时间/更新时间',
+          type: 'warning'
+        })
+        return
       }
     },
 
