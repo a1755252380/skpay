@@ -11,7 +11,11 @@
         <!-- <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :search="false"></right-toolbar> -->
       </el-form-item>
     </el-form>
-
+    <div class="CalculationFormula" v-if="hasPermiVisible(['excellent:mchAcc:edit'])">
+      <strong>账户余额=待结算金额+账户可用余额+代付余额</strong>
+      <strong>代付余额=代付可用余额+代付冻结金额</strong>
+      <strong>商户下发使用可用余额调整</strong>
+    </div>
 
     <dynamicTableVue :tableData="mchSettlementList" @handleSelectionChange="handleSelectionChange" :loading="loading"
       ref="myTable" @cellDblclick="(row, column, cell, event) => {
@@ -273,5 +277,14 @@ export default {
   font-size: 16px;
   font-weight: bold;
   color: #000
+}
+
+.CalculationFormula {
+  padding-bottom: 8px;
+
+  strong {
+    font-size: 14px;
+    padding-left: 24px;
+  }
 }
 </style>

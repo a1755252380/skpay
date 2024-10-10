@@ -6,23 +6,23 @@
   1-商户代理
   【商户账户统计】 /【代理账户统计】
   -->
-    <template v-if="$store.state.user.roles.includes('admin')">
-      <!-- <el-card header="当日代收数据统计" class="index_card"> -->
-      <div class="index_title">当日代收数据统计</div>
 
-      <MerchantAccountStatistics :LineTitle="'代收成功率'" ref="MerchantAccountStatistics" class="index_card"
-        :CardData="AgencyAccountStatisticsCard">
-      </MerchantAccountStatistics>
-      <!-- </el-card> -->
-      <!-- v-if="userType === 0" -->
-      <!-- <el-card header="当日代付数据统计" class="index_card"> -->
-      <div class="index_title">当日代付数据统计</div>
-      <DailyPaymentDataStatisticsVue :LineTitle="'代付成功率'" ref="SuccessRateOfProxyPayment" class="index_card"
-        :CardData="PaymentDataStatistics">
-      </DailyPaymentDataStatisticsVue>
-      <!-- </el-card> -->
+    <!-- <el-card header="当日代收数据统计" class="index_card"> -->
+    <div class="index_title">当日代收数据统计</div>
 
-      <!-- <el-row :gutter="30" v-if="userType === 0">
+    <MerchantAccountStatistics :LineTitle="'代收成功率'" ref="MerchantAccountStatistics" class="index_card"
+      :CardData="AgencyAccountStatisticsCard">
+    </MerchantAccountStatistics>
+    <!-- </el-card> -->
+    <!-- v-if="userType === 0" -->
+    <!-- <el-card header="当日代付数据统计" class="index_card"> -->
+    <div class="index_title">当日代付数据统计</div>
+    <DailyPaymentDataStatisticsVue :LineTitle="'代付成功率'" ref="SuccessRateOfProxyPayment" class="index_card"
+      :CardData="PaymentDataStatistics">
+    </DailyPaymentDataStatisticsVue>
+    <!-- </el-card> -->
+
+    <!-- <el-row :gutter="30" v-if="userType === 0">
         <el-col :md="12" :sm="12" :xs="24">
           <el-card header="商户端订单统计" class="index_card">
             <MerchantEndOrderStatistics></MerchantEndOrderStatistics>
@@ -34,15 +34,14 @@
           </el-card>
         </el-col>
       </el-row> -->
-      <!-- 代理账户统计 -->
-      <!-- <el-card header="代理账户统计" class="index_card">
+    <!-- 代理账户统计 -->
+    <!-- <el-card header="代理账户统计" class="index_card">
         <CreateEcharts :id="'AgencyAccountStatistics'" :options="AgencyAccountStatisticsOptions" :styles="{
           height: '18rem',
         }"></CreateEcharts>
 
       </el-card> -->
-    </template>
-    <template v-else> </template>
+
   </div>
 </template>
 
@@ -72,7 +71,7 @@ import MerchantAccountStatistics from "./Index/DailyCollectionDataStatistics.vue
 import DailyPaymentDataStatisticsVue from './Index/DailyPaymentDataStatistics.vue';
 import { statistics } from "@/api/excellent/index";
 import moment from "moment";
-
+import { listOrderSuccessRate } from "@/api/excellent/OrderSuccessRate";
 export default {
   name: "Index",
   data() {
@@ -281,26 +280,56 @@ export default {
     },
     //查询数据
     SeekData() {
+
+
       if (!this.$store.state.IndexData.isRepeatRequest) {
         console.log("离开页面，取消递归请求");
         return
       }
-      statistics().then((res) => {
-        res = res.data;
-        this.ProxyStatisticalDataProcessing(res);
-        this.addData(res);
-        //代收
-        this.AgencyAccountStatistics(res);
-        console.log("首页调用了数据请求");
+      if (this.$store.state.user.roles.includes('admin')) {
+        statistics().then((res) => {
+          res = res.data;
+          this.ProxyStatisticalDataProcessing(res);
+          this.addData(res);
+          //代收
+          this.AgencyAccountStatistics(res);
+          console.log("首页调用了数据请求");
 
-        this.Timer = setTimeout(() => {
-          this.SeekData()
-        }, 3000);
-      }).catch((error) => {
+          this.Timer = setTimeout(() => {
+            this.SeekData()
+          }, 3000);
+        }).catch((error) => {
 
-      })
+        })
+      } else {
+        listOrderSuccessRate({
+          cycle
+            :
+            "today",
+          mch_list
+            :
+            [parseInt(this.$store.state.user.name)]
+        }).then((res) => {
+          console.log(res);
 
-        ;
+          res = res.data[0];
+          this.ProxyStatisticalDataProcessing(res);
+          // this.addData(res);
+          //代收
+          this.AgencyAccountStatistics(res);
+          console.log("首页调用了数据请求");
+          this.Timer = setTimeout(() => {
+            this.SeekData()
+          }, 3000);
+
+        }).catch((error) => {
+
+        })
+
+      }
+
+
+      ;
     },
     //代付数据统计
     ProxyStatisticalDataProcessing(data) {

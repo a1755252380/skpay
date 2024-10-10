@@ -94,6 +94,8 @@ serviceOrder.interceptors.request.use(
 // // 响应拦截器
 serviceOrder.interceptors.response.use(
   (res) => {
+    // console.log(res.data);
+
     // 未设置状态码则默认成功状态
     const code = res.data.code || 200;
     // 获取错误信息
@@ -104,31 +106,32 @@ serviceOrder.interceptors.response.use(
       res.request.responseType === "blob" ||
       res.request.responseType === "arraybuffer"
     ) {
-      return res.data;
+      return res.data.data;
     }
     if (code === 401) {
-      Message({ message: msg, type: "error" });
-      // if (!isRelogin.show) {
-      //   isRelogin.show = true;
-      //   MessageBox.confirm(
-      //     "登录状态已过期，您可以继续留在该页面，或者重新登录",
-      //     "系统提示",
-      //     {
-      //       confirmButtonText: "重新登录",
-      //       cancelButtonText: "取消",
-      //       type: "warning",
-      //     }
-      //   )
-      //     .then(() => {
-      //       isRelogin.show = false;
-      //       store.dispatch("LogOut").then(() => {
-      //         location.href = "/index";
-      //       });
-      //     })
-      //     .catch(() => {
-      //       isRelogin.show = false;
-      //     });
-      // }
+      console.log(isRelogin.show);
+
+      if (!isRelogin.show) {
+        isRelogin.show = true;
+        MessageBox.confirm(
+          "登录状态已过期，您可以继续留在该页面，或者重新登录",
+          "系统提示",
+          {
+            confirmButtonText: "重新登录",
+            cancelButtonText: "取消",
+            type: "warning",
+          }
+        )
+          .then(() => {
+            isRelogin.show = false;
+            store.dispatch("LogOut").then(() => {
+              location.href = "/index";
+            });
+          })
+          .catch(() => {
+            isRelogin.show = false;
+          });
+      }
       return Promise.reject("无效的会话，或者会话已过期，请重新登录。");
     } else if (code === 500) {
       Message({ message: msg, type: "error" });
@@ -140,7 +143,10 @@ serviceOrder.interceptors.response.use(
       Notification.error({ title: msg });
       return Promise.reject("error");
     } else {
-      return res.data;
+      // if (res.data.msg != "success") {
+      //   Message({ message: msg, type: "warning" });
+      // }
+      return res.data.data;
     }
   },
   (error) => {
@@ -148,29 +154,29 @@ serviceOrder.interceptors.response.use(
 
     //当用户登录状态过期时需让用户重新登录
     if (message.substr(message.length - 3) == 401) {
-      // if (!isRelogin.show) {
-      isRelogin.show = true;
-      MessageBox.confirm(
-        "登录状态已过期，您可以继续留在该页面，或者重新登录",
-        "系统提示",
-        {
-          confirmButtonText: "重新登录",
-          cancelButtonText: "取消",
-          type: "warning",
-        }
-      )
-        .then(() => {
-          isRelogin.show = false;
-          store.dispatch("LogOut").then(() => {
-            location.href = "/index";
+      if (!isRelogin.show) {
+        isRelogin.show = true;
+        MessageBox.confirm(
+          "登录状态已过期，您可以继续留在该页面，或者重新登录",
+          "系统提示",
+          {
+            confirmButtonText: "重新登录",
+            cancelButtonText: "取消",
+            type: "warning",
+          }
+        )
+          .then(() => {
+            isRelogin.show = false;
+            store.dispatch("LogOut").then(() => {
+              location.href = "/index";
+            });
+          })
+          .catch(() => {
+            isRelogin.show = false;
           });
-        })
-        .catch(() => {
-          isRelogin.show = false;
-        });
-      return Promise.reject("无效的会话，或者会话已过期，请重新登录。");
+        return Promise.reject("无效的会话，或者会话已过期，请重新登录。");
+      }
     }
-    // }
     var config = error.config;
     if (!config || !config.retry) return Promise.reject(error);
 

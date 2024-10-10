@@ -3,7 +3,7 @@
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="商户号" prop="mch_num">
 
-        <MchNumSelect v-model="queryParams.mch_num" @change="handleQuery"></MchNumSelect>
+        <MchNumSelect v-model="queryParams.mch_num" @change="handleQuery" :configName="'setting'"></MchNumSelect>
         <!-- <el-input v-model="queryParams.mch_num" placeholder="请输入商户号" clearable @keyup.enter.native="handleQuery" /> -->
       </el-form-item>
       <el-form-item label="商户名称" prop="mch_name">
@@ -56,7 +56,7 @@
 
 
       <el-table-column label="代理人" align="center" prop="agent_name" />
-      <el-table-column label="支付密钥" align="center" prop="apikey" width="150">
+      <el-table-column label="支付密钥" align="center" prop="apikey">
 
         <template slot-scope="scope">
           {{ $util.hideMiddle(scope.row.apikey) }}
@@ -107,6 +107,14 @@
                 style="margin-left: 10px">生成密钥</el-button>
             </div>
           </el-form-item>
+          <el-form-item label="登录密码" prop="password">
+            <div class="FlexCenter">
+              <el-input v-model="form.password" :type="mchNumChange ? 'password' : 'text'" placeholder="请输入登录密码"
+                :disabled="mchNumChange" />
+              <el-button type="primary" @click="generatePassword" v-if="!mchNumChange"
+                style="margin-left: 10px">生成密码</el-button>
+            </div>
+          </el-form-item>
           <el-form-item label="代收回调地址" prop="payin_callback_url">
             <el-input v-model.trim="form.payin_callback_url" @input="handleInput($event, 'payin_callback_url')"
               placeholder="请输入代收回调地址" />
@@ -115,38 +123,40 @@
             <el-input v-model.trim="form.payout_callback_url" @input="handleInput($event, 'payout_callback_url')"
               placeholder="请输入代付回调地址" />
           </el-form-item>
-          <!-- <el-form-item label="ip白名单" prop="ip_white_list">
-
-          </el-form-item> -->
-        </el-form>
-        <el-row :gutter="20" class="ipWhiteList_add">
-          <el-col :lg="8" :md="8" :sm="24" class="ipWhiteList_add_div">
-            <label style="">ip白名单</label>
-            <div class="FlexCenter">
+          <el-form-item label="ip白名单" prop="ip_white_list" class="ipWhiteList_add ">
+            <div class="FlexCenter ipWhiteList_add_div">
               <el-input v-model="ipWhite" placeholder="请输入ip白名单" style="margin-right: 0.5rem;" />
               <el-button type="primary" @click="addIpWhiteList">添加</el-button>
             </div>
+
+          </el-form-item>
+          <el-form-item label="白名单列表">
+            <div class="ipWhiteList_add_list">
+              <template v-for="(item, index) in ip_white_list">
+                <el-tooltip :key="index" content="单击可进行修改" :open-delay="2000" style="cursor: pointer;">
+                  <el-tag size="small" closable style="margin:0 6px 3px 6px;" effect="dark"
+                    @close="delIpWhiteList(index)" @click="UpDateWhiteList(index)">{{ item }}</el-tag>
+
+
+
+                </el-tooltip>
+
+
+              </template>
+
+            </div>
+          </el-form-item>
+        </el-form>
+        <!-- <el-row :gutter="20" class="ipWhiteList_add">
+          <el-col :lg="8" :md="8" :sm="24" class="ipWhiteList_add_div">
+            <label style="">ip白名单</label>
+
           </el-col>
           <el-col :lg="16" :md="16" :sm="24" class="ipWhiteList_add_list">
-            <span v-for="(item, index) in ip_white_list" :key="index" class="ipWhiteList_add_options">
 
-              <span data-tooltip="双击可进行修改" data-delay="0.3s" class="HoverTooltip" style="cursor: pointer;"
-                @dblclick="UpDateWhiteList(index)">
-                {{ item
-                }}
-              </span>
-
-
-              <!-- <span class="ipWhiteList_add_options_update" @click="UpDateWhiteList(index)"><i
-                  class="el-icon-edit"></i></span> -->
-
-
-              <span class="ipWhiteList_add_options_close" @click="delIpWhiteList(index)"><i
-                  class="el-icon-error"></i></span>
-            </span>
 
           </el-col>
-        </el-row>
+        </el-row> -->
 
       </div>
 
@@ -243,7 +253,7 @@ export default {
         this.ipWhite = ''
 
       } else {
-        this.ip_white_list.push(i)
+        this.ip_white_list.push(this.ipWhite)
         this.ipWhite = ''
 
       }
@@ -285,6 +295,19 @@ export default {
         result += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       this.form.apikey = result
+    },
+    //生成随机密码
+    generatePassword() {
+      if (!this.form.mch_num) {
+        this.$message.warning('请先输入商户号');
+        return
+      }
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+      let result = '';
+      for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      this.form.password = this.form.mch_num + result
     },
     /** 查询商户列表 */
     getList() {

@@ -35,7 +35,10 @@ export default {
       document.onreadystatechange = function () {
 
         if (document.readyState === "complete") {
-          that.$util.startAnimation()
+          if (process.env.VUE_APP_ENV === 'production') {
+            that.$util.startAnimation()
+
+          }
         }
       };
 

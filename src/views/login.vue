@@ -33,8 +33,12 @@
           <label>用户名</label>
         </div>
         <div class="ipt-box">
-          <input type="password" id="password" v-model="loginForm.password" required>
+          <input :type="passwordVisible ? 'text' : 'password'" id="password" v-model="loginForm.password" required>
           <label>密码</label>
+          <!-- 切换密码显示状态的图标 -->
+          <span @click="passwordVisible = !passwordVisible" class="password-toggle" v-show="loginForm.password">
+            <i :class="passwordVisible ? 'el-icon-view' : 'el-icon-view'"></i>
+          </span>
         </div>
         <el-checkbox v-model="loginForm.rememberMe" style="margin:10px auto">记住密码</el-checkbox>
         <button @click="handleLogin" :disabled="loading"> <template v-if="!loading">登 录</template>
@@ -69,6 +73,7 @@ export default {
   },
   data() {
     return {
+      passwordVisible: false,
       codeUrl: "",
       loginForm: {
         username: "",
@@ -149,8 +154,14 @@ export default {
     handleLogin() {
       this.loading = true;
 
-      this.$store.dispatch("Login", this.loginForm).then(() => {
-        this.$util.startAnimation()
+      this.$store.dispatch("Login", this.loginForm).then((res) => {
+
+        // this.$message.success();
+        if (process.env.VUE_APP_ENV === 'production') {
+          this.$util.startAnimation()
+
+
+        }
         if (this.loginForm.rememberMe) {
           Cookies.set("Buddy-username", this.loginForm.username, { expires: 30 });
           Cookies.set("Buddy-password", encrypt(this.loginForm.password), { expires: 30 });
@@ -269,6 +280,12 @@ export default {
 }
 
 .login {
+  .password-toggle {
+    position: absolute;
+    right: 0;
+    top: 7px;
+    cursor: pointer;
+  }
 
   /* 开始画熊猫 */
   .panda {

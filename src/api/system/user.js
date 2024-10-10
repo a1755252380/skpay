@@ -52,7 +52,7 @@ export function resetUserPwd(userId, password) {
   };
   return request({
     url: "/system/user/resetPwd",
-    method: "put",
+    method: "post",
     data: data,
   });
 }
@@ -73,7 +73,7 @@ export function changeUserStatus(userId, status) {
 // 查询用户个人信息
 export function getUserProfile() {
   return request({
-    url: "/system/user/profile",
+    url: "/user/info",
     method: "get",
   });
 }
@@ -90,13 +90,14 @@ export function updateUserProfile(data) {
 // 用户密码重置
 export function updateUserPwd(oldPassword, newPassword) {
   const data = {
-    oldPassword,
-    newPassword,
+    password: oldPassword,
+    new_password: newPassword,
   };
+
   return request({
-    url: "/system/user/profile/updatePwd",
-    method: "put",
-    params: data,
+    url: "/user/modify/password",
+    method: "post",
+    data: data,
   });
 }
 

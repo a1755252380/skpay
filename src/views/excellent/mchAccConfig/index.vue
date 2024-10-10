@@ -119,7 +119,7 @@
             <el-form-item label="结算模式" prop="settle_mode">
               <el-select v-model="form.settle_mode" placeholder="请选择结算模式" class="w100_input">
                 <el-option label="实时结算" :value="0"></el-option>
-                <el-option label="延时结算" :value="1"></el-option>
+                <!-- <el-option label="延时结算" :value="1"></el-option> -->
                 <el-option label="手动结算" :value="2"></el-option>
               </el-select>
             </el-form-item>
@@ -138,7 +138,11 @@
                   :step="0.0001" class="w100_input" />
               </el-form-item>
 
-              <el-form-item label="单笔代付最大限额" prop="payout_max_limit">
+              <el-form-item label="单笔代付手续费" prop="payout_fee_single">
+                <el-input-number v-model="form.payout_fee_single" placeholder="请输入单笔代付手续费" :min="0"
+                  class="w100_input" />
+              </el-form-item>
+              <el-form-item label="单笔代付最高限额" prop="payout_max_limit">
                 <el-input-number v-model="form.payout_max_limit" placeholder="请输入单笔代付最大限额" :min="0"
                   class="w100_input" />
               </el-form-item>
@@ -149,10 +153,6 @@
               </el-form-item>
 
 
-              <el-form-item label="单笔代付手续费" prop="payout_fee_single">
-                <el-input-number v-model="form.payout_fee_single" placeholder="请输入单笔代付手续费" :min="0"
-                  class="w100_input" />
-              </el-form-item>
 
               <el-form-item label="代理账户代付率" prop="agent_payout_rate">
                 <el-input-number v-model="form.agent_payout_rate" placeholder="请输入代理账户代付率" :min="0.0" :precision="4"
@@ -175,7 +175,12 @@
                 <el-input-number v-model="form.payin_rate" placeholder="请输入代收费率" :min="0.0" :precision="4"
                   :step="0.0001" class="w100_input" />
               </el-form-item>
-              <el-form-item label="单笔代收最大限额" prop="payin_max_limit">
+
+              <el-form-item label="代理账户代收率" prop="agent_payin_rate">
+                <el-input-number v-model="form.agent_payin_rate" placeholder="请输入代理账户代收率" :min="0.0" :precision="4"
+                  :step="0.0001" class="w100_input" />
+              </el-form-item>
+              <el-form-item label="单笔代收最高限额" prop="payin_max_limit">
                 <el-input-number v-model="form.payin_max_limit" placeholder="请输入单笔代收最大限额" :min="0" class="w100_input" />
               </el-form-item>
 
@@ -183,10 +188,6 @@
                 <el-input-number v-model="form.payin_min_limit" placeholder="请输入单笔代收最低限额" :min="0" class="w100_input" />
               </el-form-item>
 
-              <el-form-item label="代理账户代收率" prop="agent_payin_rate">
-                <el-input-number v-model="form.agent_payin_rate" placeholder="请输入代理账户代收率" :min="0.0" :precision="4"
-                  :step="0.0001" class="w100_input" />
-              </el-form-item>
 
             </el-card>
           </div>

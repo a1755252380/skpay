@@ -8,6 +8,7 @@
 </template>
 
 <script>
+import { listMchAccConfig } from "@/api/excellent/mchAccConfig";
 import { listMchSetting } from "@/api/excellent/MchSetting";
 export default {
   name: 'ClientSearchList',
@@ -20,6 +21,10 @@ export default {
     modelValue: {
       type: [String, Number, null],  // 可以是 String, Number 或 null
       default: null
+    },
+    configName: {
+      type: [String,],  // 可以是 String, Number 或 null
+      default: 'config'
     }
   },
   data() {
@@ -36,6 +41,7 @@ export default {
 
   },
   created() {
+
     this.mchNumSearch()
   },
 
@@ -53,6 +59,13 @@ export default {
     handleClear() {
       this.FirstSearched = true
       this.mchNumSearch()
+    },
+    mchSearchType(query) {
+      if (this.configName == 'setting') {
+        return listMchSetting(query)
+      } else {
+        return listMchAccConfig(query)
+      }
     },
     //搜索商户号
     mchNumSearch(value) {
@@ -75,7 +88,7 @@ export default {
         mch_number: value,
         mch_name: null,
       };
-      listMchSetting(query).then((response) => {
+      this.mchSearchType(query).then((response) => {
         if (response.rows.length != 0) {
           this.ClientSearchList = response.rows;
         }

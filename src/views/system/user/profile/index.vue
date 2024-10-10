@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <el-row :gutter="20">
-      <el-col :span="6" :xs="24">
+      <!-- <el-col :span="6" :xs="24">
         <el-card class="box-card">
           <div slot="header" class="clearfix">
             <span>个人信息</span>
@@ -10,7 +10,7 @@
             <div class="text-center">
               <userAvatar />
             </div>
-            <ul class="list-group list-group-striped">
+          <ul class="list-group list-group-striped">
               <li class="list-group-item">
                 <svg-icon icon-class="user" />用户名称
                 <div class="pull-right">{{ user.userName }}</div>
@@ -23,14 +23,14 @@
                 <svg-icon icon-class="email" />用户邮箱
                 <div class="pull-right">{{ user.email }}</div>
               </li>
-              <!-- <li class="list-group-item">
+               <li class="list-group-item">
                 <svg-icon icon-class="tree" />所属部门
                 <div class="pull-right" v-if="user.dept">{{ user.dept.deptName }} / {{ postGroup }}</div>
               </li>
               <li class="list-group-item">
                 <svg-icon icon-class="peoples" />所属角色
                 <div class="pull-right">{{ roleGroup }}</div>
-              </li> -->
+              </li>
               <li class="list-group-item">
                 <svg-icon icon-class="date" />创建日期
                 <div class="pull-right">{{ user.createTime }}</div>
@@ -38,8 +38,8 @@
             </ul>
           </div>
         </el-card>
-      </el-col>
-      <el-col :span="18" :xs="24">
+      </el-col> -->
+      <el-col :span="24" :xs="24">
         <el-card>
           <div slot="header" class="clearfix">
             <span>修改密码</span>
@@ -82,9 +82,9 @@ export default {
   methods: {
     getUser() {
       getUserProfile().then(response => {
-        this.user = response.data;
-        this.roleGroup = response.roleGroup;
-        this.postGroup = response.postGroup;
+        this.user = response.user_info;
+        // this.roleGroup = response.roleGroup;
+        // this.postGroup = response.postGroup;
       });
     }
   }
