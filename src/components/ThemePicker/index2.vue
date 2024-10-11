@@ -1,23 +1,9 @@
 <template>
-  <div class="color-settings">
-    <!-- 主题颜色选择器 -->
-    <el-color-picker v-model="theme" :predefine="[
-      '#409EFF', '#1890ff', '#304156', '#212121',
-      '#11a983', '#13c2c2', '#6959CD', '#f5222d'
-    ]" class="theme-picker" popper-class="theme-picker-dropdown" placeholder="选择主题颜色" />
-
-    <!-- 字体颜色选择器 -->
-    <el-color-picker v-model="fontColor" :predefine="[
-      '#000000', '#FFFFFF', '#FF0000', '#00FF00',
-      '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'
-    ]" class="font-color-picker" popper-class="font-color-picker-dropdown" placeholder="选择字体颜色" />
-
-    <!-- 背景颜色选择器 -->
-    <el-color-picker v-model="backgroundColor" :predefine="[
-      '#FFFFFF', '#F0F0F0', '#000000', '#FFFAF0',
-      '#F5F5DC', '#E6E6FA', '#FFF0F5', '#F0FFF0'
-    ]" class="background-color-picker" popper-class="background-color-picker-dropdown" placeholder="选择背景颜色" />
-  </div>
+  <!-- 使用 Element UI 的颜色选择器组件 -->
+  <el-color-picker v-model="theme" :predefine="[
+    '#409EFF', '#1890ff', '#304156', '#212121',
+    '#11a983', '#13c2c2', '#6959CD', '#f5222d'
+  ]" class="theme-picker" popper-class="theme-picker-dropdown" />
 </template>
 
 <script>
@@ -30,70 +16,33 @@ const ORIGINAL_THEME = '#409EFF'
 export default {
   data() {
     return {
-      chalk: '',           // 存储主题 CSS 内容
-      theme: '',           // 当前选中的主题颜色
-      fontColor: '#000000', // 当前选中的字体颜色，默认黑色
-      backgroundColor: '#FFFFFF' // 当前选中的背景颜色，默认白色
+      chalk: '', // 存储主题 CSS 内容
+      theme: ''   // 当前选中的主题颜色
     }
   },
   computed: {
-    // 从 Vuex 仓库中获取默认主题颜色、字体颜色和背景颜色
+    // 从 Vuex 仓库中获取默认主题颜色
     defaultTheme() {
       return this.$store.state.settings.theme
-    },
-    defaultFontColor() {
-      return this.$store.state.settings.fontColor
-    },
-    defaultBackgroundColor() {
-      return this.$store.state.settings.backgroundColor
     }
   },
   watch: {
     // 监听默认主题颜色的变化，并更新当前主题颜色
     defaultTheme: {
-      handler: function (val) {
+      handler: function (val, oldVal) {
         this.theme = val
       },
       immediate: true // 立即执行 handler
     },
-    // 监听默认字体颜色的变化，并更新当前字体颜色
-    defaultFontColor: {
-      handler: function (val) {
-        this.fontColor = val
-      },
-      immediate: true
-    },
-    // 监听默认背景颜色的变化，并更新当前背景颜色
-    defaultBackgroundColor: {
-      handler: function (val) {
-        this.backgroundColor = val
-      },
-      immediate: true
-    },
-    // 监听主题颜色的变化，调用 setTheme 方法更新主题
+    // 监听当前主题颜色的变化，调用 setTheme 方法更新主题
     async theme(val) {
       await this.setTheme(val)
-    },
-    // 监听字体颜色的变化，调用 setFontColor 方法更新字体颜色
-    async fontColor(val) {
-      await this.setFontColor(val)
-    },
-    // 监听背景颜色的变化，调用 setBackgroundColor 方法更新背景颜色
-    async backgroundColor(val) {
-      await this.setBackgroundColor(val)
     }
   },
   created() {
     // 在组件创建时，如果默认主题颜色不是原始主题颜色，则应用默认主题
     if (this.defaultTheme !== ORIGINAL_THEME) {
       this.setTheme(this.defaultTheme)
-    }
-    // 同时应用默认字体颜色和背景颜色
-    if (this.defaultFontColor) {
-      this.setFontColor(this.defaultFontColor)
-    }
-    if (this.defaultBackgroundColor) {
-      this.setBackgroundColor(this.defaultBackgroundColor)
     }
   },
 
@@ -138,7 +87,7 @@ export default {
         }
       }
 
-      console.log('设置主题颜色:', val); // 打印当前选中的颜色（可用于调试）
+      console.log(val); // 打印当前选中的颜色（可用于调试）
 
       // 如果 chalk 尚未加载，则通过 URL 获取主题 CSS 字符串
       if (!this.chalk) {
@@ -169,66 +118,6 @@ export default {
     },
 
     /**
-     * 设置字体颜色
-     * @param {string} val - 选中的字体颜色
-     */
-    async setFontColor(val) {
-      if (typeof val !== 'string') return
-
-      // 查找是否已有字体颜色的样式标签
-      let styleTag = document.getElementById('font-color-style')
-      if (!styleTag) {
-        // 如果没有，则创建一个新的样式标签
-        styleTag = document.createElement('style')
-        styleTag.setAttribute('id', 'font-color-style')
-        document.head.appendChild(styleTag)
-      }
-      // 设置样式标签的内容为新的字体颜色
-      styleTag.innerText = `
-        body {
-          color: ${val} !important;
-        }
-        /* 你可以根据需要添加更多的选择器来覆盖默认字体颜色 */
-      `
-
-      // 更新 Vuex 仓库中的字体颜色
-      this.$store.commit('settings/setFontColor', val)
-
-      // 触发 'fontColorChange' 事件，传递新的字体颜色
-      this.$emit('fontColorChange', val)
-    },
-
-    /**
-     * 设置背景颜色
-     * @param {string} val - 选中的背景颜色
-     */
-    async setBackgroundColor(val) {
-      if (typeof val !== 'string') return
-
-      // 查找是否已有背景颜色的样式标签
-      let styleTag = document.getElementById('background-color-style')
-      if (!styleTag) {
-        // 如果没有，则创建一个新的样式标签
-        styleTag = document.createElement('style')
-        styleTag.setAttribute('id', 'background-color-style')
-        document.head.appendChild(styleTag)
-      }
-      // 设置样式标签的内容为新的背景颜色
-      styleTag.innerText = `
-        body {
-          background-color: ${val} !important;
-        }
-        /* 你可以根据需要添加更多的选择器来覆盖默认背景颜色 */
-      `
-
-      // 更新 Vuex 仓库中的背景颜色
-      this.$store.commit('settings/setBackgroundColor', val)
-
-      // 触发 'backgroundColorChange' 事件，传递新的背景颜色
-      this.$emit('backgroundColorChange', val)
-    },
-
-    /**
      * 更新样式内容，将旧颜色替换为新颜色
      * @param {string} style - 原始样式内容
      * @param {Array} oldCluster - 旧的色彩集群
@@ -237,10 +126,14 @@ export default {
      */
     updateStyle(style, oldCluster, newCluster) {
       let newStyle = style
+      console.log("oldCluster", oldCluster);
+
       oldCluster.forEach((color, index) => {
         // 使用正则表达式全局替换颜色（不区分大小写）
         newStyle = newStyle.replace(new RegExp(color, 'ig'), newCluster[index])
       })
+      console.log(newStyle);
+
       return newStyle
     },
 
@@ -334,46 +227,21 @@ export default {
 </script>
 
 <style>
-/* 容器样式，确保颜色选择器垂直排列并有适当间距 */
-.color-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
 /* 提升主题相关元素的 z-index，确保其在最上层显示 */
 .theme-message,
-.theme-picker-dropdown,
-.font-color-picker-dropdown,
-.background-color-picker-dropdown {
+.theme-picker-dropdown {
   z-index: 99999 !important;
 }
 
-/* 自定义主题颜色选择器的触发器样式 */
+/* 自定义颜色选择器的触发器样式 */
 .theme-picker .el-color-picker__trigger {
   height: 26px !important;
   width: 26px !important;
   padding: 2px;
 }
 
-/* 自定义字体颜色选择器的触发器样式 */
-.font-color-picker .el-color-picker__trigger {
-  height: 26px !important;
-  width: 26px !important;
-  padding: 2px;
-}
-
-/* 自定义背景颜色选择器的触发器样式 */
-.background-color-picker .el-color-picker__trigger {
-  height: 26px !important;
-  width: 26px !important;
-  padding: 2px;
-}
-
 /* 隐藏颜色选择器下拉中的链接按钮 */
-.theme-picker-dropdown .el-color-dropdown__link-btn,
-.font-color-picker-dropdown .el-color-dropdown__link-btn,
-.background-color-picker-dropdown .el-color-dropdown__link-btn {
+.theme-picker-dropdown .el-color-dropdown__link-btn {
   display: none;
 }
 </style>

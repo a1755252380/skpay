@@ -154,8 +154,8 @@
 
 
 
-              <el-form-item label="代理账户代付率" prop="agent_payout_rate">
-                <el-input-number v-model="form.agent_payout_rate" placeholder="请输入代理账户代付率" :min="0.0" :precision="4"
+              <el-form-item label="代理账户代付费率" prop="agent_payout_rate">
+                <el-input-number v-model="form.agent_payout_rate" placeholder="请输入代理账户代付费率" :min="0.0" :precision="4"
                   :step="0.0001" class="w100_input" />
               </el-form-item>
               <el-form-item label="代理账户单笔代付手续费" prop="agent_payout_fee">
@@ -176,8 +176,8 @@
                   :step="0.0001" class="w100_input" />
               </el-form-item>
 
-              <el-form-item label="代理账户代收率" prop="agent_payin_rate">
-                <el-input-number v-model="form.agent_payin_rate" placeholder="请输入代理账户代收率" :min="0.0" :precision="4"
+              <el-form-item label="代理账户代收费率" prop="agent_payin_rate">
+                <el-input-number v-model="form.agent_payin_rate" placeholder="请输入代理账户代收费率" :min="0.0" :precision="4"
                   :step="0.0001" class="w100_input" />
               </el-form-item>
               <el-form-item label="单笔代收最高限额" prop="payin_max_limit">

@@ -10,7 +10,7 @@ export function TableAmount(row, column, cellValue, index) {
 }
 export function TableRate(row, column, cellValue, index) {
   if (cellValue) {
-    return cellValue.toFixed(2) + "%";
+    return (cellValue * 100).toFixed(2) + "%";
   } else {
     return "0.00%";
   }
@@ -26,5 +26,5 @@ export function FormatTime(event, type = "YYYY-MM-DD HH:mm:ss") {
   return moment(event).tz("Asia/Kolkata").format(type);
 }
 export function FormatRate(value) {
-  return value.toFixed(2) + "%";
+  return (value * 100).toFixed(2) + "%";
 }

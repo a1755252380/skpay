@@ -73,7 +73,6 @@ export default {
 
   methods: {
     startAnimation(newValue) {
-      console.log(newValue);
 
       let increment; // 设置每次变化的值
       increment = (newValue - this.displayValue);

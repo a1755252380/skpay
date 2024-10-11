@@ -1,7 +1,7 @@
 <template>
   <div class="app-container fulltable_div">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="商户号" prop="mch_num">
+      <el-form-item label="商户号" prop="mch_num" v-if="checkRole(['admin'])">
         <MchNumSelect v-model="queryParams.mch_num" @change="handleQuery"></MchNumSelect>
 
       </el-form-item>

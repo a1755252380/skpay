@@ -18,17 +18,17 @@
 
     <dynamicTableVue :loading="loading" :tableData="OrderSuccessRateListSort" :cellClassName="'HoverTooltipCopy'"
       @cellDblclick="cellDblclick">
-      <el-table-column prop="mch_number" label="商户号" align="center">
+      <el-table-column prop="mch_number" label="商户号" align="center" fixed="left">
 
       </el-table-column>
       <el-table-column prop="payin_success_rate" label="代收成功率" align="center" class-name="rate_show"
         :formatter="Formatter.TableRate">
 
       </el-table-column>
-      <el-table-column prop="payin_success_service_charge" label="代收成功手续费" align="center"
+      <!-- <el-table-column prop="payin_success_service_charge" label="代收成功手续费" align="center"
         :formatter="Formatter.TableAmount">
 
-      </el-table-column>
+      </el-table-column> -->
       <el-table-column prop="payin_success_count" label="代收成功订单总数" align="center">
 
       </el-table-column>
@@ -50,10 +50,10 @@
         :formatter="Formatter.TableRate">
 
       </el-table-column>
-      <el-table-column prop="payout_success_service_charge" label="代付成功手续费" align="center"
+      <!-- <el-table-column prop="payout_success_service_charge" label="代付成功手续费" align="center"
         :formatter="Formatter.TableAmount">
 
-      </el-table-column>
+      </el-table-column> -->
       <el-table-column prop="payout_success_count" label="代付成功订单总数" align="center">
 
       </el-table-column>

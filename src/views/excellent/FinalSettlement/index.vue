@@ -1,20 +1,29 @@
 <template>
   <div class="app-container fulltable_div" ref="container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="90px">
-      <el-form-item label="商户号 " prop="mch_num">
-        <MchNumSelect v-model="queryParams.mch_num" @change="handleQuery"></MchNumSelect>
-      </el-form-item>
+      <template v-if="checkRole(['admin'])">
 
-      <el-form-item>
-        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-        <!-- <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :search="false"></right-toolbar> -->
-      </el-form-item>
+        <el-form-item label="商户号 " prop="mch_num">
+          <MchNumSelect v-model="queryParams.mch_num" @change="handleQuery"></MchNumSelect>
+        </el-form-item>
+
+        <el-form-item>
+          <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+          <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+        </el-form-item>
+      </template>
+
     </el-form>
-    <div class="CalculationFormula" v-if="hasPermiVisible(['excellent:mchAcc:edit'])">
+
+
+    <div class="CalculationFormula">
       <strong>账户余额=待结算金额+账户可用余额+代付余额</strong>
       <strong>代付余额=代付可用余额+代付冻结金额</strong>
       <strong>商户下发使用可用余额调整</strong>
+      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :search="false"
+        v-if="!checkRole(['admin'])"></right-toolbar>
+
+
     </div>
 
     <dynamicTableVue :tableData="mchSettlementList" @handleSelectionChange="handleSelectionChange" :loading="loading"
@@ -37,7 +46,7 @@
       <el-table-column label="代付冻结金额" align="center" prop="payou_freeze_amount" :formatter="Formatter.TableAmount" />
       <el-table-column label="代付冻结金额手续费" align="center" prop="payou_freeze_amount_service"
         :formatter="Formatter.TableAmount" />
-
+      <el-table-column label="最新时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond" />
       <el-table-column label="操作" align="center" class-name="small-padding ">
         <template slot-scope="scope">
           <el-button size="mini" type="text" icon="el-icon-warning-outline"
@@ -125,17 +134,35 @@ export default {
   },
   mounted() {
     this.getList();
+
   },
   methods: {
+    //数据处理
+    async DataProcessing(list) {
+
+      return Object.values(
+        list.reduce((acc, obj) => {
+          // 比较 mch_num 相同的对象，保留 create_time 最大的
+          if (!acc[obj.mch_num] || acc[obj.mch_num].create_time < obj.create_time) {
+            acc[obj.mch_num] = obj;
+          }
+          return acc;
+        }, {})
+      );
+    },
     /** 查询商户结算列表 */
     getList() {
       this.loading = true;
       let query = { ...this.queryParams };
       listMchSettlement(query).then((response) => {
-
-        this.mchSettlementList = response.rows;
         this.pageData.total = response.total;
-        this.loading = false;
+
+        this.DataProcessing(response.rows).then((list) => {
+
+          this.mchSettlementList = list;
+          this.loading = false;
+        })
+
       });
 
     },

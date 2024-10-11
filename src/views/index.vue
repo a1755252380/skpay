@@ -287,10 +287,11 @@ export default {
         return
       }
       if (this.$store.state.user.roles.includes('admin')) {
+
         statistics().then((res) => {
           res = res.data;
           this.ProxyStatisticalDataProcessing(res);
-          this.addData(res);
+          // this.addData(res);
           //代收
           this.AgencyAccountStatistics(res);
           console.log("首页调用了数据请求");

@@ -47,6 +47,8 @@ import * as validate from "@/utils/validate";
 import { hasPermiVisible } from "@/utils/hasPermiVisible.js";
 import * as download from "@/utils/download";
 import * as Formatter from "@/utils/Formatter";
+import { checkRole } from "@/utils/permission";
+
 // 全局方法挂载
 Vue.prototype.getDicts = getDicts;
 Vue.prototype.getConfigKey = getConfigKey;
@@ -61,6 +63,7 @@ Vue.prototype.$util = util;
 Vue.prototype.Formatter = Formatter;
 Vue.prototype.hasPermiVisible = hasPermiVisible;
 Vue.prototype.download = download;
+Vue.prototype.checkRole = checkRole; //身份检验方法
 // 全局组件挂载
 Vue.component("DictTag", DictTag);
 Vue.component("Pagination", Pagination);
