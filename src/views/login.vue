@@ -1,5 +1,5 @@
 <template>
-  <div class="login">
+  <div class="login" @keyup.enter="handleLogin">
     <div class="container">
       <div class="panda">
         <div class="ear left"></div>
@@ -24,14 +24,19 @@
           <div class="sole"></div>
         </div>
       </div>
-      <div class="login-box">
+
+      <div class="login-box" id="login_div">
         <div class="hand left"></div>
         <div class="hand right"></div>
         <h1>Buddy后台管理系统</h1>
+
         <div class="ipt-box">
           <input type="text" required v-model="loginForm.username">
           <label>用户名</label>
         </div>
+
+
+
         <div class="ipt-box">
           <input :type="passwordVisible ? 'text' : 'password'" id="password" v-model="loginForm.password" required>
           <label>密码</label>
@@ -40,8 +45,22 @@
             <i :class="passwordVisible ? 'el-icon-view' : 'el-icon-view'"></i>
           </span>
         </div>
+        <div class="ipt-box code_input">
+          <input v-model="loginForm.captcha_input" required>
+          <label>验证码</label>
+          <el-image :src="codeUrl" style="height: 40px;cursor: pointer;" @click="getCode">
+            <div slot="placeholder" class="image-slot " style="height: 40px;width:90px">
+              <i class="el-icon-loading"></i>
+            </div>
+            <div slot="error" class="image-slot" style="height: 40px;width:90px">
+              <i class="el-icon-picture-outline"></i>
+            </div>
+          </el-image>
+          <!-- 验证码图片 -->
+        </div>
         <el-checkbox v-model="loginForm.rememberMe" style="margin:10px auto">记住密码</el-checkbox>
-        <button @click="handleLogin" :disabled="loading"> <template v-if="!loading">登 录</template>
+        <button @click="handleLogin" :disabled="loading"> <template v-if="!loading">登
+            录</template>
           <template v-else><i class="el-icon-loading"></i></template></button>
       </div>
     </div>
@@ -56,7 +75,7 @@
 </template>
 
 <script>
-import { getCodeImg } from "@/api/login";
+import { getCodeImg, getCodeImgID } from "@/api/login";
 import Cookies from "js-cookie";
 import { encrypt, decrypt } from '@/utils/jsencrypt'
 
@@ -79,8 +98,8 @@ export default {
         username: "",
         password: "",
         rememberMe: false,
-        code: "",
-        uuid: ""
+        captcha_input: "",
+        captcha_id: ""
       },
       loginRules: {
         username: [
@@ -89,7 +108,7 @@ export default {
         password: [
           { required: true, trigger: "blur", message: "请输入您的密码" }
         ],
-        // code: [{ required: true, trigger: "change", message: "请输入验证码" }]
+        captcha_input: [{ required: true, trigger: "change", message: "请输入验证码" }]
       },
       loading: false,
       // 验证码开关
@@ -108,11 +127,11 @@ export default {
     }
   },
   created() {
-    // this.getCode();
+    this.getCode();
     this.getCookie();
   },
   mounted() {
-    $('#password').focusin(function () {
+    $('#login_div').focusin(function () {
       // 密码框选中
       $('.login-box').addClass('up');
     }).focusout(function () {
@@ -133,13 +152,16 @@ export default {
   },
   methods: {
     getCode() {
-      getCodeImg().then(res => {
-        this.captchaEnabled = res.captchaEnabled === undefined ? true : res.captchaEnabled;
-        if (this.captchaEnabled) {
-          this.codeUrl = "data:image/gif;base64," + res.img;
-          this.loginForm.uuid = res.uuid;
-        }
-      });
+      getCodeImgID().then(res => {
+        this.loginForm.captcha_id = res.captcha_id;
+        this.codeUrl = "/console/captcha/image?id=" + res.captcha_id
+        // getCodeImg(res.captcha_id).then(res => {
+        //   console.log(res);
+
+        //   this.codeUrl = res
+        // })
+      })
+
     },
     getCookie() {
       const username = Cookies.get("Buddy-username");
@@ -148,7 +170,9 @@ export default {
       this.loginForm = {
         username: username === undefined ? this.loginForm.username : username,
         password: password === undefined ? this.loginForm.password : decrypt(password),
-        rememberMe: rememberMe === undefined ? false : Boolean(rememberMe)
+        rememberMe: rememberMe === undefined ? false : Boolean(rememberMe),
+        captcha_input: "",
+        captcha_id: ""
       };
     },
     handleLogin() {
@@ -176,9 +200,9 @@ export default {
 
       }).catch(() => {
         this.loading = false;
-        // if (this.captchaEnabled) {
-        //   this.getCode();
-        // }
+        if (this.captchaEnabled) {
+          this.getCode();
+        }
       });
       // this.$refs.loginForm.validate(valid => {
       //   if (valid) {
@@ -268,6 +292,11 @@ export default {
   box-shadow: 0px 1px 14px 0px rgba(0, 0, 0, 0.1)
 }
 
+.code_input {
+  display: flex;
+  align-items: center;
+}
+
 .login {
   /* 100%窗口高度 */
   height: 100vh;
@@ -277,6 +306,12 @@ export default {
   align-items: center;
   /* 渐变背景 */
   background: linear-gradient(200deg, #37e2b2, #2fa080);
+}
+
+.image-slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .login {
@@ -398,11 +433,11 @@ export default {
   /* 身体 */
   .body {
     width: 250px;
-    height: 280px;
+    height: 340px;
     background-color: #fff;
     position: relative;
     left: -25px;
-    top: -10px;
+    top: -35px;
     border-radius: 100px 100px 100px 100px / 126px 126px 96px 96px;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
   }
@@ -413,7 +448,7 @@ export default {
     height: 120px;
     background-color: #000;
     position: absolute;
-    bottom: 8px;
+    bottom: -8px;
     z-index: 3;
     border-radius: 40px 40px 35px 40px / 26px 26px 63px 63px;
     box-shadow: 0 5px 5px rgba(0, 0, 0, 0.2);
@@ -499,8 +534,8 @@ export default {
 
   /* 登录框 */
   .login-box {
-    width: 400px;
-    height: 300px;
+    width: 450px;
+    height: 350px;
     background-color: #fff;
     border-radius: 3px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);

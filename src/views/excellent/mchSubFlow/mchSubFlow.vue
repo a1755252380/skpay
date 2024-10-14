@@ -27,7 +27,13 @@
 
         </el-select>
       </el-form-item>
-      <el-form-item label="查询起始时间" prop="create_time">
+      <el-form-item label="创建时间" prop="create_time">
+        <el-date-picker v-model="timedata.create_time" type="datetimerange" range-separator="-" start-placeholder="开始日期"
+          class="w100_input" end-placeholder="结束日期" value-format="yyyy-MM-dd HH:mm:ss" @clear="clearTime"
+          @change="parseTime($event, 'create_time')">
+        </el-date-picker>
+      </el-form-item>
+      <!-- <el-form-item label="查询起始时间" prop="create_time">
         <el-date-picker v-model="timedata.create_time" value-format="yyyy-MM-dd HH:mm:ss" type="datetime"
           placeholder="请选择查询起始时间" class="w100_input" @change="parseTime($event, 'create_time')"
           @clear="clearTime('create_time')" />
@@ -37,7 +43,7 @@
         <el-date-picker v-model="timedata.end_time" type="datetime" value-format="yyyy-MM-dd HH:mm:ss"
           placeholder="请选择查询截止时间" class="w100_input" @change="parseTime($event, 'end_time')"
           @clear="clearTime('end_time')" />
-      </el-form-item>
+      </el-form-item> -->
     </template>
 
     <template #search_btn>
@@ -71,8 +77,8 @@ export default {
         stream_type: 'amount'
       },
       timedata: {
-        create_time: null,
-        end_time: null
+        create_time: [],
+        // end_time: null
       },
       PaymentChannel: [],
       MainAccount: [],
@@ -116,14 +122,21 @@ export default {
 
   methods: {
     parseTime(value, index) {
-      let utcTime = this.$util.getUtcTime(value) / 1000;
-      this.$set(this.timedata, index, value);
-      this.$set(this.queryParams, index, utcTime ? utcTime : null);
+      let utcTimebegin = value ? this.$util.getUtcTime(value[0]) / 1000 : null;
+      let utcTimeEnd = value ? this.$util.getUtcTime(value[1]) / 1000 : null;
+      if (index == 'create_time') {
+        this.$set(this.queryParams, 'create_time', utcTimebegin);
+        this.$set(this.queryParams, 'end_time', utcTimeEnd);
+      }
+
     },
     clearTime(index) {
 
-      this.$set(this.timedata, index, null);
-      this.$set(this.queryParams, index, null);
+      this.$set(this.timedata, index, []);
+      if (index == 'create_time') {
+        this.$set(this.queryParams, 'create_time', null);
+        this.$set(this.queryParams, 'end_time', null);
+      }
     },
     handleQuery() {
       this.$emit('ReturnSearch', this.queryParams);
@@ -154,9 +167,9 @@ export default {
     },
 
     handleExport() {
-      if (this.timedata.create_time && this.timedata.end_time) {
+      if (this.queryParams.create_time && this.queryParams.end_time) {
         const params = { ...this.queryParams, type: this.TabsChangeStatus };
-        this.download.mchAccFlowDownload('/stream/download/commit', params);
+        this.download.DownloadXlsx('/stream/download/commit', params);
       } else {
         this.$message({ message: '请选择时间', type: 'warning' });
       }

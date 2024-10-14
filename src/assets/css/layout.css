@@ -2,6 +2,15 @@
 #app * {
   font-family: 'Noto Sans SC';
 }
+.CalculationFormula {
+  padding-bottom: 8px;
+
+
+}
+.CalculationFormula strong {
+  font-size: 14px;
+  padding-left: 24px;
+}
 .fulltable_div{
   min-height: inherit;
   display: flex;

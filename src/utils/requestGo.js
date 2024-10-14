@@ -5,8 +5,7 @@ import { getToken } from "@/utils/auth";
 import errorCode from "@/utils/errorCode";
 import { tansParams, blobValidate } from "@/utils/ruoyi";
 import cache from "@/plugins/cache";
-import { saveAs } from "file-saver";
-
+import router from "@/router";
 let downloadLoadingInstance;
 // 是否显示重新登录
 export let isRelogin = { show: false };
@@ -106,12 +105,16 @@ serviceOrder.interceptors.response.use(
       res.request.responseType === "blob" ||
       res.request.responseType === "arraybuffer"
     ) {
-      return res.data.data;
+      return res;
     }
-    if (code === 401) {
-      console.log(isRelogin.show);
+    console.log(code);
+    console.log(isRelogin.show);
 
-      if (!isRelogin.show) {
+    if (code === 401 || code === 404) {
+      if (
+        !isRelogin.show ||
+        (store.getters.roles && store.getters.roles.length === 0)
+      ) {
         isRelogin.show = true;
         MessageBox.confirm(
           "登录状态已过期，您可以继续留在该页面，或者重新登录",
@@ -124,9 +127,13 @@ serviceOrder.interceptors.response.use(
         )
           .then(() => {
             isRelogin.show = false;
-            store.dispatch("LogOut").then(() => {
+            if (getToken()) {
+              store.dispatch("LogOut").then(() => {
+                location.href = "/index";
+              });
+            } else {
               location.href = "/index";
-            });
+            }
           })
           .catch(() => {
             isRelogin.show = false;
@@ -146,6 +153,7 @@ serviceOrder.interceptors.response.use(
       // if (res.data.msg != "success") {
       //   Message({ message: msg, type: "warning" });
       // }
+
       return res.data.data;
     }
   },

@@ -1,9 +1,9 @@
 <template>
   <div style="
         " class="OrderRecords_table_search">
-    <el-form :model="queryParams" ref="queryForm" size="mini" :inline="true" v-show="showSearch" label-position="top"
-      label-width="140px">
-      <div class="search_option_div">
+
+    <OrderAndSteam :queryParams="queryParams" :showSearch="showSearch">
+      <template #search_option>
         <el-form-item label="商户" prop="mch_number" v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
           <el-select v-model="queryParams.mch_number" placeholder="请选择商户" clearable class="w100_input">
             <el-option v-for="dict in MainAccount" :key="dict.id" :label="dict.mch_num" :value="dict.mch_num" />
@@ -12,7 +12,7 @@
         </el-form-item>
         <el-form-item label="支付通道" prop="chnl_id" v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
           <el-select v-model="queryParams.chnl_id" placeholder="请选择支付通道" clearable class="w100_input">
-            <el-option v-for="dict in ChannelAccount" :key="dict.id" :label="dict.chnl_name" :value="dict.id" />
+            <el-option v-for="dict in ChannelAccount" :key="dict.id" :label="dict.chnl_name" :value="dict.chnl_name" />
           </el-select>
 
         </el-form-item>
@@ -73,15 +73,26 @@
 
         </el-form-item> -->
 
-      </div>
-      <div class="FlexStart">
+
+
+      </template>
+      <template #search_btn>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
         <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport">导出</el-button>
         <slot name="btn"></slot>
 
+      </template>
+
+    </OrderAndSteam>
+    <!-- <el-form :model="queryParams" ref="queryForm" size="mini" :inline="true" v-show="showSearch" label-position="top"
+      label-width="140px">
+
+      <div class="FlexStart">
+
+
       </div>
-    </el-form>
+    </el-form> -->
 
   </div>
 </template>
@@ -89,10 +100,25 @@
 <script>
 import { listChnlSetting } from "@/api/excellent/chnlSetting";
 import { listMchSetting } from "@/api/excellent/MchSetting"
-import { SubmitDownloadOrder } from "@/api/excellent/OrderRecords";
+import OrderAndSteam from "@/components/Excellent/SearchLayout/OrderAndSteam.vue";
 export default {
   name: 'WorkspaceJsonOrderSearch',
-  props: ['showSearch', 'TabsChangeStatus'],
+  props: {
+    'showSearch': {
+      type: Boolean,
+      default: true
+    },
+    'TabsChangeStatus': {
+      type: [String, Number],
+      default: 0
+
+
+    },
+
+
+
+
+  },
   data() {
     return {
       queryParams: {
@@ -217,15 +243,28 @@ export default {
     },
     /** 重置按钮操作 */
     resetQuery() {
-      this.resetForm("queryForm");
       this.timedata = {
         create_time: [],
         end_time: []
       },
-        this.queryParams.create_end_time = null
-      this.queryParams.create_time = null
-      this.queryParams.update_time = null
-      this.queryParams.update_end_time = null
+        this.queryParams = {
+          mch_number: null,
+          merchant_order_id: null,
+          order_id: null,
+          platform_order_id: null,
+          chnl_id: null,
+          // MainAccount: null, //商户的主体账户 暂不用
+          status: null,
+          end_time: null,
+          callback_status: null, //回调状态
+          //创建时间
+          create_time: null,
+          create_end_time: null,
+          //更新时间
+          update_time: null,
+          update_end_time: null
+        }
+
       this.handleQuery();
     },
 
@@ -237,9 +276,10 @@ export default {
         }
         params['time_type'] = this.TabsChangeStatus
         params['type'] = this.$route.query.type
-        SubmitDownloadOrder(params).then(res => {
-          console.log(res);
-        })
+        this.download.DownloadXlsx('/order/download/commit', params);
+        // SubmitDownloadOrder(params).then(res => {
+        //   console.log(res);
+        // })
       } else {
         this.$message({
           message: '请选择创建时间/更新时间',
@@ -280,6 +320,10 @@ export default {
 
     }
   },
+  components: {
+    OrderAndSteam
+
+  }
 };
 </script>
 <style lang="scss" scoped>
@@ -304,15 +348,15 @@ export default {
   padding: 0 16px 8px 16px;
   // margin-bottom: 20px;
 
-  .search_option_div {
-    display: grid;
-    grid-auto-rows: 1fr;
-    gap: 0 8px;
-    /* 行高均等 */
-    // grid-template-rows: repeat(2, 1fr);
-    /* 强制分为两行 */
-    grid-template-columns: repeat(auto-fill, minmax(245px, 19.5%));
+  //   .search_option_div {
+  //     display: grid;
+  //     grid-auto-rows: 1fr;
+  //     gap: 0 8px;
+  //     /* 行高均等 */
+  //     // grid-template-rows: repeat(2, 1fr);
+  //     /* 强制分为两行 */
+  //     grid-template-columns: repeat(auto-fill, minmax(245px, 19.5%));
 
-  }
+  //   }
 }
 </style>

@@ -13,7 +13,12 @@
         <!-- <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :search="false"></right-toolbar> -->
       </el-form-item>
     </el-form>
+    <div class="CalculationFormula">
 
+      <strong>（本模块依据订单创建时间）</strong>
+      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :search="false"
+        v-if="!checkRole(['admin'])"></right-toolbar>
+    </div>
 
     <dynamicTableVue :tableData="paginatedItems" @handleSelectionChange="handleSelectionChange" :loading="loading"
       ref="myTable">
@@ -30,11 +35,11 @@
         :formatter="Formatter.TableAmount" />
       <el-table-column label="总代付手续费" align="center" prop="pay_out_success_service_charge"
         :formatter="Formatter.TableAmount" />
-
-      <el-table-column label="操作" align="center" class-name="small-padding ">
+      <el-table-column label="截止时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond" />
+      <el-table-column label="历史" align="center" class-name="small-padding ">
         <template slot-scope="scope">
           <el-button size="mini" type="text" icon="el-icon-warning-outline"
-            @click="handleUpdate(scope.row)">详情</el-button>
+            @click="handleUpdate(scope.row)">历史数据</el-button>
         </template>
       </el-table-column>
 
@@ -46,8 +51,8 @@
 
     <!-- 详细弹窗 -->
 
-    <DetailedContentVue :DetailedContentShow="DetailedContentShow" :mch_number="DetailedContentNumber"
-      @ReturnDetailedContentShow="ReturnDetailedContentShow">
+    <DetailedContentVue :DetailedContentShow="DetailedContentShow" ref="DetailedContentVue"
+      :mch_number="DetailedContentNumber" @ReturnDetailedContentShow="ReturnDetailedContentShow">
     </DetailedContentVue>
 
   </div>
@@ -139,15 +144,31 @@ export default {
     this.getList();
   },
   methods: {
+    //数据处理
+    async DataProcessing(list) {
+
+      return Object.values(
+        list.reduce((acc, obj) => {
+          // 比较 mch_num 相同的对象，保留 create_time 最大的
+          if (!acc[obj.mch_number] || acc[obj.mch_number].create_time < obj.create_time) {
+            acc[obj.mch_number] = obj;
+          }
+          return acc;
+        }, {})
+      );
+    },
     /** 查询商户结算列表 */
     getList() {
       this.loading = true;
       let query = { ...this.queryParams };
       listMchSettlement(query).then((response) => {
         this.last_id = response["last_id"];
-        this.mchSettlementList = [...this.mchSettlementList, ...response.results];
-        this.pageData.total = this.mchSettlementList.length;
-        this.loading = false;
+        this.DataProcessing(response.results).then((res) => {
+          this.mchSettlementList = [...this.mchSettlementList, ...res];
+          this.pageData.total = this.mchSettlementList.length;
+          this.loading = false;
+        })
+
       });
 
     },
@@ -246,6 +267,7 @@ export default {
       this.DetailedContentShow = true
       this.DetailedContentListLoading = true
       this.DetailedContentNumber = row.mch_number
+      this.$refs.DetailedContentVue.getList(this.DetailedContentNumber)
 
     },
     ReturnDetailedContentShow(value) {

@@ -1,20 +1,24 @@
 <template>
-  <el-dialog :title="'结算详细'" :visible.sync="DetailedContentShowData" width="80%" append-to-body>
+  <el-dialog :title="'历史数据'" :visible.sync="DetailedContentShowData" width="80%" append-to-body>
 
     <div class="fulltable_div" style="min-height: 70vh;">
       <el-form ref="DetailedContentSearch" size="small" :inline="true" label-width="120px">
 
-        <el-form-item label="查询起始时间" prop="create_time">
-          <el-date-picker v-model="timedata.create_time" value-format="yyyy-MM-dd HH:mm:ss" type="datetime"
+        <el-form-item label="查询时间" prop="create_time">
+          <el-date-picker v-model="timedata.create_time" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss"
+            range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间"
+            @change="parseTime($event, 'create_time')">
+          </el-date-picker>
+          <!-- <el-date-picker v-model="timedata.create_time" value-format="yyyy-MM-dd HH:mm:ss" type="datetime"
             placeholder="请选择查询起始时间" style="width: 200px" @change="parseTime($event, 'create_time')"
-            @clear="clearTime('create_time')" />
+            @clear="clearTime('create_time')" /> -->
         </el-form-item>
 
-        <el-form-item label="查询截止时间" prop="end_time">
+        <!-- <el-form-item label="查询截止时间" prop="end_time">
           <el-date-picker v-model="timedata.end_time" type="datetime" value-format="yyyy-MM-dd HH:mm:ss"
             placeholder="请选择查询截止时间" style="width: 200px" @change="parseTime($event, 'end_time')"
             @clear="clearTime('end_time')" />
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item>
           <el-button type="primary" icon="el-icon-search" size="mini" @click="EmptyQuery">搜索</el-button>
           <el-button icon="el-icon-refresh" size="mini" @click="DetailedContentSearchresetQuery">重置</el-button>
@@ -23,7 +27,7 @@
 
 
       <dynamicTableVue :tableData="DetailedContentPaginatedItems" :loading="DetailedContentLoading"
-        ref="DetailedContentList">
+        ref="mchSettlementDetail">
 
         <el-table-column label="商户号 " align="center" prop="mch_number" />
         <el-table-column label="商户名称" align="center" prop="mch_name" />
@@ -37,10 +41,7 @@
           :formatter="Formatter.TableAmount" />
         <el-table-column label="总代付手续费" align="center" prop="pay_out_success_service_charge"
           :formatter="Formatter.TableAmount" />
-        <el-table-column label="创建时间" align="center" prop="create_time" :formatter="Formatter.TableAmount">
-          <template slot-scope="scope">
-            {{ Formatter.FormatTime(scope.row.create_time * 1000) }}
-          </template>
+        <el-table-column label="截止时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond">
 
         </el-table-column>
 
@@ -68,14 +69,13 @@ export default {
       DetailedContentListLoading: true,
       DetailedContentListQueryParams: {
         create_time: null, // 开始时间
-        end_time: null, // 结束时间
+        create_end_time: null, // 结束时间
         last_id: null, // 上一次查询的id
         pageSize: 20, // 每页显示的条数,
         total: 1
       },
       timedata: {
-        create_time: null, // 开始时间
-        end_time: null, // 结束时间
+        create_time: [],
       },
       DetailedContentLoading: false
     };
@@ -83,19 +83,19 @@ export default {
   computed: {
     DetailedContentShowData: {
       set(value) {
+        this.DetailedContentList.splice(0)
         this.DetailedContentListQueryParams = {
           create_time: null, // 开始时间
-          end_time: null, // 结束时间
+          create_end_time: null, // 结束时间
           last_id: null, // 上一次查询的id
-          pageSize: 20, // 每页显示的条数
+          pageSize: 20, // 每页显示的条数,
           total: 1
         },
           this.timedata = {
             create_time: null, // 开始时间
-            end_time: null, // 结束时间
           },
-          this.DetailedContentList.splice(0)
-        this.$emit('ReturnDetailedContentShow', value);
+
+          this.$emit('ReturnDetailedContentShow', value);
       },
       get() {
         return this.DetailedContentShow;
@@ -111,17 +111,18 @@ export default {
       const start = (this.DetailedContentListQueryParams.currentPage - 1) * this.DetailedContentListQueryParams.pageSize;
       const end = this.DetailedContentListQueryParams.currentPage * this.DetailedContentListQueryParams.pageSize;
 
-      return this.DetailedContentList.slice(start, end);
+
+      return this.DetailedContentList.slice(isNaN(start) ? 0 : start, isNaN(end) ? this.DetailedContentList.length : end);
 
 
     },
 
   },
-  watch: {
-    mch_number(newval) {
-      this.getList()
-    }
-  },
+  // watch: {
+  //   mch_number(newval) {
+  //     this.getList()
+  //   }
+  // },
 
   mounted() {
 
@@ -130,14 +131,15 @@ export default {
   methods: {
     parseTime(value, index) {
 
-      let utcTime = this.$util.getUtcTime(value) / 1000;
-      this.$set(this.timedata, index, value);
-      this.$set(this.DetailedContentListQueryParams, index, utcTime ? utcTime : null);
+      let utcTimeBegin = value ? this.$util.getUtcTime(value[0]) / 1000 : null;
+      let utcTimeEnd = value ? this.$util.getUtcTime(value[1]) / 1000 : null;
+      if (index == "create_time") {
+        this.$set(this.DetailedContentListQueryParams, 'create_time', utcTimeBegin);
+        this.$set(this.DetailedContentListQueryParams, 'create_end_time', utcTimeEnd);
+      }
+
     },
-    clearTime(value, index) {
-      this.$set(this.timedata, index, null);
-      this.$set(this.DetailedContentListQueryParams, index, null);
-    },
+
     //搜索按钮
     EmptyQuery() {
       this.DetailedContentList.splice(0)
@@ -146,42 +148,54 @@ export default {
       this.getList()
     },
     DetailedContentSearchresetQuery() {
-      this.DetailedContentListQueryParams.create_time = null, // 开始时间
-        this.DetailedContentListQueryParams.end_time = null, // 结束时间
-        this.DetailedContentListQueryParams.last_id = null, // 上一次查询的id
-        this.timedata = {
-          create_time: null, // 开始时间
-          end_time: null, // 结束时间
-        },
+      this.DetailedContentListQueryParams = {
+        create_time: null, // 开始时间
+        create_end_time: null, // 结束时间
+        last_id: null, // 上一次查询的id
+        pageSize: 20, // 每页显示的条数,
+        total: 1
+      }
+      this.timedata = {
+        create_time: null, // 开始时间
+        end_time: null, // 结束时间
+      },
         this.getList()
     },
 
     /** 查询商户结算列表 */
-    getList() {
+    async getList(mch_number) {
+      let mch = mch_number ? mch_number : this.mch_number
+      // if (mch_number) {
+      //   this.DetailedContentList.splice(0)
+      // }
       if (this.DetailedContentLoading) {
         return
       }
       this.DetailedContentLoading = true;
       let query = {
         create_time: this.DetailedContentListQueryParams.create_time, // 开始时间
-        end_time: this.DetailedContentListQueryParams.end_time, // 结束时间
+        create_end_time: this.DetailedContentListQueryParams.create_end_time, // 结束时间
         last_id: this.DetailedContentListQueryParams.last_id, // 上一次查询的id
-        mch_number: this.mch_number
+        mch_number: mch
 
       };
-      listMchSettlement(query).then((response) => {
+
+      return await listMchSettlement(query).then((response) => {
         this.DetailedContentListQueryParams.last_id = response["last_id"];
         this.DetailedContentList = [...this.DetailedContentList, ...response.results];
         this.DetailedContentListQueryParams.total = this.DetailedContentList.length;
-        this.DetailedContentLoading = false;
-      });
+        this.$nextTick(() => {
+          this.DetailedContentLoading = false;
+          this.$forceUpdate()
+        })
 
+      });
     },
     //分页处理
     handleCurrentChange(page) {
       this.DetailedContentListQueryParams.currentPage = page.page;
       this.DetailedContentLoading = true;
-      this.$refs.DetailedContentList.Totop();
+      this.$refs.mchSettlementDetail.Totop();
 
       // 如果到达最后一页并且没有足够的数据，则加载更多数据
       if (

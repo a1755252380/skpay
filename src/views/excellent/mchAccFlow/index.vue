@@ -11,7 +11,7 @@
         :TabsChangeStatus="queryPage.type" @RequestingDataAgain="RequestingDataAgain"></mchAccFlowSearchVue>
       <dynamicTableVue :loading="loading" :tableData="paginatedItems" @cellDblclick="cellDblclick"
         :cellClassName="' CopyHoverTooltip'" ref="myTable">
-        <el-table-column label="流水号" align="center" prop="_id" width="230" />
+        <el-table-column label="流水号" align="center" prop="_id" width="230" fixed="left" />
 
         <el-table-column label="商户号 " align="center" prop="mch_number" />
         <el-table-column label="账户初期金额" align="center" prop="mch_start_balance" :formatter="Formatter.TableAmount">
@@ -35,10 +35,11 @@
         <el-table-column label="资金变动原因" align="center" prop="msg" :show-overflow-tooltip="true" />
         <el-table-column label="资金变动类型" align="center" prop="operation" :formatter="typeFormatter" />
         <el-table-column label="相关订单号" align="center" prop="merchant_order_id" />
-        <el-table-column label="创建时间" align="center" prop="update_time">
-          <template slot-scope="scope">
-            <span>{{ $util.FormatUtcTime(scope.row.update_time * 1000) }}</span>
-          </template>
+        <el-table-column label="流水更新时间" align="center" prop="update_time" :formatter="Formatter.TableTimeSecond"
+          width="180">
+        </el-table-column>
+        <el-table-column label="创建时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond"
+          width="180">
         </el-table-column>
       </dynamicTableVue>
       <pagination ref="pagination" v-show="totalPages > 0" :total="pageData.total" :page.sync="pageData.currentPage"

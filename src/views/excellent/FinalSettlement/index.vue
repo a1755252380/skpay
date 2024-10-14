@@ -20,6 +20,7 @@
       <strong>账户余额=待结算金额+账户可用余额+代付余额</strong>
       <strong>代付余额=代付可用余额+代付冻结金额</strong>
       <strong>商户下发使用可用余额调整</strong>
+      <strong>（本模块依据订单更新时间）</strong>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :search="false"
         v-if="!checkRole(['admin'])"></right-toolbar>
 
@@ -46,11 +47,11 @@
       <el-table-column label="代付冻结金额" align="center" prop="payou_freeze_amount" :formatter="Formatter.TableAmount" />
       <el-table-column label="代付冻结金额手续费" align="center" prop="payou_freeze_amount_service"
         :formatter="Formatter.TableAmount" />
-      <el-table-column label="最新时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond" />
-      <el-table-column label="操作" align="center" class-name="small-padding ">
+      <el-table-column label="截止时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond" />
+      <el-table-column label="历史" align="center" class-name="small-padding ">
         <template slot-scope="scope">
           <el-button size="mini" type="text" icon="el-icon-warning-outline"
-            @click="handleUpdate(scope.row)">详情</el-button>
+            @click="handleUpdate(scope.row)">历史数据</el-button>
         </template>
       </el-table-column>
 
@@ -62,8 +63,8 @@
 
     <!-- 详细弹窗 -->
 
-    <DetailedContentVue :DetailedContentShow="DetailedContentShow" :mch_number="DetailedContentNumber"
-      @ReturnDetailedContentShow="ReturnDetailedContentShow">
+    <DetailedContentVue :DetailedContentShow="DetailedContentShow" ref="DetailedContentVue"
+      :mch_number="DetailedContentNumber" @ReturnDetailedContentShow="ReturnDetailedContentShow">
     </DetailedContentVue>
 
   </div>
@@ -232,10 +233,9 @@ export default {
 
     /** 详情按钮操作 */
     handleUpdate(row) {
-      this.DetailedContentShow = true
-      this.DetailedContentListLoading = true
       this.DetailedContentNumber = row.mch_num
-
+      this.DetailedContentShow = true
+      this.$refs.DetailedContentVue.getList(this.DetailedContentNumber)
     },
     ReturnDetailedContentShow(value) {
       this.DetailedContentShow = value

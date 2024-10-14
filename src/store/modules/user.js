@@ -44,10 +44,10 @@ const user = {
     Login({ commit }, userInfo) {
       const username = userInfo.username.trim();
       const password = userInfo.password;
-      // const code = userInfo.code;
-      // const uuid = userInfo.uuid;
+      const captcha_input = userInfo.captcha_input;
+      const captcha_id = userInfo.captcha_id;
       return new Promise((resolve, reject) => {
-        login(username, password)
+        login(username, password, captcha_input, captcha_id)
           .then((res) => {
             let data = res.user_info;
             // setToken(data.access_token);
@@ -57,7 +57,6 @@ const user = {
             commit("SET_TOKEN", data.token);
             commit("SET_EXPIRES_IN", data.cookie_expire);
             setExpiresIn(data.cookie_expire);
-            console.log(jsCookie.get());
 
             resolve(data);
           })
@@ -120,7 +119,7 @@ const user = {
       return new Promise((resolve, reject) => {
         logout(state.token)
           .then(() => {
-            commit("SET_TOKEN", "");
+            commit("SET_TOKEN", null);
             commit("SET_ROLES", []);
             commit("SET_PERMISSIONS", []);
             removeToken();

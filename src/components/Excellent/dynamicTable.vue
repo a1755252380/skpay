@@ -93,7 +93,7 @@ export default {
     },
     Totop() {
       let attempt = 0;
-      const tryGetRef = () => {
+      const TotopRef = () => {
         this.$nextTick(() => {
           if (this.$refs["DynamicTable" + this.tableId]) {
             this.$refs["DynamicTable" + this.tableId].scrollTop = 0;
@@ -101,13 +101,41 @@ export default {
           } else if (attempt < 10) {
             // 尝试 5 次
             attempt++;
-
             console.log("Ref 重新挂载:", attempt);
-            setTimeout(tryGetRef, 200); // 每 200ms 尝试一次
+            setTimeout(TotopRef, 200); // 每 200ms 尝试一次
           }
         });
       };
-      tryGetRef();
+      TotopRef();
+    },
+    //重新构建table
+
+    rebuildTable() {
+
+      let attempt = 0;
+      const doLayoutRef = () => {
+        this.$nextTick(() => {
+          if (this.$refs["DynamicTable" + this.tableId]) {
+            this.$refs["DynamicTable" + this.tableId].doLayout();
+            return;
+          } else if (attempt < 10) {
+            // 尝试 5 次
+            attempt++;
+            console.log("Ref 重新挂载:", attempt);
+            setTimeout(doLayoutRef, 200); // 每 200ms 尝试一次
+          }
+        });
+      };
+      doLayoutRef();
+
+    },
+    //重新渲染table
+    renderTable() {
+      this.tableId = new Date().getTime();
+
+      this.$nextTick(() => {
+        this.rebuildTable()
+      });
     },
     //重置table高度
     handleResize() {
@@ -125,16 +153,18 @@ export default {
       this.$refs["DynamicTable" + this.tableId].clearSelection();
     },
     cellDblclick(row, column, cell, event) {
+      if (column.type == "selection" || column.label == "操作" || column.label == "历史") {
+        return
+      }
       this.$emit("cellDblclick", row, column, cell, event);
     },
     handleSort({ column, prop, order }) {
-      console.log(column, prop, order);
 
       this.$emit("handleSortChange", { prop, order });
     },
     cellClassNameFunction({ row, column, rowIndex, columnIndex }) {
       // console.log(row, column, rowIndex, columnIndex);
-      if (column.type == "selection" || column.label == "操作") {
+      if (column.type == "selection" || column.label == "操作" || column.label == "历史") {
         return 'DynamicTable_cell'
       } else {
         if (typeof this.cellClassName == "string") {

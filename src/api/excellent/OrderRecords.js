@@ -21,14 +21,18 @@ export function ModifyOrderStatus(query) {
   });
 }
 import { tansParams, blobValidate } from "@/utils/ruoyi";
+import axios from "axios";
+
 function GetDownload(url) {
-  return request({
+  return axios({
     url: url,
     method: "get",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
   })
     .then(async (data) => {
-      return data;
+      console.log(data);
+
+      return data.data;
     })
     .catch((r) => {
       console.error(r);
@@ -43,10 +47,10 @@ function isObject(val) {
 }
 //下载文件方法
 function fetchAndDownload(fileName, name) {
-  GetDownload("/order/download/pull?file_name=" + fileName)
+  GetDownload("/console/download/pull?file_name=" + fileName)
     .then((res) => {
       console.log(res);
-      if (isObject(res)) {
+      if (res.state) {
         // 如果结果是对象，继续递归调用
         setTimeout(() => {
           fetchAndDownload(fileName, name);
@@ -54,9 +58,10 @@ function fetchAndDownload(fileName, name) {
       } else {
         // 如果结果不是对象，执行保存文件操作并退出递归
         const isBlob = blobValidate(res);
+
         if (isBlob) {
           const blob = new Blob([res]);
-          saveAs(blob, name + ".csv");
+          saveAs(blob, name + ".xlsx");
         }
         downloadLoadingInstance.close();
         return;
@@ -70,7 +75,7 @@ function fetchAndDownload(fileName, name) {
 //提交下载订单
 export function SubmitDownloadOrder(query) {
   return request({
-    url: "/order/download/commit",
+    url: "/stream/download/commit",
     method: "get",
     params: query,
   }).then((res) => {

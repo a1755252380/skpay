@@ -61,7 +61,7 @@
       <el-form-item label="流水更新时间" prop="update_time">
         <el-date-picker v-model="timedata.update_time" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss"
           range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间" class="w100_input"
-          @change="parseTime($event, 'end_time')" />
+          @change="parseTime($event, 'update_time')" />
       </el-form-item>
     </template>
 
@@ -205,9 +205,10 @@ export default {
     },
 
     handleExport() {
+
       if ((this.queryParams.create_end_time && this.queryParams.create_time) || (this.queryParams.update_time && this.queryParams.update_end_time)) {
         const params = { ...this.queryParams, type: this.TabsChangeStatus };
-        this.download.mchAccFlowDownload('/stream/download/commit', params);
+        this.download.DownloadXlsx('/stream/download/commit', params);
       } else {
         this.$message({
           message: '请选择创建时间/更新时间',

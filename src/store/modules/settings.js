@@ -11,6 +11,7 @@ const {
 } = defaultSettings;
 
 const storageSetting = JSON.parse(localStorage.getItem("layout-setting")) || "";
+
 const state = {
   title: "",
   theme: storageSetting.theme || "#0DD3C2",
@@ -31,6 +32,10 @@ const state = {
     storageSetting.dynamicTitle === undefined
       ? dynamicTitle
       : storageSetting.dynamicTitle,
+  //字体颜色
+  fontColor: "#000",
+  //背景颜色
+  backgroundColor: "#fff",
 };
 const mutations = {
   CHANGE_SETTING: (state, { key, value }) => {

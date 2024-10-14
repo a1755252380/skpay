@@ -7,7 +7,7 @@ import { getToken } from "@/utils/auth";
 import { isRelogin } from "@/utils/requestGo";
 NProgress.configure({ showSpinner: false });
 
-const whiteList = ["/login", "/register"];
+const whiteList = ["/login", "/register", "/404", "/401"];
 router.beforeEach((to, from, next) => {
   NProgress.start();
 

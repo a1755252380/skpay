@@ -24,11 +24,12 @@
         <el-table-column label="资金变动原因" align="center" prop="msg" :show-overflow-tooltip="true" />
         <el-table-column label="交易类型" align="center" prop="operation" :formatter="typeFormatter" />
         <el-table-column label="创建者" align="center" prop="operator" />
+        <!-- <el-table-column label="流水更新时间" align="center" prop="update_time" :formatter="Formatter.TableTimeSecond"
+          width="160">
 
-        <el-table-column label="创建时间" align="center" prop="update_time">
-          <template slot-scope="scope">
-            <span>{{ $util.FormatUtcTime(scope.row.update_time * 1000) }}</span>
-          </template>
+        </el-table-column> -->
+        <el-table-column label="创建时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond"
+          width="160">
         </el-table-column>
       </dynamicTableVue>
       <pagination ref="pagination" v-show="pageData.total > 0" :total="pageData.total" :page.sync="pageData.currentPage"

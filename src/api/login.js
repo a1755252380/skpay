@@ -1,7 +1,7 @@
 import request from "@/utils/requestGo";
 
 // 登录方法
-export function login(username, password) {
+export function login(username, password, captcha_input, captcha_id) {
   return request({
     url: "/user/login",
     headers: {
@@ -9,7 +9,7 @@ export function login(username, password) {
       repeatSubmit: false,
     },
     method: "post",
-    data: { username, password },
+    data: { username, password, captcha_input, captcha_id },
   });
 }
 
@@ -50,13 +50,22 @@ export function logout() {
 }
 
 // 获取验证码
-export function getCodeImg() {
+export function getCodeImg(id) {
   return request({
-    url: "/code",
-    headers: {
-      isToken: false,
-    },
+    url: "/captcha/image",
+
     method: "get",
     timeout: 20000,
+    params: {
+      id: id,
+    },
+  });
+}
+// 获取验证码id
+export function getCodeImgID() {
+  return request({
+    url: "/captcha",
+
+    method: "get",
   });
 }

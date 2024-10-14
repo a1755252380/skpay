@@ -72,28 +72,27 @@ export default {
 
 .search_option_div {
   display: grid;
-  grid-template-columns: repeat(5, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 16px;
 }
 
-@media (max-width: 900px) {
-  .search_option_div {
-    grid-template-columns: repeat(3, minmax(180px, 1fr));
-    /* 小屏幕时每行 3 个 */
-  }
-}
+// @media (max-width: 900px) {
+//   .search_option_div {
+//     grid-template-columns: repeat(3, minmax(180px, 1fr));
+//     /* 小屏幕时每行 3 个 */
+//   }
+// }
 
-@media (max-width: 600px) {
-  .search_option_div {
-    grid-template-columns: repeat(2, minmax(180px, 1fr));
-    /* 更小屏幕时每行 2 个 */
-  }
-}
+// @media (max-width: 600px) {
+//   .search_option_div {
+//     grid-template-columns: repeat(2, minmax(180px, 1fr));
+//     /* 更小屏幕时每行 2 个 */
+//   }
+// }
 
-@media (max-width: 400px) {
-  .search_option_div {
-    grid-template-columns: 1fr;
-    /* 最小屏幕时每行 1 个 */
-  }
-}
-</style>
+// @media (max-width: 400px) {
+//   .search_option_div {
+//     grid-template-columns: 1fr;
+//     /* 最小屏幕时每行 1 个 */
+//   }
+// }</style>
