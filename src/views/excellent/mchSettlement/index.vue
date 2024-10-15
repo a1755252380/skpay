@@ -112,6 +112,7 @@ export default {
       rules: {
       },
       height: 0,
+      RepeatedRequests: false,
       // 详情
       DetailedContentShow: false,
       DetailedContentNumber: 0
@@ -161,6 +162,10 @@ export default {
     /** 查询商户结算列表 */
     getList() {
       this.loading = true;
+      if (this.RepeatedRequests) {
+        this.loading = false;
+        return
+      }
       let query = { ...this.queryParams };
       listMchSettlement(query).then((response) => {
         this.last_id = response["last_id"];
@@ -168,6 +173,9 @@ export default {
           this.mchSettlementList = [...this.mchSettlementList, ...res];
           this.pageData.total = this.mchSettlementList.length;
           this.loading = false;
+          if (response["last_id"] == '') {
+            this.RepeatedRequests = true;
+          }
         })
 
       });

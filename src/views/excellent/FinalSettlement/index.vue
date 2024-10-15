@@ -59,8 +59,8 @@
 
     </dynamicTableVue>
 
-    <pagination ref="pagination" v-show="pageData.total > 0" :total="pageData.total" :page.sync="queryParams.page"
-      :limit.sync="queryParams.limit" @pagination="getList" />
+    <!-- <pagination ref="pagination" v-show="pageData.total > 0" :total="pageData.total" :page.sync="queryParams.page"
+      :limit.sync="queryParams.limit" @pagination="getList" /> -->
 
     <!-- 详细弹窗 -->
 
@@ -73,7 +73,7 @@
 
 <script>
 
-import { listMchSettlement, getMchSettlementDay, delMchSettlement, addMchSettlement, updateMchSettlement } from "@/api/excellent/FinalSettlement";
+import { listMchSettlement, getMchSettlementDay, delMchSettlement, addMchSettlement, updateMchSettlement, listMchSettlementList } from "@/api/excellent/FinalSettlement";
 import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
 import DetailedContentVue from "./DetailedContent.vue";
@@ -109,8 +109,8 @@ export default {
       // 查询参数
       queryParams: {
         mch_num: null, // 商户号
-        page: 1, // 当前页码
-        limit: 20, // 每页显示的条数
+        // page: 1, // 当前页码
+        // limit: 1000, // 每页显示的条数
       },
       SearchIndex: -1, //搜索数据索引
 
@@ -156,7 +156,7 @@ export default {
     getList() {
       this.loading = true;
       let query = { ...this.queryParams };
-      listMchSettlement(query).then((response) => {
+      listMchSettlementList(query).then((response) => {
         this.pageData.total = response.total;
 
         this.DataProcessing(response.rows).then((list) => {

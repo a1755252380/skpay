@@ -10,15 +10,17 @@
       <mchAccFlowSearchVue :showSearch="showSearch" ref="search" @ReturnSearch="ReturnSearch"
         :TabsChangeStatus="queryPage.type" @RequestingDataAgain="RequestingDataAgain"></mchAccFlowSearchVue>
       <dynamicTableVue :loading="loading" :tableData="paginatedItems" @cellDblclick="cellDblclick"
-        :cellClassName="' CopyHoverTooltip'" ref="myTable">
+        :cellClassName="' HoverTooltipCopy'" ref="myTable">
         <el-table-column label="流水号" align="center" prop="_id" width="230" fixed="left" />
 
         <el-table-column label="商户号 " align="center" prop="mch_number" />
-        <el-table-column label="账户初期金额" align="center" prop="mch_start_balance" :formatter="Formatter.TableAmount">
+        <el-table-column label="账户初期金额" align="center" prop="mch_start_balance" :formatter="Formatter.TableAmount"
+          width="120">
 
 
         </el-table-column>
-        <el-table-column label="账户末期金额" align="center" prop="mch_final_balance" :formatter="Formatter.TableAmount">
+        <el-table-column label="账户末期金额" align="center" prop="mch_final_balance" :formatter="Formatter.TableAmount"
+          width="120">
 
 
         </el-table-column>
@@ -82,7 +84,6 @@ export default {
     paginatedItems() {
       const start = (this.pageData.currentPage - 1) * this.pageData.pageSize;
       const end = this.pageData.currentPage * this.pageData.pageSize;
-      console.log(this.mchAccFlowList.slice(start, end));
 
       return this.mchAccFlowList.slice(start, end);
     },
@@ -90,6 +91,7 @@ export default {
       return Math.ceil(this.pageData.total / this.pageData.pageSize);
     },
   },
+
   methods: {
     //订单变动金额格式化
     NumFormat(value, index) {
@@ -125,7 +127,7 @@ export default {
       this.getList(Params);
     },
     getList(queryParams) {
-      if (this.RepeatedRequests) return;
+      if (this.RepeatedRequests) { this.loading = false; return; }
       this.RepeatedRequests = true;
       this.loading = true;
       let query = { ...queryParams, ...this.queryPage };
@@ -138,6 +140,9 @@ export default {
         this.pageData.total = this.mchAccFlowList.length;
         this.loading = false;
         this.RepeatedRequests = false;
+        if (response["last_id"] == '') {
+          this.RepeatedRequests = true;
+        }
       });
     },
     handleCurrentChange(page) {

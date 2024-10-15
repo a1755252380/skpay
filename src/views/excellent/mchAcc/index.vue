@@ -43,12 +43,14 @@
       <el-table-column label="代付冻结金额手续费" align="center" prop="payou_freeze_amount_service"
         :formatter="Formatter.TableAmount" />
 
-      <el-table-column label="操作" align="center" fixed="right" class-name="small-padding fixed-width"
+      <el-table-column label="操作" align="center" fixed="right" class-name="small-padding fixed-width" width="160"
         v-if="hasPermiVisible(['excellent:mchAcc:edit'])">
         <template slot-scope="scope">
-          <el-button size="mini" type="text" icon="el-icon-refresh" @click="handleUpdate2(scope.row, '+')"
+          <el-button size="mini" type="text" icon="el-icon-refresh"
+            @click="handleUpdate2(scope.row, 'PositiveAdjustment')"
             v-hasPermi="['excellent:mchAcc:edit']">调整</el-button>
-          <el-button size="mini" type="text" icon="el-icon-refresh" @click="handleUpdate2(scope.row, '-')"
+          <el-button size="mini" type="text" icon="el-icon-refresh"
+            @click="handleUpdate2(scope.row, 'NegativeAdjustment')"
             v-hasPermi="['excellent:mchAcc:edit']">代付结算</el-button>
 
 

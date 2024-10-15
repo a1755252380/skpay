@@ -50,28 +50,22 @@
 
         </el-form-item>
         <el-form-item label="创建时间" prop="create_time" class="large">
-          <el-date-picker v-model="timedata.create_time" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss"
+          <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'">
+          </TimeFrameVue>
+          <!-- <el-date-picker v-model="timedata.create_time" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss"
             range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间"
             @change="parseTime($event, 'create_time')">
-          </el-date-picker>
+          </el-date-picker> -->
         </el-form-item>
         <el-form-item label="更新时间" prop="update_time" class="large">
-          <el-date-picker v-model="timedata.update_time" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss"
+          <TimeFrameVue v-model="timedata.update_time" @parseTime="parseTime" :ParameterIndex="'update_time'">
+          </TimeFrameVue>
+          <!-- <el-date-picker v-model="timedata.update_time" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss"
             range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间"
             @change="parseTime($event, 'update_time')">
-          </el-date-picker>
+          </el-date-picker> -->
         </el-form-item>
-        <!-- <el-form-item label="查询起始时间" prop="create_time">
-          <el-date-picker v-model="timedata.create_time" value-format="yyyy-MM-dd HH:mm:ss" type="datetime"
-            placeholder="请选择查询起始时间" class="w100_input" @change="parseTime($event, 'create_time')">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="查询截止时间" prop="end_time">
-          <el-date-picker v-model="timedata.end_time" type="datetime" value-format="yyyy-MM-dd HH:mm:ss"
-            placeholder="请选择查询截止时间" class="w100_input" @change="parseTime($event, 'end_time')">
-          </el-date-picker>
 
-        </el-form-item> -->
 
 
 
@@ -101,6 +95,7 @@
 import { listChnlSetting } from "@/api/excellent/chnlSetting";
 import { listMchSetting } from "@/api/excellent/MchSetting"
 import OrderAndSteam from "@/components/Excellent/SearchLayout/OrderAndSteam.vue";
+import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
 export default {
   name: 'WorkspaceJsonOrderSearch',
   props: {
@@ -214,8 +209,8 @@ export default {
       // console.log(value, index);
       let utcTime, utcEndTime = null;
       if (value) {
-        utcTime = this.$util.getUtcTime(value[0]) / 1000;
-        utcEndTime = this.$util.getUtcTime(value[1]) / 1000;
+        utcTime = value[0];
+        utcEndTime = value[1];
       }
 
 
@@ -321,7 +316,8 @@ export default {
     }
   },
   components: {
-    OrderAndSteam
+    TimeFrameVue,
+    OrderAndSteam,
 
   }
 };

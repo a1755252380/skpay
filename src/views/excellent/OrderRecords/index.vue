@@ -59,14 +59,14 @@
           <template slot-scope="scope">
             <el-tag :type="formatStatus(scope.row.status).type">{{
               formatStatus(scope.row.status).name
-              }}</el-tag>
+            }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="回调状态" align="center" prop="callback_status" width="100" class-name="NoTooltip">
           <template slot-scope="scope">
             <el-tag :type="formatCallbackStatus(scope.row.callback_status).type">{{
               formatCallbackStatus(scope.row.callback_status).name
-            }}</el-tag>
+              }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="通道名称" align="center" prop="chnl_name"
@@ -388,7 +388,7 @@ export default {
         },
       ],
       height: 0,
-
+      RepeatedRequests: false,
       //批量修改
       BatchModificationShow: false,
       BatchModificationList: [],
@@ -506,8 +506,12 @@ export default {
       this.getList(Params);
     },
     /** 查询订单列表 */
-    getList(queryParams) {
 
+    getList(queryParams) {
+      if (this.RepeatedRequests) {
+        this.loading = false;
+        return;
+      }
       // this.loading = true;
       let query = { ...queryParams, ...this.queryPage };
 
@@ -517,6 +521,9 @@ export default {
         this.OrderRecordsList = [...this.OrderRecordsList, ...response.results];
         this.pageData.total = this.OrderRecordsList.length;
         this.loading = false;
+        if (response["last_id"] == '') {
+          this.RepeatedRequests = true;
+        }
       });
     },
 

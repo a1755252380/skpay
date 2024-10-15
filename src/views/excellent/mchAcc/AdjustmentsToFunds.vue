@@ -16,7 +16,7 @@
       <el-form-item label="调整方式" prop="operation">
         <el-select v-model="form.operation" placeholder="请选择调整方式" class="w100_input">
           <template v-for="item in selectList">
-            <el-option :key="item.fund_state" :label="item.name" v-if="item.fund_state == fundStateData"
+            <el-option :key="item.operation" :label="item.name" v-if="item.fund_state == fundStateData"
               :value="item.operation"></el-option>
           </template>
 
@@ -48,7 +48,7 @@ export default {
         this.form = {
           mch_number: '',
           big_amount: 0,
-          operation: 4,
+          operation: null,
           msg: ''
 
         },
@@ -70,7 +70,7 @@ export default {
       form: {
         mch_number: '',
         big_amount: 0,
-        operation: 4,
+        operation: null,
         msg: ''
       },
       showMsg: {
@@ -86,29 +86,31 @@ export default {
         {
           name: '待结算余额到可用余额调整',
           operation: 4,
-          fund_state: '-'
+          fund_state: 'NegativeAdjustment'
+
         },
         {
           name: '待结算余额调整',
           operation: 1,
-          fund_state: '+'
+          fund_state: 'PositiveAdjustment'
         },
         {
           name: '代付余额调整',
           operation: 2,
-          fund_state: '+'
+          fund_state: 'PositiveAdjustment'
         },
         {
           name: '可用余额调整',
           operation: 3,
-          fund_state: '+'
+          fund_state: 'PositiveAdjustment'
         },
 
         {
           name: '可用余额到代付余额调整',
           operation: 5,
-          fund_state: '-'
+          fund_state: 'NegativeAdjustment'
         },
+
         //     {
         //     name: '资金调整',
         //     fund_state:0
@@ -147,8 +149,8 @@ export default {
             mergedObj['big_amount'] = mergedObj['big_amount'] * -1
           }
           console.log(mergedObj);
-          // this.showData = false
-          // this.$emit('UpdateAdjustmentsToFunds', mergedObj)
+          this.showData = false
+          this.$emit('UpdateAdjustmentsToFunds', mergedObj)
         } else {
           console.log('error submit!!');
           return false;

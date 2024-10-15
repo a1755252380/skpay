@@ -5,10 +5,9 @@
       <el-form ref="DetailedContentSearch" size="small" :inline="true" label-width="120px">
 
         <el-form-item label="创建时间" prop="create_time">
-          <el-date-picker v-model="timedata.create_time" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss"
-            range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间"
-            @change="parseTime($event, 'create_time')">
-          </el-date-picker>
+          <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'">
+          </TimeFrameVue>
+
         </el-form-item>
 
         <el-form-item>
@@ -18,7 +17,10 @@
       </el-form>
 
 
-      <dynamicTableVue :tableData="DetailedContentList" :loading="DetailedContentLoading" ref="DetailedContentList">
+      <dynamicTableVue :tableData="DetailedContentList" :loading="DetailedContentLoading" ref="DetailedContentList"
+        :defaultSort="{ prop: 'create_time', order: 'descending' }" @cellDblclick="(row, column, cell, event) => {
+          this.$util.copyToClipboard(cell.innerText);
+        }" :cellClassName="'HoverTooltipCopy'">
 
         <el-table-column label="商户号" align="center" prop="mch_num" fixed="left" />
         <!-- <el-table-column label="商户名称" align="center" prop="mch_name" /> -->
@@ -57,6 +59,8 @@
 <script>
 import { listMchSettlement } from "@/api/excellent/FinalSettlement";
 import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
+import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
+
 export default {
   name: 'WorkspaceJsonDetailedContent',
   props: ['DetailedContentShow', 'mch_number'],
@@ -126,8 +130,8 @@ export default {
 
   methods: {
     parseTime(value, index) {
-      let utcTimeBegin = value ? this.$util.getUtcTime(value[0]) / 1000 : null;
-      let utcTimeEnd = value ? this.$util.getUtcTime(value[1]) / 1000 : null;
+      let utcTimeBegin = value[0];
+      let utcTimeEnd = value[1];
       if (index == "create_time") {
         this.$set(this.DetailedContentListQueryParams, 'create_time', utcTimeBegin);
         this.$set(this.DetailedContentListQueryParams, 'create_end_time', utcTimeEnd);
@@ -189,7 +193,7 @@ export default {
     },
   },
   components: {
-    dynamicTableVue
+    dynamicTableVue, TimeFrameVue
   }
 };
 </script>

@@ -28,10 +28,12 @@
         </el-select>
       </el-form-item>
       <el-form-item label="创建时间" prop="create_time" class="large">
-        <el-date-picker v-model="timedata.create_time" type="datetimerange" range-separator="-" start-placeholder="开始日期"
+        <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'update_time'">
+        </TimeFrameVue>
+        <!-- <el-date-picker v-model="timedata.create_time" type="datetimerange" range-separator="-" start-placeholder="开始日期"
           class="w100_input" end-placeholder="结束日期" value-format="yyyy-MM-dd HH:mm:ss" @clear="clearTime"
           @change="parseTime($event, 'create_time')">
-        </el-date-picker>
+        </el-date-picker> -->
       </el-form-item>
       <!-- <el-form-item label="查询起始时间" prop="create_time">
         <el-date-picker v-model="timedata.create_time" value-format="yyyy-MM-dd HH:mm:ss" type="datetime"
@@ -59,6 +61,7 @@
 import { listChnlSetting } from "@/api/excellent/chnlSetting";
 import { listMchSetting } from "@/api/excellent/MchSetting";
 import OrderAndSteam from "@/components/Excellent/SearchLayout/OrderAndSteam.vue";
+import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
 
 export default {
   name: 'WorkspaceJsonOrderSearch',
@@ -101,9 +104,7 @@ export default {
   },
 
   computed: {
-    currentOrderLabel() {
-      return this.TabsChangeStatus == 1 ? '代付' : '代收';
-    }
+
   },
 
   mounted() {
@@ -117,13 +118,13 @@ export default {
   },
 
   components: {
-    OrderAndSteam
+    OrderAndSteam, TimeFrameVue
   },
 
   methods: {
     parseTime(value, index) {
-      let utcTimebegin = value ? this.$util.getUtcTime(value[0]) / 1000 : null;
-      let utcTimeEnd = value ? this.$util.getUtcTime(value[1]) / 1000 : null;
+      let utcTimebegin = value[0];
+      let utcTimeEnd = value[1];
       if (index == 'create_time') {
         this.$set(this.queryParams, 'create_time', utcTimebegin);
         this.$set(this.queryParams, 'end_time', utcTimeEnd);
@@ -168,7 +169,7 @@ export default {
 
     handleExport() {
       if (this.queryParams.create_time && this.queryParams.end_time) {
-        const params = { ...this.queryParams, type: this.TabsChangeStatus };
+        const params = { ...this.queryParams };
         this.download.DownloadXlsx('/stream/download/commit', params);
       } else {
         this.$message({ message: '请选择时间', type: 'warning' });

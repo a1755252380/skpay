@@ -8,7 +8,13 @@ export function listMchSettlement(query) {
     params: query,
   });
 }
-
+export function listMchSettlementList(query) {
+  return request({
+    url: "/mch/history/last/balance",
+    method: "get",
+    params: query,
+  });
+}
 // 查询商户结算详细
 export function getMchSettlement(id) {
   return;

@@ -95,7 +95,7 @@ export default {
       this.getList(Params);
     },
     getList(queryParams) {
-      if (this.RepeatedRequests) return;
+      if (this.RepeatedRequests) { this.loading = false; return; }
       this.RepeatedRequests = true;
       this.loading = true;
       let query = { ...queryParams, ...this.queryPage };
@@ -106,6 +106,9 @@ export default {
         this.pageData.total = this.mchSubFlowList.length;
         this.loading = false;
         this.RepeatedRequests = false;
+        if (response["last_id"] == '') {
+          this.RepeatedRequests = true;
+        }
       });
     },
     handleCurrentChange(page) {

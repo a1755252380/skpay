@@ -5,20 +5,12 @@
       <el-form ref="DetailedContentSearch" size="small" :inline="true" label-width="120px">
 
         <el-form-item label="查询时间" prop="create_time">
-          <el-date-picker v-model="timedata.create_time" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss"
-            range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间"
-            @change="parseTime($event, 'create_time')">
-          </el-date-picker>
-          <!-- <el-date-picker v-model="timedata.create_time" value-format="yyyy-MM-dd HH:mm:ss" type="datetime"
-            placeholder="请选择查询起始时间" style="width: 200px" @change="parseTime($event, 'create_time')"
-            @clear="clearTime('create_time')" /> -->
+
+          <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'">
+          </TimeFrameVue>
         </el-form-item>
 
-        <!-- <el-form-item label="查询截止时间" prop="end_time">
-          <el-date-picker v-model="timedata.end_time" type="datetime" value-format="yyyy-MM-dd HH:mm:ss"
-            placeholder="请选择查询截止时间" style="width: 200px" @change="parseTime($event, 'end_time')"
-            @clear="clearTime('end_time')" />
-        </el-form-item> -->
+
         <el-form-item>
           <el-button type="primary" icon="el-icon-search" size="mini" @click="EmptyQuery">搜索</el-button>
           <el-button icon="el-icon-refresh" size="mini" @click="DetailedContentSearchresetQuery">重置</el-button>
@@ -27,7 +19,9 @@
 
 
       <dynamicTableVue :tableData="DetailedContentPaginatedItems" :loading="DetailedContentLoading"
-        ref="mchSettlementDetail">
+        ref="mchSettlementDetail" :defaultSort="{ prop: 'create_time', order: 'descending' }" @cellDblclick="(row, column, cell, event) => {
+          this.$util.copyToClipboard(cell.innerText);
+        }" :cellClassName="'HoverTooltipCopy'">
 
         <el-table-column label="商户号 " align="center" prop="mch_number" />
         <el-table-column label="商户名称" align="center" prop="mch_name" />
@@ -61,6 +55,8 @@
 <script>
 import { listMchSettlement } from "@/api/excellent/mchSettlement";
 import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
+import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
+
 export default {
   name: 'WorkspaceJsonDetailedContent',
   props: ['DetailedContentShow', 'mch_number'],
@@ -78,7 +74,8 @@ export default {
       timedata: {
         create_time: [],
       },
-      DetailedContentLoading: false
+      DetailedContentLoading: false,
+      RepeatedRequests: false
     };
   },
   computed: {
@@ -132,8 +129,8 @@ export default {
   methods: {
     parseTime(value, index) {
 
-      let utcTimeBegin = value ? this.$util.getUtcTime(value[0]) / 1000 : null;
-      let utcTimeEnd = value ? this.$util.getUtcTime(value[1]) / 1000 : null;
+      let utcTimeBegin = value[0]
+      let utcTimeEnd = value[1]
       if (index == "create_time") {
         this.$set(this.DetailedContentListQueryParams, 'create_time', utcTimeBegin);
         this.$set(this.DetailedContentListQueryParams, 'create_end_time', utcTimeEnd);
@@ -169,7 +166,8 @@ export default {
       // if (mch_number) {
       //   this.DetailedContentList.splice(0)
       // }
-      if (this.DetailedContentLoading) {
+      if (this.DetailedContentLoading || this.RepeatedRequests) {
+        this.DetailedContentLoading = false
         return
       }
       this.DetailedContentLoading = true;
@@ -189,6 +187,9 @@ export default {
         this.DetailedContentListQueryParams.total = this.DetailedContentList.length;
         this.$nextTick(() => {
           this.DetailedContentLoading = false;
+          if (response["last_id"] == '') {
+            this.RepeatedRequests = true;
+          }
           this.$forceUpdate()
         })
 
@@ -217,7 +218,7 @@ export default {
     },
   },
   components: {
-    dynamicTableVue
+    dynamicTableVue, TimeFrameVue
   }
 };
 </script>

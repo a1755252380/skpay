@@ -13,14 +13,12 @@
         </el-select>
       </el-form-item>
 
-      <el-form-item :label="'商户' + currentOrderLabel + '订单号'" prop="merchant_order_id">
-        <el-input v-model="queryParams.merchant_order_id" :placeholder="'请输入商户' + currentOrderLabel + '订单号'" clearable
-          @clear="handleQuery" />
+      <el-form-item :label="'商户订单号'" prop="merchant_order_id">
+        <el-input v-model="queryParams.merchant_order_id" :placeholder="'请输入商户订单号'" clearable @clear="handleQuery" />
       </el-form-item>
 
-      <el-form-item :label="'系统' + currentOrderLabel + '订单号'" prop="order_id">
-        <el-input v-model="queryParams.order_id" :placeholder="'请输入系统' + currentOrderLabel + '订单号'" clearable
-          @clear="handleQuery" />
+      <el-form-item :label="'系统订单号'" prop="order_id">
+        <el-input v-model="queryParams.order_id" :placeholder="'请输入系统订单号'" clearable @clear="handleQuery" />
       </el-form-item>
 
       <el-form-item label="资金变动原因" prop="msg">
@@ -53,15 +51,19 @@
         </el-select>
       </el-form-item>
       <el-form-item label="订单创建时间" prop="create_time" class="large">
-        <el-date-picker v-model="timedata.create_time" value-format="yyyy-MM-dd HH:mm:ss" type="datetimerange"
+        <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'">
+        </TimeFrameVue>
+        <!-- <el-date-picker v-model="timedata.create_time" value-format="yyyy-MM-dd HH:mm:ss" type="datetimerange"
           range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间" class="w100_input"
-          @change="parseTime($event, 'create_time')" />
+          @change="parseTime($event, 'create_time')" /> -->
       </el-form-item>
 
       <el-form-item label="流水更新时间" prop="update_time" class="large">
-        <el-date-picker v-model="timedata.update_time" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss"
+        <TimeFrameVue v-model="timedata.update_time" @parseTime="parseTime" :ParameterIndex="'update_time'">
+        </TimeFrameVue>
+        <!-- <el-date-picker v-model="timedata.update_time" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss"
           range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间" class="w100_input"
-          @change="parseTime($event, 'update_time')" />
+          @change="parseTime($event, 'update_time')"  /> -->
       </el-form-item>
     </template>
 
@@ -78,6 +80,7 @@
 import { listChnlSetting } from "@/api/excellent/chnlSetting";
 import { listMchSetting } from "@/api/excellent/MchSetting";
 import OrderAndSteam from "@/components/Excellent/SearchLayout/OrderAndSteam.vue";
+import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
 
 export default {
   name: 'WorkspaceJsonOrderSearch',
@@ -132,9 +135,7 @@ export default {
   },
 
   computed: {
-    currentOrderLabel() {
-      return this.TabsChangeStatus == 1 ? '代付' : '代收';
-    }
+
   },
 
   mounted() {
@@ -148,7 +149,7 @@ export default {
   },
 
   components: {
-    OrderAndSteam
+    OrderAndSteam, TimeFrameVue
   },
 
   methods: {
@@ -162,11 +163,8 @@ export default {
     },
     //输出utc时间
     parseTime(value, index) {
-      let utcTime, utcEndTime = null;
-      if (value) {
-        utcTime = this.$util.getUtcTime(value[0]) / 1000;
-        utcEndTime = this.$util.getUtcTime(value[1]) / 1000;
-      }
+      let utcTime = value[0];
+      let utcEndTime = value[1]
       if (index == 'create_time') {
         this.$set(this.queryParams, 'create_time', utcTime ? utcTime : null);
         this.$set(this.queryParams, 'create_end_time', utcEndTime ? utcEndTime : null);
@@ -207,7 +205,9 @@ export default {
     handleExport() {
 
       if ((this.queryParams.create_end_time && this.queryParams.create_time) || (this.queryParams.update_time && this.queryParams.update_end_time)) {
-        const params = { ...this.queryParams, type: this.TabsChangeStatus };
+        const params = { ...this.queryParams };
+        console.log(params);
+
         this.download.DownloadXlsx('/stream/download/commit', params);
       } else {
         this.$message({
