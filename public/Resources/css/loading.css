@@ -1,3 +1,4 @@
+
 #loader-wrapper {
   display: flex;
   flex-direction: column;
@@ -6,11 +7,14 @@
   height: 100vh;
   margin: 0;
   background: linear-gradient(200deg, #37e2b2, #2fa080);
-  font-family: 'Comic Sans MS', sans-serif;
+  font-family: "Londrina Sketch", sans-serif !important;
   position: relative;
   overflow: hidden;
 }
 
+body *:not(#loader-wrapper *) {
+  font-family: 'Noto Sans SC';
+}
 .loader {
   display: flex;
   justify-content: center;

@@ -27,7 +27,7 @@
 
         </el-select>
       </el-form-item>
-      <el-form-item label="创建时间" prop="create_time">
+      <el-form-item label="创建时间" prop="create_time" class="large">
         <el-date-picker v-model="timedata.create_time" type="datetimerange" range-separator="-" start-placeholder="开始日期"
           class="w100_input" end-placeholder="结束日期" value-format="yyyy-MM-dd HH:mm:ss" @clear="clearTime"
           @change="parseTime($event, 'create_time')">

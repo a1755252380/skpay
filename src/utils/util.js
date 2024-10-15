@@ -20,6 +20,25 @@ export function throttle(func, limit) {
     }
   };
 }
+//冻结对象函数以节省内存
+export function deepFreeze(obj) {
+  // 首先冻结对象本身
+  Object.freeze(obj);
+
+  // 获取所有属性的名称
+  Object.getOwnPropertyNames(obj).forEach((prop) => {
+    if (
+      obj.hasOwnProperty(prop) && // 确保对象拥有该属性
+      obj[prop] !== null && // 过滤掉 null
+      (typeof obj[prop] === "object" || typeof obj[prop] === "function") && // 仅冻结对象和函数
+      !Object.isFrozen(obj[prop]) // 避免重复冻结
+    ) {
+      deepFreeze(obj[prop]); // 递归冻结
+    }
+  });
+
+  return obj;
+}
 
 //获取可视高度
 let tryGetRefNum = 0;

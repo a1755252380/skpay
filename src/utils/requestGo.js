@@ -107,8 +107,6 @@ serviceOrder.interceptors.response.use(
     ) {
       return res;
     }
-    console.log(code);
-    console.log(isRelogin.show);
 
     if (code === 401 || code === 404) {
       if (

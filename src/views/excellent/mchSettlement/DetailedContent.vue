@@ -41,7 +41,8 @@
           :formatter="Formatter.TableAmount" />
         <el-table-column label="总代付手续费" align="center" prop="pay_out_success_service_charge"
           :formatter="Formatter.TableAmount" />
-        <el-table-column label="截止时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond">
+        <el-table-column label="截止时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond"
+          width="180">
 
         </el-table-column>
 
@@ -182,7 +183,9 @@ export default {
 
       return await listMchSettlement(query).then((response) => {
         this.DetailedContentListQueryParams.last_id = response["last_id"];
+        response.results = this.$util.deepFreeze(response.results)
         this.DetailedContentList = [...this.DetailedContentList, ...response.results];
+
         this.DetailedContentListQueryParams.total = this.DetailedContentList.length;
         this.$nextTick(() => {
           this.DetailedContentLoading = false;

@@ -1,7 +1,13 @@
 import moment from "moment";
 
 export function TableAmount(row, column, cellValue, index) {
+  // console.log("------------------------------------");
+  // console.log(row.mch_num);
+
+  // console.log(column.label, ":", cellValue);
   let value = Math.floor(cellValue) / 100;
+  // console.log(column.label, ":", value.toFixed(2));
+  // console.log("------------------------------------");
   if (value) {
     return value.toFixed(2);
   } else {

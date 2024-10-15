@@ -71,7 +71,7 @@
 " align="center" :formatter="Formatter.TableAmount">
 
       </el-table-column>
-      <el-table-column prop="payout_pending_count" label="代付在途金额总数" align="center" :formatter="Formatter.TableAmount">
+      <el-table-column prop="payout_pending_count" label="代付在途金额总数" align="center">
 
       </el-table-column>
 

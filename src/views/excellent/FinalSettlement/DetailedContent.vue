@@ -82,7 +82,7 @@ export default {
     DetailedContentShowData: {
       set(value) {
         this.DetailedContentLoading = false
-        this.DetailedContentList.splice(0)
+        this.DetailedContentList = []
         this.DetailedContentListQueryParams = {
           create_time: null, // 开始时间
           create_end_time: null, // 结束时间
@@ -167,7 +167,7 @@ export default {
         mch_num: num
       };
       listMchSettlement(query).then((response) => {
-        this.DetailedContentList = response.rows;
+        this.DetailedContentList = this.$util.deepFreeze(response.rows);
         this.DetailedContentListQueryParams.total = this.DetailedContentList.length;
         this.$nextTick(() => {
           this.$refs.DetailedContentList.rebuildTable()

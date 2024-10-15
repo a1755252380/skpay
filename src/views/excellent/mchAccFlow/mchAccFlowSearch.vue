@@ -52,13 +52,13 @@
 
         </el-select>
       </el-form-item>
-      <el-form-item label="订单创建时间" prop="create_time">
+      <el-form-item label="订单创建时间" prop="create_time" class="large">
         <el-date-picker v-model="timedata.create_time" value-format="yyyy-MM-dd HH:mm:ss" type="datetimerange"
           range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间" class="w100_input"
           @change="parseTime($event, 'create_time')" />
       </el-form-item>
 
-      <el-form-item label="流水更新时间" prop="update_time">
+      <el-form-item label="流水更新时间" prop="update_time" class="large">
         <el-date-picker v-model="timedata.update_time" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss"
           range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间" class="w100_input"
           @change="parseTime($event, 'update_time')" />

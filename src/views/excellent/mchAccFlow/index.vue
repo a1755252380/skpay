@@ -34,7 +34,7 @@
 
         <el-table-column label="资金变动原因" align="center" prop="msg" :show-overflow-tooltip="true" />
         <el-table-column label="资金变动类型" align="center" prop="operation" :formatter="typeFormatter" />
-        <el-table-column label="相关订单号" align="center" prop="merchant_order_id" />
+        <el-table-column label="相关订单号" align="center" prop="merchant_order_id" width="210" />
         <el-table-column label="流水更新时间" align="center" prop="update_time" :formatter="Formatter.TableTimeSecond"
           width="180">
         </el-table-column>
@@ -82,6 +82,8 @@ export default {
     paginatedItems() {
       const start = (this.pageData.currentPage - 1) * this.pageData.pageSize;
       const end = this.pageData.currentPage * this.pageData.pageSize;
+      console.log(this.mchAccFlowList.slice(start, end));
+
       return this.mchAccFlowList.slice(start, end);
     },
     totalPages() {
@@ -130,7 +132,9 @@ export default {
 
       listMchAccFlow(query).then((response) => {
         this.queryPage["last_id"] = response["last_id"];
+        response.results = this.$util.deepFreeze(response.results)
         this.mchAccFlowList = [...this.mchAccFlowList, ...response.results];
+
         this.pageData.total = this.mchAccFlowList.length;
         this.loading = false;
         this.RepeatedRequests = false;

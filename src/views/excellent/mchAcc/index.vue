@@ -46,8 +46,13 @@
       <el-table-column label="操作" align="center" fixed="right" class-name="small-padding fixed-width"
         v-if="hasPermiVisible(['excellent:mchAcc:edit'])">
         <template slot-scope="scope">
-          <el-button size="mini" type="text" icon="el-icon-refresh" @click="handleUpdate2(scope.row)"
+          <el-button size="mini" type="text" icon="el-icon-refresh" @click="handleUpdate2(scope.row, '+')"
             v-hasPermi="['excellent:mchAcc:edit']">调整</el-button>
+          <el-button size="mini" type="text" icon="el-icon-refresh" @click="handleUpdate2(scope.row, '-')"
+            v-hasPermi="['excellent:mchAcc:edit']">代付结算</el-button>
+
+
+
           <!-- <el-button
             size="mini"
             type="text"
@@ -63,76 +68,10 @@
     <pagination ref="pagination" v-show="total > 0" :total="total" :page.sync="queryParams.page"
       :limit.sync="queryParams.limit" @pagination="getList" />
 
-    <!-- 添加或修改商户账户总金额对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="80%" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px" class="Breakdown-el-form"
-        label-position="top">
-        <!--        <el-form-item label="商户id" prop="mchId">-->
-        <!--          <el-input v-model="form.mchId" placeholder="请输入商户id" />-->
-        <!--        </el-form-item>-->
-        <el-form-item label="商户号" prop="mch_num">
-          <el-input v-model="form.mch_num" placeholder="请输入商户号" />
-        </el-form-item>
-        <el-form-item label="商户名称" prop="mch_name">
-          <el-input v-model="form.mch_name" placeholder="请输入商户名称" />
-        </el-form-item>
-        <el-form-item label="货币代号" prop="currency">
-          <el-input v-model="form.currency" placeholder="请输入货币代号" />
-        </el-form-item>
-        <el-form-item label="账户余额" prop="account_balance">
-          <el-input v-model="form.account_balance" placeholder="请输入账户余额" />
-        </el-form-item>
-        <el-form-item label="账户可用余额" prop="accountAvailableBalance">
-          <el-input v-model="form.accountAvailableBalance" placeholder="请输入账户可用余额" />
-        </el-form-item>
-        <el-form-item label="当日代收" prop="dayPayin">
-          <el-input v-model="form.dayPayin" placeholder="请输入当日代收" />
-        </el-form-item>
-        <el-form-item label="当日代付" prop="dayPayout">
-          <el-input v-model="form.dayPayout" placeholder="请输入当日代付" />
-        </el-form-item>
-        <el-form-item label="已结算代收金额" prop="payinSettledAmout">
-          <el-input v-model="form.payinSettledAmout" placeholder="请输入已结算代收金额" />
-        </el-form-item>
-        <el-form-item label="未结算代收金额" prop="payinUnsettledAmout">
-          <el-input v-model="form.payinUnsettledAmout" placeholder="请输入未结算代收金额" />
-        </el-form-item>
-        <el-form-item label="代付金额" prop="payoutAmout">
-          <el-input v-model="form.payoutAmout" placeholder="请输入代付金额" />
-        </el-form-item>
-        <el-form-item label="代付余额" prop="account_payout_balance">
-          <el-input v-model="form.account_payout_balance" placeholder="请输入代付余额" />
-        </el-form-item>
-        <el-form-item label="资金调整" prop="fundAdjustment">
-          <el-input v-model="form.fundAdjustment" placeholder="请输入资金调整" />
-        </el-form-item>
-        <el-form-item label="冻结金额" prop="freezeAmount">
-          <el-input v-model="form.freezeAmount" placeholder="请输入冻结金额" />
-        </el-form-item>
-        <el-form-item label="代付可用余额" prop="account_payout_available_balance">
-          <el-input v-model="form.account_payout_available_balance" placeholder="代付可用余额" />
-        </el-form-item>
-        <el-form-item label="待结算余额" prop="account_pending_settlement_balance">
-          <el-input v-model="form.account_pending_settlement_balance" placeholder="待结算余额" />
-        </el-form-item>
-        <el-form-item label="代付回退金额" prop="payoutRollbackAmout">
-          <el-input v-model="form.payoutRollbackAmout" placeholder="请输入代付回退金额" />
-        </el-form-item>
-        <el-form-item label="代付手续费" prop="payoutFee">
-          <el-input v-model="form.payoutFee" placeholder="请输入代付手续费" />
-        </el-form-item>
-        <el-form-item label="代付冻结金额" prop="payou_freeze_amount">
-          <el-input v-model="form.payou_freeze_amount" placeholder="请输入代付冻结金额" />
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
-      </div>
-    </el-dialog>
+
     <!-- 金额调整 -->
-    <AdjustmentsToFunds :show="AdjustmentsToFundsShow" :Change="form" @CloseAdjustmentsToFunds="CloseAdjustmentsToFunds"
-      @UpdateAdjustmentsToFunds="UpdateAdjustmentsToFunds">
+    <AdjustmentsToFunds :show="AdjustmentsToFundsShow" :Change="form" :fundState="AdjustmentsToFundsType"
+      @CloseAdjustmentsToFunds="CloseAdjustmentsToFunds" @UpdateAdjustmentsToFunds="UpdateAdjustmentsToFunds">
     </AdjustmentsToFunds>
   </div>
 </template>
@@ -196,7 +135,7 @@ export default {
         ],
       },
       AdjustmentsToFundsShow: false,
-
+      AdjustmentsToFundsType: '+',
       //客户搜索列表
       ClientSearchList: [],
       ClientSearchLoading: false,
@@ -292,11 +231,19 @@ export default {
         this.title = "修改商户账户总金额";
       });
     },
-    handleUpdate2(row) {
+    handleUpdate2(row, type) {
       this.reset();
+      this.AdjustmentsToFundsType = type
+      let loading = this.$loading({
+        lock: true,
+        text: 'Loading',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
       const id = row.mch_num || this.ids;
       getMchAcc(id).then((response) => {
         this.form = response.rows[0];
+        loading.close();
         this.AdjustmentsToFundsShow = true;
       });
     },

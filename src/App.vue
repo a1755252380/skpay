@@ -35,9 +35,8 @@ export default {
       document.onreadystatechange = function () {
 
         if (document.readyState === "complete") {
-          if (process.env.VUE_APP_ENV === 'production') {
+          if (process.env.VUE_APP_SHOW_LOADING) {
             that.$util.startAnimation()
-
           }
         }
       };

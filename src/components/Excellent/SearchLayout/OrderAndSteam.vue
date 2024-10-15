@@ -45,7 +45,7 @@ export default {
   },
 };
 </script>
-<style lang="scss" scoped>
+<style lang="scss">
 ::v-deep .el-form-item--mini.el-form-item {
   margin-bottom: 8px;
 }
@@ -60,10 +60,8 @@ export default {
 
   .search_option_div {
     display: grid;
-    grid-auto-rows: 1fr;
     gap: 0 8px;
     /* 行高均等 */
-    // grid-template-rows: repeat(2, 1fr);
     /* 强制分为两行 */
 
 
@@ -72,8 +70,17 @@ export default {
 
 .search_option_div {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 16px;
+  // grid-auto-flow: column;
+  /* 按列填充，确保两行 */
+  // grid-template-columns: minmax(160px, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(150px, 16.1%));
+  // gap: 16px;
+}
+
+/* 特殊处理需要更大宽度的输入框 */
+.search_option_div .large {
+  grid-column: span 2;
+  /* 跨两列 */
 }
 
 // @media (max-width: 900px) {

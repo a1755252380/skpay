@@ -47,7 +47,8 @@
       <el-table-column label="代付冻结金额" align="center" prop="payou_freeze_amount" :formatter="Formatter.TableAmount" />
       <el-table-column label="代付冻结金额手续费" align="center" prop="payou_freeze_amount_service"
         :formatter="Formatter.TableAmount" />
-      <el-table-column label="截止时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond" />
+      <el-table-column label="截止时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond"
+        width="180" />
       <el-table-column label="历史" align="center" class-name="small-padding ">
         <template slot-scope="scope">
           <el-button size="mini" type="text" icon="el-icon-warning-outline"
@@ -140,7 +141,7 @@ export default {
   methods: {
     //数据处理
     async DataProcessing(list) {
-
+      list = this.$util.deepFreeze(list)
       return Object.values(
         list.reduce((acc, obj) => {
           // 比较 mch_num 相同的对象，保留 create_time 最大的
