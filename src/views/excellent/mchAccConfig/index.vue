@@ -544,10 +544,10 @@ export default {
         form['payin_state'] = ChangeData;
         key = "payin_state";
       } else if (type == 2) {
-        form['payout_rate'] = ChangeData;
-        key = "payout_rate";
+        form['payout_state'] = ChangeData;
+        key = "payout_state";
       }
-
+      console.log(form);
       updateMchAccConfig(form).then((response) => {
         this.$modal.msgSuccess("修改成功");
         this.$set(this.mchAccConfigList[index], key, ChangeData);
