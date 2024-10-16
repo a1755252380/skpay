@@ -1,13 +1,19 @@
 <template>
-  <el-dialog :title="'金额调整'" :visible.sync="showData" width="400px" append-to-body :before-close="() => {
-    showData = false
-  }">
-    <el-form ref="form" :model="form" label-width="80px" class="Breakdown-el-form" :rules="rules">
+  <el-dialog
+    :title="fundStateData == 'PositiveAdjustment' ? '金额调整' : (fundStateData == 'CollectionAndSettlement' ? '代收结算' : '代付结算')"
+    :visible.sync="showData" width="400px" append-to-body :before-close="() => {
+      showData = false
+    }">
+    <el-form ref="form" :model="form" label-width="90px" class="Breakdown-el-form" :rules="rules">
       <!--        <el-form-item label="商户id" prop="mchId">-->
       <!--          <el-input v-model="form.mchId" placeholder="请输入商户id" />-->
       <!--        </el-form-item>-->
       <el-form-item label="商户号" prop="mch_number">
         <el-input v-model="form.mch_number" placeholder="请输入商户号" disabled />
+      </el-form-item>
+      <el-form-item :label="fundStateData == 'CollectionAndSettlement' ? '待结算余额' : '代付余额'"
+        v-if="fundStateData == 'CollectionAndSettlement' || fundStateData == 'ProxyPaymentSettlement'">
+        <el-input :value="showMsg.Balance" placeholder="请输入金额" class="w100_input " disabled />
       </el-form-item>
       <el-form-item label="调整金额" prop="big_amount">
         <el-input-number v-model="form.big_amount" placeholder="请输入金额" class="w100_input " :precision="2"
@@ -62,7 +68,8 @@ export default {
   watch: {
     Change(newval, oldval) {
       this.form['mch_number'] = newval['mch_num'];
-
+      this.showMsg.Balance = this.Formatter.FormatAmount(this.fundStateData == 'CollectionAndSettlement' ? newval['account_pending_settlement_balance'] : newval['account_payout_balance'])
+      this.form.operation = this.fundStateData == 'PositiveAdjustment' ? null : (this.fundStateData == 'CollectionAndSettlement' ? 4 : 5)
     }
   },
   data() {
@@ -74,7 +81,7 @@ export default {
         msg: ''
       },
       showMsg: {
-
+        Balance: ''
       },
       rules: {
         msg: [{ required: true, message: '请输入备注', trigger: 'change' }],
@@ -86,7 +93,7 @@ export default {
         {
           name: '待结算余额到可用余额调整',
           operation: 4,
-          fund_state: 'NegativeAdjustment'
+          fund_state: 'CollectionAndSettlement'
 
         },
         {
@@ -108,7 +115,7 @@ export default {
         {
           name: '可用余额到代付余额调整',
           operation: 5,
-          fund_state: 'NegativeAdjustment'
+          fund_state: 'ProxyPaymentSettlement'
         },
 
         //     {
@@ -149,6 +156,7 @@ export default {
             mergedObj['big_amount'] = mergedObj['big_amount'] * -1
           }
           console.log(mergedObj);
+          // return
           this.showData = false
           this.$emit('UpdateAdjustmentsToFunds', mergedObj)
         } else {

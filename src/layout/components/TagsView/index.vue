@@ -1,15 +1,18 @@
 <template>
   <div id="tags-view-container" class="tags-view-container">
     <scroll-pane ref="scrollPane" class="tags-view-wrapper" @scroll="handleScroll">
-
-      <router-link v-for="tag in visitedViews" ref="tag" :key="tag.path" :class="isActive(tag) ? 'active' : ''"
-        :to="{ path: tag.path, query: tag.query, fullPath: tag.fullPath }" tag="span" class="tags-view-item"
-        :style="activeStyle(tag)" @click.middle.native="!isAffix(tag) ? closeSelectedTag(tag) : ''"
-        @contextmenu.prevent.native="openMenu(tag, $event)">
-        {{ tag.title }}
-        <span v-if="!isAffix(tag)" class="el-icon-close" @click.prevent.stop="closeSelectedTag(tag)" />
-      </router-link>
-
+      <draggable v-model="$store.state.tagsView.visitedViews" chosenClass="chosen" forceFallback="true" group="people"
+        animation="1000" @start="onStart" @end="onEnd">
+        <transition-group>
+          <router-link v-for="tag in visitedViews" ref="tag" :key="tag.path" :class="isActive(tag) ? 'active' : ''"
+            :to="{ path: tag.path, query: tag.query, fullPath: tag.fullPath }" tag="span" class="tags-view-item"
+            :style="activeStyle(tag)" @click.middle.native="!isAffix(tag) ? closeSelectedTag(tag) : ''"
+            @contextmenu.prevent.native="openMenu(tag, $event)">
+            {{ tag.title }}
+            <span v-if="!isAffix(tag)" class="el-icon-close" @click.prevent.stop="closeSelectedTag(tag)" />
+          </router-link>
+        </transition-group>
+      </draggable>
 
     </scroll-pane>
     <ul v-show="visible" :style="{ left: left + 'px', top: top + 'px' }" class="contextmenu">
@@ -26,16 +29,17 @@
 <script>
 import ScrollPane from './ScrollPane'
 import path from 'path'
-
+import draggable from 'vuedraggable'
 export default {
-  components: { ScrollPane },
+  components: { ScrollPane, draggable },
   data() {
     return {
       visible: false,
       top: 0,
       left: 0,
       selectedTag: {},
-      affixTags: []
+      affixTags: [],
+      drag: false
     }
   },
   computed: {
@@ -227,7 +231,15 @@ export default {
     },
     handleScroll() {
       this.closeMenu()
-    }
+    },
+    //开始拖拽事件
+    onStart() {
+      this.drag = true;
+    },
+    //拖拽结束事件
+    onEnd() {
+      this.drag = false;
+    },
   }
 }
 </script>

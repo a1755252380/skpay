@@ -230,6 +230,8 @@ export default {
     },
     /** 搜索按钮操作 */
     handleQuery() {
+      console.log("数据请求");
+
       this.$emit('ReturnSearch', this.queryParams);
     },
     RequestingDataAgain() {
@@ -240,25 +242,25 @@ export default {
     resetQuery() {
       this.timedata = {
         create_time: [],
-        end_time: []
-      },
-        this.queryParams = {
-          mch_number: null,
-          merchant_order_id: null,
-          order_id: null,
-          platform_order_id: null,
-          chnl_id: null,
-          // MainAccount: null, //商户的主体账户 暂不用
-          status: null,
-          end_time: null,
-          callback_status: null, //回调状态
-          //创建时间
-          create_time: null,
-          create_end_time: null,
-          //更新时间
-          update_time: null,
-          update_end_time: null
-        }
+        update_time: []
+      }
+      this.queryParams = {
+        mch_number: null,
+        merchant_order_id: null,
+        order_id: null,
+        platform_order_id: null,
+        chnl_id: null,
+        // MainAccount: null, //商户的主体账户 暂不用
+        status: null,
+        end_time: null,
+        callback_status: null, //回调状态
+        //创建时间
+        create_time: null,
+        create_end_time: null,
+        //更新时间
+        update_time: null,
+        update_end_time: null
+      }
 
       this.handleQuery();
     },

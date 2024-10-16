@@ -31,7 +31,7 @@
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
 
         </el-table-column>
-        <el-table-column label="商户订单号" align="center" prop="merchant_order_id" min-width="200">
+        <el-table-column label="商户订单号" align="center" prop="merchant_order_id" min-width="210">
 
         </el-table-column>
         <el-table-column label="系统订单号" align="center" prop="_id" min-width="130">
@@ -59,14 +59,14 @@
           <template slot-scope="scope">
             <el-tag :type="formatStatus(scope.row.status).type">{{
               formatStatus(scope.row.status).name
-            }}</el-tag>
+              }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="回调状态" align="center" prop="callback_status" width="100" class-name="NoTooltip">
           <template slot-scope="scope">
             <el-tag :type="formatCallbackStatus(scope.row.callback_status).type">{{
               formatCallbackStatus(scope.row.callback_status).name
-              }}</el-tag>
+            }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="通道名称" align="center" prop="chnl_name"
@@ -498,6 +498,7 @@ export default {
     ReturnSearch(Params) {
       this.loading = true;
       this.resetSearch();
+      this.RepeatedRequests = false
       this.getList(Params);
     },
     RequestingDataAgain(Params) {
@@ -687,15 +688,19 @@ export default {
     },
     //重置
     resetSearch() {
-      this.OrderRecordsList.splice(0);
-      (this.queryPage.last_id = null),
-        (this.pageData = {
-          currentPage: 1, // 当前页码
-          pageSize: this.pageData.pageSize, // 每页显示的条数
-          total: 1, // 数据总条数
-        });
+      console.log("重置");
+
+      this.OrderRecordsList.splice(0)
+      this.queryPage.last_id = null
+      this.pageData = {
+        currentPage: 1, // 当前页码
+        pageSize: this.pageData.pageSize, // 每页显示的条数
+        total: 1, // 数据总条数
+      }
       this.$refs.myTable.clearSelection();
       this.BatchModificationList.splice(0);
+      console.log("重置...");
+
     },
 
     //订单详情
@@ -704,7 +709,9 @@ export default {
     TabsChange(value) {
       this.loading = true;
       this.queryPage.time_type = value.name;
-      this.resetSearch();
+      console.log(value.name);
+
+      // this.resetSearch();
       this.$refs.search.resetQuery();
     },
 

@@ -136,12 +136,7 @@
                 <el-tooltip :key="index" content="单击可进行修改" :open-delay="2000" style="cursor: pointer;">
                   <el-tag size="small" closable style="margin:0 6px 3px 6px;" effect="dark"
                     @close="delIpWhiteList(index)" @click="UpDateWhiteList(index)">{{ item }}</el-tag>
-
-
-
                 </el-tooltip>
-
-
               </template>
 
             </div>
@@ -178,6 +173,7 @@ export default {
 
   components: { dynamicTableVue, MchNumSelect, mchNameVue },
   data() {
+
     return {
       //商户号是否可修改
       mchNumChange: false,

@@ -226,6 +226,17 @@ import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
 export default {
   name: "MchAccConfig",
   data() {
+    const validateNumber = function (rule, value, callback) {
+      if (value === "") {
+        callback(new Error("费率不能为空"));
+      } else if (value == 0) {
+        callback(new Error("费率不能为0"));
+      } else if (!/^(?!0(\.0+)?$)\d+(\.\d+)?$/.test(value)) {
+        callback(new Error("费率不能为0"));
+      } else {
+        callback();
+      }
+    };
     return {
       //商户号是否可修改
       mchNumChange: false,
@@ -258,6 +269,7 @@ export default {
       },
       // 表单参数
       form: {},
+      FormBackup: {}, //表单备份
       // 表单校验
       rules: {
         mch_num: [
@@ -283,6 +295,18 @@ export default {
         ],
         settle_mode: [
           { required: true, message: "请选择结算模式", trigger: "change" },
+        ],
+        payout_rate: [
+          { required: true, message: "请输入正确的代付费率", trigger: "change" },
+          { validator: validateNumber, message: '请输入正确的代付费率', trigger: "change" }
+        ],
+        payin_rate: [
+          { required: true, message: "请输入正确的代收费率", trigger: "change" },
+          { validator: validateNumber, message: '请输入正确的代收费率', trigger: "change" }
+        ],
+        payout_fee_single: [
+          { required: true, message: "请输入正确的单笔代付手续费", trigger: "change" },
+          { validator: validateNumber, message: '请输入正确的单笔代付手续费', trigger: "change" }
         ],
       },
       //通道列表
@@ -383,7 +407,7 @@ export default {
       const id = row.mch_num || this.ids;
       getMchAccConfig(id).then((response) => {
         this.editloading = false;
-
+        this.FormBackup = { ...response.rows[0] };
         this.form = response.rows[0];
         this.open = true;
         this.title = "修改商户账户配置";
@@ -411,10 +435,22 @@ export default {
         // form["mchId"] = this.ClientSearchList[UserIndex]["id"];
         // form["userId"] = this.ClientSearchList[UserIndex]["userId"];
         // form["mchName"] = this.ClientSearchList[UserIndex]["mchName"];
-        console.log(form);
+
         if (valid) {
+          // console.log(form);
+
           if (this.form.id != null) {
-            updateMchAccConfig(form).then((response) => {
+            let submitForm = {}
+            submitForm["mch_num"] = form.mch_num;
+            for (const key in this.FormBackup) {
+              if (form[key] != this.FormBackup[key]) {
+                submitForm[key] = form[key]
+
+              }
+            }
+            console.log(submitForm);
+            // return
+            updateMchAccConfig(submitForm).then((response) => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
@@ -497,16 +533,18 @@ export default {
       });
       // type 1为代付状态的修改 0为状态的修改 2为代收状态的修改
 
-      let form = data;
+      let form = {
+        "mch_num": data.mch_num,
+      }
       let key = "state";
       if (type == 0) {
-        form.state = ChangeData;
+        form['state'] = ChangeData;
         key = "state";
       } else if (type == 1) {
-        form.payin_state = ChangeData;
+        form['payin_state'] = ChangeData;
         key = "payin_state";
       } else if (type == 2) {
-        form.payout_rate = ChangeData;
+        form['payout_rate'] = ChangeData;
         key = "payout_rate";
       }
 

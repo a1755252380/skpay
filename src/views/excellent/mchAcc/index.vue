@@ -43,15 +43,21 @@
       <el-table-column label="代付冻结金额手续费" align="center" prop="payou_freeze_amount_service"
         :formatter="Formatter.TableAmount" />
 
-      <el-table-column label="操作" align="center" fixed="right" class-name="small-padding fixed-width" width="160"
+      <el-table-column label="操作" align="center" fixed="right" class-name="small-padding fixed-width" width="230"
         v-if="hasPermiVisible(['excellent:mchAcc:edit'])">
         <template slot-scope="scope">
           <el-button size="mini" type="text" icon="el-icon-refresh"
             @click="handleUpdate2(scope.row, 'PositiveAdjustment')"
             v-hasPermi="['excellent:mchAcc:edit']">调整</el-button>
+          <!-- 代付余额 -->
           <el-button size="mini" type="text" icon="el-icon-refresh"
-            @click="handleUpdate2(scope.row, 'NegativeAdjustment')"
+            @click="handleUpdate2(scope.row, 'ProxyPaymentSettlement')"
             v-hasPermi="['excellent:mchAcc:edit']">代付结算</el-button>
+
+          <!-- 待结算 -->
+          <el-button size="mini" type="text" icon="el-icon-refresh"
+            @click="handleUpdate2(scope.row, 'CollectionAndSettlement')"
+            v-hasPermi="['excellent:mchAcc:edit']">代收结算</el-button>
 
 
 
