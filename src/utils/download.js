@@ -3,6 +3,7 @@ import { tansParams, blobValidate } from "@/utils/ruoyi";
 import request from "@/utils/requestGo";
 import axios from "axios";
 import { saveAs } from "file-saver";
+let RequestNum = 60;
 //查询文件是否生成
 function CheckIfTheFileHasBeenGenerated(url) {
   return axios({
@@ -28,24 +29,20 @@ function isObject(val) {
 
 //下载文件方法
 async function SaveFile(res, name) {
-  axios({
+  await axios({
     url: res, // 替换为你的文件下载链接
     method: "GET",
     responseType: "blob", // 设置响应类型为 blob 以处理文件
   })
     .then((response) => {
       saveAs(response.data, name + ".xlsx");
-      // const url = window.URL.createObjectURL(new Blob([response.data]));
-      // const link = document.createElement("a");
-      // link.href = url;
-      // link.setAttribute("download", name + ".xlsx"); // 设置下载的文件名
-      // document.body.appendChild(link);
-      // link.click();
-      // link.remove(); // 触发下载并移除链接
-      // window.URL.revokeObjectURL(url);
     })
     .catch((error) => {
       console.error("文件下载失败:", error);
+    })
+    .finally(() => {
+      // 隐藏加载状态
+      downloadLoadingInstance.close();
     });
 }
 //下载文件方法
@@ -55,14 +52,16 @@ function fetchAndDownload(url, name) {
       if (res.data.status) {
         // 如果结果是对象，继续递归调用
         setTimeout(() => {
+          console.log(RequestNum);
+
+          if (RequestNum < 0) {
+            return;
+          }
+          RequestNum -= 1;
           fetchAndDownload(url, name);
-        }, 1000);
+        }, 3000);
       } else {
-        SaveFile(res.data.url, name).then((res) => {
-          setTimeout(() => {
-            downloadLoadingInstance.close();
-          }, 1000);
-        });
+        SaveFile(res.data.url, name);
         return;
       }
     })
@@ -75,6 +74,7 @@ function fetchAndDownload(url, name) {
 export function DownloadXlsx(
   CommitUrl,
   query,
+  name,
   downloadUrl = "/console/download/pull"
 ) {
   downloadLoadingInstance = Loading.service({
@@ -87,9 +87,10 @@ export function DownloadXlsx(
     method: "get",
     params: query,
   }).then((res) => {
-    let name = res.file_name;
+    let filename = name ? name : res.file_name;
+    RequestNum = 0;
     // 启动请求的入口
-    fetchAndDownload(downloadUrl + "?file_name=" + name, name);
+    fetchAndDownload(downloadUrl + "?file_name=" + res.file_name, filename);
 
     return res;
   });

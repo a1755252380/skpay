@@ -9,6 +9,10 @@
   font-size: 14px;
   padding-left: 24px;
 }
+.CalculationFormula .redcolor {
+ color: rgb(240, 5, 5);
+ padding: 0 4px;
+}
 .fulltable_div{
   min-height: inherit;
   display: flex;

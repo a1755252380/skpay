@@ -273,10 +273,18 @@ export default {
         }
         params['time_type'] = this.TabsChangeStatus
         params['type'] = this.$route.query.type
-        this.download.DownloadXlsx('/order/download/commit', params);
-        // SubmitDownloadOrder(params).then(res => {
-        //   console.log(res);
-        // })
+        let TimeFrame = ''
+        if (params['mch_number']) {
+          TimeFrame += params['mch_number'] + '_'
+        }
+        if (this.queryParams.create_time && this.queryParams.create_end_time) {
+          TimeFrame += this.Formatter.FormatTime(this.queryParams.create_time * 1000, 'YYYY-MM-DD') + '-' + this.Formatter.FormatTime(this.queryParams.create_end_time * 1000, 'YYYY-MM-DD') + "_"
+        }
+        if (this.queryParams.update_time && this.queryParams.update_end_time) {
+          TimeFrame += this.Formatter.FormatTime(this.queryParams.update_time * 1000, 'YYYY-MM-DD') + '-' + this.Formatter.FormatTime(this.queryParams.update_end_time * 1000, 'YYYY-MM-DD') + "_"
+        }
+        this.download.DownloadXlsx('/order/download/commit', params, (TimeFrame + (this.$route.query.type == 1 ? '代付' : '代收') + '订单记录'));
+
       } else {
         this.$message({
           message: '请选择创建时间/更新时间',

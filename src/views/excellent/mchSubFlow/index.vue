@@ -1,25 +1,18 @@
 <template>
   <div class="app-container fulltable_div">
 
-    <div class="fulltable_div" style="min-height: auto;flex: 1;padding: 0 8px;">
+    <div class="fulltable_div" style="min-height: auto;flex: 1;padding: 0 8px;" ref="fulltable_div">
       <mchSubFlowSearchVue :showSearch="showSearch" ref="mchSubFlowSearchVue" @ReturnSearch="ReturnSearch"
         :TabsChangeStatus="queryPage.type" @RequestingDataAgain="RequestingDataAgainMethods"></mchSubFlowSearchVue>
-      <dynamicTableVue :loading="loading" :tableData="paginatedItems" @cellDblclick="cellDblclick" ref="myTable">
+      <dynamicTableVue :loading="loading" :tableData="paginatedItems" @cellDblclick="(row, column, cell, event) => {
+        this.$util.copyToClipboard(cell.innerText);
+      }" :cellClassName="'HoverTooltipCopy'" ref="myTable" :showSummary="showSummary" :getSummaries="getSummaries">
         <el-table-column label="商户号 " align="center" prop="mch_number" />
         <el-table-column label="商户开始余额 " align="center" prop="mch_start_balance" :formatter="Formatter.TableAmount">
-
-
-
         </el-table-column>
         <el-table-column label="商户最后余额 " align="center" prop="mch_final_balance" :formatter="Formatter.TableAmount">
-
-
-
         </el-table-column>
         <el-table-column label="资金变动金额 " align="center" prop="settle_amount" :formatter="Formatter.TableAmount">
-
-
-
         </el-table-column>
         <el-table-column label="资金变动原因" align="center" prop="msg" :show-overflow-tooltip="true" />
         <el-table-column label="交易类型" align="center" prop="operation" :formatter="typeFormatter" />
@@ -60,10 +53,15 @@ export default {
       ClientSearchList: [],
       ClientSearchLoading: false,
       FirstSearched: true,
-      RepeatedRequests: false
+      RepeatedRequests: false,
+      showSummary: false,//是否显示合计行
+      FirstSummary: true
     };
   },
   created() {
+  },
+  beforeDestroy() {
+    this.removeCopyEvent()
   },
   computed: {
     paginatedItems() {
@@ -86,8 +84,9 @@ export default {
     },
     ReturnSearch(Params) {
       this.loading = true;
-      this.resetSearch()
 
+      this.resetSearch()
+      this.RepeatedRequests = false
       this.getList(Params);
     },
     RequestingDataAgainMethods(Params) {
@@ -108,6 +107,27 @@ export default {
         this.RepeatedRequests = false;
         if (response["last_id"] == '') {
           this.RepeatedRequests = true;
+        }
+        //未合计行添加点击复制事件
+        if (queryParams.mch_number) {
+          this.showSummary = true
+          this.FirstSummary = true
+          setTimeout(() => {
+            this.$nextTick(() => {
+              this.$refs.myTable.rebuildTable()
+              this.AddCopyEvent()
+
+            })
+          }, 500);
+        } else {
+          this.removeCopyEvent()
+          this.showSummary = false
+          setTimeout(() => {
+            this.$nextTick(() => {
+              this.$refs.myTable.rebuildTable()
+
+            })
+          }, 500);
         }
       });
     },
@@ -140,7 +160,107 @@ export default {
       }
     },
 
+    //筛选合计项
+    getSummaries(param) {
+      const { columns, data } = param;
 
+
+      const sums = [];
+      columns.forEach((column, index) => {
+        if (index === 0) {
+          sums[index] = '总计';
+          return;
+        }
+        if (index == 4 || index == 5 || index == 6 || index == 7) {
+          sums[index] = 'N/A';
+          return
+        }
+        const values = data.map(item => Number(item[column.property]));
+
+        if (!values.every(value => isNaN(value))) {
+          sums[index] = values.reduce((prev, curr) => {
+            const value = Number(curr);
+            if (!isNaN(value)) {
+              return prev + curr;
+            } else {
+              return prev;
+            }
+          }, 0);
+          sums[index] += '';
+        } else {
+          sums[index] = 'N/A';
+        }
+      });
+
+      sums[1] = this.Formatter.FormatAmount(sums[1]);
+      sums[2] = this.Formatter.FormatAmount(sums[2]);
+      sums[3] = this.Formatter.FormatAmount(sums[3]);
+
+      return sums;
+    },
+    //合计行添加复制事件
+    AddCopyEvent() {
+      // 在组件销毁时，移除事件监听
+      const summaryRow = document.querySelector('.el-table__footer tr');
+      let that = this
+      if (summaryRow) {
+        // 获取合计行中所有的子元素（假设子元素是 td）
+        const children = summaryRow.querySelectorAll('td');
+
+        // 遍历子元素
+        children.forEach((child) => {
+          // 检查是否已经添加过双击事件，防止重复添加
+          if (!child.dataset.dblclickAttached) {
+            // 给子元素添加双击事件
+            child.addEventListener('dblclick', (event) => {
+              // 查找子元素中的 div 并获取其内容
+              const div = child.querySelector('div');
+              if (div) {
+
+                const content = div.textContent || div.innerText;
+                console.log('双击事件触发，内容为:', content);
+
+
+                that.$util.copyToClipboard(content)
+              } else {
+                console.log('未找到 div 元素');
+              }
+            });
+            child.classList.add('HoverTooltipCopy');
+            // 标记该子元素已经添加了双击事件
+            child.dataset.dblclickAttached = 'true';
+          }
+        });
+      }
+    },
+    removeCopyEvent() {
+      // 在组件销毁时，移除事件监听
+      const summaryRow = document.querySelector('.el-table__footer tr');
+      let that = this
+      if (summaryRow) {
+        // 获取合计行中所有的子元素（假设子元素是 td）
+        const children = summaryRow.querySelectorAll('td');
+        console.log(children);
+
+        // 遍历子元素
+        children.forEach((child) => {
+          // 检查是否已经添加过双击事件，防止重复添加
+          if (!child.dataset.dblclickAttached) {
+            // 给子元素添加双击事件
+            child.removeEventListener('dblclick', (event) => {
+
+            });
+
+          }
+        });
+      }
+
+    },
+    ReturnHeaderClass({ row, column, rowIndex, columnIndex }) {
+      console.log(rowIndex, columnIndex);
+      console.log(row, column);
+      return 'DynamicTable_header'
+    }
   },
   components: { dynamicTableVue, mchSubFlowSearchVue },
 };

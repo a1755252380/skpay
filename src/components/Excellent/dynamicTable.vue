@@ -2,10 +2,10 @@
   <!-- v-payouloading="loadingData" -->
   <div v-loading="loadingData" class="table-container" ref="DynamicTable_div">
     <el-table :data="tableData" border :key="tableId" @selection-change="handleSelectionChange" class="DynamicTable"
-      header-cell-class-name="DynamicTable_header" :height="height" :resizable="false" :default-sort="defaultSort"
-      :highlight-selection-row="false" :ref="'DynamicTable' + tableId" row-class-name="DynamicTable_row"
-      :cell-class-name="cellClassNameFunction" v-table-move="['DynamicTable' + tableId]" @cell-dblclick="cellDblclick"
-      @sort-change="handleSort">
+      :height="height" :resizable="false" :default-sort="defaultSort" :highlight-selection-row="false"
+      :ref="'DynamicTable' + tableId" row-class-name="DynamicTable_row" :cell-class-name="cellClassNameFunction"
+      v-table-move="['DynamicTable' + tableId]" @cell-dblclick="cellDblclick" @sort-change="handleSort"
+      :show-summary="showSummary" :summary-method="getSummaries" :header-cell-class-name="headerCellClassName">
       <!-- <transition-group tag="tbody" name="fade" class="el-table__body"> -->
 
       <slot></slot>
@@ -36,8 +36,23 @@ export default {
     cellClassName: {
       type: String,
       default: ''
+    },
+    //是否显示合计行
+    showSummary: {
+      type: Boolean,
+      default: false,
+    },
+    //合计方法
+    getSummaries: {
+      type: Function,
+      default: () => { }
+    },
+    headerCellClassName: {
+      type: Function,
+      default: ({ row, column, rowIndex, columnIndex }) => {
+        return 'DynamicTable_header'
+      }
     }
-
   },
 
   computed: {
@@ -136,6 +151,9 @@ export default {
       this.$nextTick(() => {
         this.rebuildTable()
       });
+    },
+    TableClick() {
+      this.$refs["DynamicTable" + this.tableId]
     },
     //重置table高度
     handleResize() {

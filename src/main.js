@@ -97,7 +97,7 @@ Vue.use(Element, {
 });
 
 Vue.config.productionTip = false;
-
+import "@/version-check.js";
 new Vue({
   el: "#app",
   router,

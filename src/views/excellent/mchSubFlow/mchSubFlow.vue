@@ -28,7 +28,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="创建时间" prop="create_time" class="large">
-        <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'update_time'">
+        <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'">
         </TimeFrameVue>
         <!-- <el-date-picker v-model="timedata.create_time" type="datetimerange" range-separator="-" start-placeholder="开始日期"
           class="w100_input" end-placeholder="结束日期" value-format="yyyy-MM-dd HH:mm:ss" @clear="clearTime"
@@ -169,8 +169,15 @@ export default {
 
     handleExport() {
       if (this.queryParams.create_time && this.queryParams.end_time) {
+        let TimeFrame = '';
         const params = { ...this.queryParams };
-        this.download.DownloadXlsx('/stream/download/commit', params);
+        if (params['mch_number']) {
+          TimeFrame += params['mch_number'] + '_'
+        }
+        if (this.queryParams.create_time && this.queryParams.create_end_time) {
+          TimeFrame += this.Formatter.FormatTime(this.queryParams.create_time * 1000, 'YYYY-MM-DD') + '-' + this.Formatter.FormatTime(this.queryParams.create_end_time * 1000, 'YYYY-MM-DD') + "_"
+        }
+        this.download.DownloadXlsx('/stream/download/commit', params, (TimeFrame + '资金调整记录'));
       } else {
         this.$message({ message: '请选择时间', type: 'warning' });
       }

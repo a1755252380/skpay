@@ -72,6 +72,13 @@
       <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
       <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport">导出</el-button>
       <slot name="btn"></slot>
+      <span class="CalculationFormula">
+
+        <strong>（本模块依据<span class="redcolor">代收订单更新时间</span>和<span class="redcolor">代付订单创建时间</span>）</strong>
+
+
+
+      </span>
     </template>
   </OrderAndSteam>
 </template>
@@ -206,9 +213,22 @@ export default {
 
       if ((this.queryParams.create_end_time && this.queryParams.create_time) || (this.queryParams.update_time && this.queryParams.update_end_time)) {
         const params = { ...this.queryParams };
-        console.log(params);
+        let TimeFrame = ''
+        if (params['mch_number']) {
+          TimeFrame += params['mch_number'] + '_'
+        }
+        if (this.queryParams.create_time && this.queryParams.create_end_time) {
+          TimeFrame += this.Formatter.FormatTime(this.queryParams.create_time * 1000, 'YYYY-MM-DD') + '-' + this.Formatter.FormatTime(this.queryParams.create_end_time * 1000, 'YYYY-MM-DD') + "_"
+        }
+        if (this.queryParams.update_time && this.queryParams.update_end_time) {
+          if (this.queryParams.create_time && this.queryParams.create_end_time) {
+            TimeFrame += "创建时间_"
+          } else {
+            TimeFrame += this.Formatter.FormatTime(this.queryParams.update_time * 1000, 'YYYY-MM-DD') + '-' + this.Formatter.FormatTime(this.queryParams.update_end_time * 1000, 'YYYY-MM-DD') + "_"
 
-        this.download.DownloadXlsx('/stream/download/commit', params);
+          }
+        }
+        this.download.DownloadXlsx('/stream/download/commit', params, (TimeFrame + '流水记录'));
       } else {
         this.$message({
           message: '请选择创建时间/更新时间',

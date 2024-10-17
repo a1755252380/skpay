@@ -3,7 +3,7 @@ const ScriptExtHtmlWebpackPlugin = require("script-ext-html-webpack-plugin");
 let UglifyjsWebpackPlugin = require("uglifyjs-webpack-plugin");
 let OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const port = process.env.port || process.env.npm_config_port || 80;
-
+const Timestamp = new Date().getTime();
 const path = require("path");
 
 function resolve(dir) {

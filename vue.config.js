@@ -2,7 +2,7 @@
 const { merge } = require("webpack-merge");
 const path = require("path");
 // const ThemeCssExtractPlugin = require("@zougt/theme-css-extract-webpack-plugin"); //主题插件
-
+const Timestamp = new Date().getTime();
 const commonConfig = {
   resolve: {
     alias: {
@@ -10,9 +10,10 @@ const commonConfig = {
     },
   },
   output: {
-    filename: "static/js/[name].[hash:8].js",
-    chunkFilename: "static/js/[name].[hash:8].js",
+    filename: `static/js/[name].${Timestamp}.js`,
+    chunkFilename: `static/js/[name].${Timestamp}.js`,
   },
+ 
   plugins: [
     // new ThemeCssExtractPlugin({
     //   extract: true,
@@ -55,6 +56,12 @@ module.exports = {
   assetsDir: "static",
   lintOnSave: process.env.NODE_ENV === "development",
   productionSourceMap: false,
+   css: {
+    extract: {
+      filename: `static/css/[name].${Timestamp}.css`,
+      chunkFilename: `static/css/[name].${Timestamp}.css`,
+    },
+  },
   configureWebpack: (config) => {
     const mergedConfig = merge(
       commonConfig,
