@@ -39,7 +39,12 @@
           width="180">
 
         </el-table-column>
+        <el-table-column label="操作" align="center" prop="create_time" width="180">
+          <template slot-scope="scope">
+            <el-button type="text" size="small" @click="Settlement(scope.row)" icon="el-icon-refresh">代付结算</el-button>
 
+          </template>
+        </el-table-column>
 
 
       </dynamicTableVue>
@@ -47,7 +52,9 @@
         :page.sync="DetailedContentListQueryParams.currentPage" :limit.sync="DetailedContentListQueryParams.pageSize"
         @pagination="handleCurrentChange" />
     </div>
-
+    <ProxyChangeDialogVue :Change="ProxyChange" ref="ProxyChangeDialogVue" :show="ProxyChangeDialogShow"
+      @CloseProxyChangeDialog="CloseProxyChangeDialog" @UpdateProxyChangeDialog="UpdateProxyChangeDialog">
+    </ProxyChangeDialogVue>
   </el-dialog>
 
 </template>
@@ -56,10 +63,12 @@
 import { listMchSettlement } from "@/api/excellent/mchSettlement";
 import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
 import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
-
+import ProxyChangeDialogVue from './DetailedContent/ProxyChangeDialog.vue';
+import { updateMchAcc } from "@/api/excellent/mchAcc";
 export default {
   name: 'WorkspaceJsonDetailedContent',
   props: ['DetailedContentShow', 'mch_number'],
+
   data() {
     return {
       DetailedContentList: [],
@@ -75,7 +84,11 @@ export default {
         create_time: [],
       },
       DetailedContentLoading: false,
-      RepeatedRequests: false
+      RepeatedRequests: false,
+      //代付结算弹窗数据
+      ProxyChange: {},
+      ProxyChangeDialogShow: false,
+
     };
   },
   computed: {
@@ -116,11 +129,7 @@ export default {
     },
 
   },
-  // watch: {
-  //   mch_number(newval) {
-  //     this.getList()
-  //   }
-  // },
+
 
   mounted() {
 
@@ -159,7 +168,32 @@ export default {
       },
         this.getList()
     },
+    //关闭代付结算弹窗
+    CloseProxyChangeDialog() {
+      this.ProxyChangeDialogShow = false
+    },
+    //打开代付结算弹窗
+    Settlement(value) {
 
+      this.ProxyChange = value
+      this.ProxyChangeDialogShow = true
+    },
+    //提交修改信息
+    UpdateProxyChangeDialog(value) {
+
+      const loading = this.$loading({
+        lock: true,
+        text: '正在提交，请稍后...',
+        // spinner: 'el-icon-loading',
+      });
+
+      updateMchAcc(value).then((response) => {
+        this.$modal.msgSuccess("提交成功");
+        this.ProxyChangeDialogShow = false;
+        this.getList();
+        loading.close();
+      });
+    },
     /** 查询商户结算列表 */
     async getList(mch_number) {
       let mch = mch_number ? mch_number : this.mch_number
@@ -167,7 +201,7 @@ export default {
       //   this.DetailedContentList.splice(0)
       // }
       if (this.DetailedContentLoading || this.RepeatedRequests) {
-        this.DetailedContentLoading = false
+        this.RepeatedRequests = false
         return
       }
       this.DetailedContentLoading = true;
@@ -218,7 +252,7 @@ export default {
     },
   },
   components: {
-    dynamicTableVue, TimeFrameVue
+    dynamicTableVue, TimeFrameVue, ProxyChangeDialogVue
   }
 };
 </script>
