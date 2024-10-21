@@ -11,12 +11,11 @@
         :TabsChangeStatus="queryPage.type" @RequestingDataAgain="RequestingDataAgain"></mchAccFlowSearchVue>
       <dynamicTableVue :loading="loading" :tableData="paginatedItems" @cellDblclick="cellDblclick"
         :cellClassName="' HoverTooltipCopy'" ref="myTable">
-        <el-table-column label="流水号" align="center" prop="_id" width="230" fixed="left" />
+        <!-- <el-table-column label="流水号" align="center" prop="_id" width="230" fixed="left" /> -->
 
-        <el-table-column label="商户号 " align="center" prop="mch_number" />
+        <el-table-column label="商户号 " align="center" prop="mch_number" fixed="left" />
         <el-table-column label="账户初期金额" align="center" prop="mch_start_balance" :formatter="Formatter.TableAmount"
           width="120">
-
 
         </el-table-column>
         <el-table-column label="账户末期金额" align="center" prop="mch_final_balance" :formatter="Formatter.TableAmount"
@@ -24,6 +23,13 @@
 
 
         </el-table-column>
+
+        <el-table-column label="余额变动信息" align="center" prop="operation" :formatter="BalanceChangeInformation"
+          show-overflow-tooltip width="270">
+
+
+        </el-table-column>
+
         <el-table-column label="订单金额" align="center" prop="amount" :formatter="Formatter.TableAmount">
 
         </el-table-column>
@@ -175,6 +181,18 @@ export default {
         return "订单流水记录";
       }
     },
+    //余额变动信息格式化
+    BalanceChangeInformation(row, column, cellValue, index) {
+
+      if (row.order_type == 1 && row.operation == 0) {
+        return "代付可用余额变动（最终与代收余额，代付pending订单金额相加）"
+      }
+      if (row.order_type == 0 && row.operation == 0) {
+        return "代收余额变动（最终与代付可用余额，代付pending订单金额相加）"
+      } else {
+        return "账户余额变动"
+      }
+    }
   },
   components: { dynamicTableVue, mchAccFlowSearchVue },
 };

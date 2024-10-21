@@ -74,7 +74,7 @@
       <slot name="btn"></slot>
       <span class="CalculationFormula">
 
-        <strong>（本模块依据<span class="redcolor">代收订单更新时间</span>和<span class="redcolor">代付订单创建时间</span>）</strong>
+        <strong>（本模块依据<span class="redcolor">代收订单更新时间</span>和<span class="redcolor">代付订单更新时间</span>）</strong>
 
 
 

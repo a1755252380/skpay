@@ -52,9 +52,9 @@ function fetchAndDownload(url, name) {
       if (res.data.status) {
         // 如果结果是对象，继续递归调用
         setTimeout(() => {
-          console.log(RequestNum);
-
           if (RequestNum < 0) {
+            Message.error("下载文件出现错误，请联系管理员！");
+            downloadLoadingInstance.close();
             return;
           }
           RequestNum -= 1;
@@ -88,7 +88,7 @@ export function DownloadXlsx(
     params: query,
   }).then((res) => {
     let filename = name ? name : res.file_name;
-    RequestNum = 0;
+    RequestNum = 30;
     // 启动请求的入口
     fetchAndDownload(downloadUrl + "?file_name=" + res.file_name, filename);
 
