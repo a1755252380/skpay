@@ -41,8 +41,9 @@
         </el-table-column>
         <el-table-column label="操作" align="center" prop="create_time" width="180">
           <template slot-scope="scope">
-            <el-button type="text" size="small" @click="Settlement(scope.row)" icon="el-icon-refresh">代付结算</el-button>
-
+            <el-button type="text" size="small" @click="Settlement(scope.row)" icon="el-icon-refresh"
+              v-if="scope.row.payout_settle_status == 0">代付结算</el-button>
+            <span class="disabledFont" v-else>代付已结算</span>
           </template>
         </el-table-column>
 
@@ -179,7 +180,8 @@ export default {
       this.ProxyChangeDialogShow = true
     },
     //提交修改信息
-    UpdateProxyChangeDialog(value) {
+    UpdateProxyChangeDialog(value, id) {
+      let index = this.DetailedContentList.findIndex(item => item._id == id)
 
       const loading = this.$loading({
         lock: true,
@@ -190,7 +192,10 @@ export default {
       updateMchAcc(value).then((response) => {
         this.$modal.msgSuccess("提交成功");
         this.ProxyChangeDialogShow = false;
-        this.getList();
+        this.$set(this.DetailedContentList[index], 'payout_settle_status', 1);
+
+        loading.close();
+      }).catch(res => {
         loading.close();
       });
     },
@@ -215,7 +220,7 @@ export default {
 
       return await listMchSettlement(query).then((response) => {
         this.DetailedContentListQueryParams.last_id = response["last_id"];
-        response.results = this.$util.deepFreeze(response.results)
+        // response.results = this.$util.deepFreeze(response.results)
         this.DetailedContentList = [...this.DetailedContentList, ...response.results];
 
         this.DetailedContentListQueryParams.total = this.DetailedContentList.length;
@@ -256,3 +261,11 @@ export default {
   }
 };
 </script>
+<style lang="scss" scoped>
+.disabledFont {
+  color: #C0C4CC;
+  cursor: not-allowed;
+  font-size: 12px;
+  font-weight: 500;
+}
+</style>

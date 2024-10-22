@@ -30,13 +30,7 @@ export default {
 
     showData: {
       set(value) {
-        this.form = {
-          mch_number: '',
-          msg: '',
-          operation: 5,
-          big_amount: ''
-        }
-        this.$refs['form'].clearValidate()
+        this.resetForm()
         this.$emit('CloseProxyChangeDialog', value);
       },
       get() {
@@ -48,6 +42,7 @@ export default {
     Change(newval, oldval) {
       this.form['mch_number'] = newval['mch_number'];
       this.form['big_amount'] = newval['payin_success_amount_count'];
+      this.form['create_time'] = newval['create_time'];
       this.showMsg.Balance = this.Formatter.FormatAmount(newval['payin_success_amount_count']);
     }
   },
@@ -57,7 +52,8 @@ export default {
         mch_number: '',
         msg: '',
         operation: 5,
-        big_amount: ''
+        big_amount: '',
+        create_time: '', payout_settle_status: 1
       },
       showMsg: {
         Balance: ''
@@ -83,7 +79,8 @@ export default {
         if (valid) {
           const mergedObj = { ...this.form };
           mergedObj['big_amount'] = mergedObj['big_amount'] * -1
-          this.$emit('UpdateProxyChangeDialog', mergedObj)
+          this.resetForm()
+          this.$emit('UpdateProxyChangeDialog', mergedObj, this.Change._id)
         } else {
           console.log('error submit!!');
           return false;
@@ -92,7 +89,18 @@ export default {
 
 
     },
-
+    //重置数据
+    resetForm() {
+      this.form = {
+        mch_number: '',
+        msg: '',
+        operation: 5,
+        big_amount: '',
+        create_time: '',
+        payout_settle_status: 1
+      }
+      this.$refs['form'].clearValidate()
+    },
   },
 };
 </script>
