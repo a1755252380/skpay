@@ -96,9 +96,9 @@ export default {
         { name: '全部', value: null, show: 'all' },
 
         //无代收代付选项
-        { name: '待结算余额调整记录', value: 1, show: '1' },
-        { name: '代付余额调整记录', value: 2, show: '1' },
-        { name: '可用余额调整记录', value: 3, show: '1' },
+        { name: '账户待结算余额调整记录', value: 1, show: '1' },
+        { name: '账户代付可用余额调整记录', value: 2, show: '1' },
+        { name: '账户可用余额调整记录', value: 3, show: '1' },
       ],
     };
   },

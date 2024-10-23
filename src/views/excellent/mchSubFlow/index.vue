@@ -95,7 +95,6 @@ export default {
     },
     getList(queryParams) {
       if (this.RepeatedRequests) { this.loading = false; return; }
-      this.RepeatedRequests = true;
       this.loading = true;
       let query = { ...queryParams, ...this.queryPage };
 
@@ -150,13 +149,13 @@ export default {
     typeFormatter(row) {
 
       if (row.operation == "1") {
-        return "待结算余额调整记录";
+        return "账户待结算余额调整记录";
       }
       else if (row.operation == "2") {
-        return "代付余额调整记录";
+        return "账户代付可用余额调整记录";
       }
       else if (row.operation == "3") {
-        return "可用余额调整记录";
+        return "账户待结算余额调整记录";
       }
     },
 

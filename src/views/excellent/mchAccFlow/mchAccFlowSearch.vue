@@ -75,7 +75,8 @@
       <span class="CalculationFormula">
 
         <strong>（本模块依据<span class="redcolor">代收订单更新时间</span>和<span class="redcolor">代付订单更新时间</span>）</strong>
-
+        <strong>账户余额=待结算金额+账户可用余额+代付余额</strong>
+        <strong>代付余额=代付可用余额+代付冻结金额</strong>
 
 
       </span>
@@ -128,9 +129,9 @@ export default {
         { name: '代收代付记录', value: 0, show: '1' },
 
         //无代收代付选项
-        { name: '待结算余额调整记录', value: 1, show: '1' },
-        { name: '代付余额调整记录', value: 2, show: '1' },
-        { name: '可用余额调整记录', value: 3, show: '1' },
+        { name: '账户待结算余额调整记录', value: 1, show: '1' },
+        { name: '账户代付可用余额调整记录', value: 2, show: '1' },
+        { name: '账户可用余额调整记录', value: 3, show: '1' },
       ],
       typelist: [
         { name: '全部', value: null, show: ['all'] },

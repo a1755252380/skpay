@@ -25,7 +25,7 @@
         </el-table-column>
 
         <el-table-column label="余额变动信息" align="center" prop="operation" :formatter="BalanceChangeInformation"
-          show-overflow-tooltip width="270">
+          show-overflow-tooltip width="180">
 
 
         </el-table-column>
@@ -33,15 +33,17 @@
         <el-table-column label="订单金额" align="center" prop="amount" :formatter="Formatter.TableAmount">
 
         </el-table-column>
-        <el-table-column label="订单变动金额 " align="center" prop="settle_amount" :formatter="Formatter.TableAmount">
+        <el-table-column label="订单变动金额 " align="center" prop="settle_amount" :formatter="Formatter.TableAmount"
+          width="150">
           <template slot-scope="scope">
             <span>{{ NumFormat(scope.row.settle_amount, scope.row.msg) }}</span>
           </template>
 
         </el-table-column>
 
-        <el-table-column label="资金变动原因" align="center" prop="msg" :show-overflow-tooltip="true" />
-        <el-table-column label="资金变动类型" align="center" prop="operation" :formatter="typeFormatter" />
+        <el-table-column label="资金变动原因" align="center" prop="msg" :show-overflow-tooltip="true" width="120" />
+        <el-table-column label="资金变动类型" align="center" prop="operation" :formatter="typeFormatter" width="120"
+          show-overflow-tooltip />
         <el-table-column label="相关订单号" align="center" prop="merchant_order_id" width="210" />
         <el-table-column label="流水更新时间" align="center" prop="update_time" :formatter="Formatter.TableTimeSecond"
           width="180">
@@ -121,6 +123,7 @@ export default {
       this.mchAccFlowList.splice(0);
       this.queryPage.last_id = null;
       this.pageData = { currentPage: 1, pageSize: this.pageData.pageSize, total: 1 };
+      this.RepeatedRequests = false;
     },
     ReturnSearch(Params) {
       this.loading = true;
@@ -133,8 +136,12 @@ export default {
       this.getList(Params);
     },
     getList(queryParams) {
-      if (this.RepeatedRequests) { this.loading = false; return; }
-      this.RepeatedRequests = true;
+      if (this.RepeatedRequests) {
+        this.loading = false;
+
+        return;
+      }
+
       this.loading = true;
       let query = { ...queryParams, ...this.queryPage };
 
@@ -170,13 +177,13 @@ export default {
     typeFormatter(row) {
 
       if (row.operation == "1") {
-        return "待结算余额调整记录";
+        return "账户待结算余额变动";
       }
       else if (row.operation == "2") {
-        return "代付余额调整记录";
+        return "账户代付可用余额变动";
       }
       else if (row.operation == "3") {
-        return "可用余额调整记录";
+        return "账户可用余额变动";
       } else if (row.operation == "0") {
         return "订单流水记录";
       }
