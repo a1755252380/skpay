@@ -12,8 +12,7 @@
       <OrderSearch :showSearch="showSearch" ref="search" @ReturnSearch="ReturnSearch"
         :TabsChangeStatus="queryPage.time_type" @RequestingDataAgain="RequestingDataAgain">
         <el-button type="primary" icon="el-icon-refresh-left" size="mini" @click="OpenBatchModification"
-          v-if="queryPage.time_type == 'history'" v-hasPermi="['excellent:OrderRecords:edit']"
-          slot="btn">批量修改</el-button>
+          v-hasPermi="['excellent:OrderRecords:edit']" slot="btn">批量修改</el-button>
         <!-- <el-button type="primary" icon="el-icon-refresh-left" size="mini" @click="OpenBatchModification"
           slot="btn">批量回调</el-button> -->
         <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
@@ -434,14 +433,28 @@ export default {
             ? this.BatchModificationList[index].status
             : value.operation;
 
-        promise.push(this.ChangeOrderStatus(query));
+        setTimeout(() => {
+          promise.push(this.ChangeOrderStatus(query, false));
+        }, 200);
       }
-      Promise.all(promise).then(() => {
-        console.log(promise);
+      console.log(promise);
+
+      Promise.all(promise).then((res) => {
+
         this.$refs.myTable.clearSelection();
         this.BatchModificationList.splice(0);
         this.BatchModificationShow = false;
-        loading.close();
+
+        setTimeout(() => {
+          loading.close();
+          this.RepeatedRequests = false
+          this.$refs.search.handleQuery();//重新搜索一次
+        }, 300);
+        this.$message({
+          message: "批量修改成功",
+          type: "success",
+        });
+
       });
     },
     //单个修改状态
@@ -658,7 +671,7 @@ export default {
       this.detailShow = value;
     },
     //修改状态提交
-    ChangeOrderStatus(value, SuccessMsg = "修改成功", errorMsg = "修改失败") {
+    ChangeOrderStatus(value, showMsg = true, SuccessMsg = "修改成功", errorMsg = "修改失败") {
       return new Promise((resolve, reject) => {
 
         ModifyOrderStatus(value).then((response) => {
@@ -666,11 +679,17 @@ export default {
             return res._id == value._id;
           });
           if (response.status == 0 || response.status == 1) {
-            this.$modal.msgSuccess(SuccessMsg);
+            if (showMsg) {
+              this.$modal.msgSuccess(SuccessMsg);
+
+            }
             this.AdjustOrderStatusShow = false;
 
             if (value.operation == 3) {
-              this.$modal.msgSuccess("回调成功");
+              if (showMsg) {
+                this.$modal.msgSuccess("回调成功");
+
+              }
               return
             }
             this.$set(this.OrderRecordsList[index], "status", value.operation);
