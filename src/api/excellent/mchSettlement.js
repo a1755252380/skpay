@@ -3,7 +3,7 @@ import request from "@/utils/requestGo";
 // 查询商户结算列表
 export function listMchSettlement(query) {
   return request({
-    url: "/settlement",
+    url: "/settlement/last",
     method: "get",
     params: query,
   });

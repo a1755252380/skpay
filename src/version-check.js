@@ -46,7 +46,7 @@ const DURATION = 1000 * 10;
 
 function autoRefresh() {
   // 开发环境不检测
-  if (process.env.NODE_ENV == "development") return;
+  // if (process.env.NODE_ENV == "development") return;
   setTimeout(async () => {
     console.log("window.navigator.onLine", window.navigator.onLine);
     // 判断是否离线
@@ -55,9 +55,19 @@ function autoRefresh() {
       console.log(willUpdate);
 
       if (willUpdate) {
+        // 60000*5
+        // Notification({
+        //   title: "更新提示",
+        //   type: "warning",
+        //   message: "用户在无操作5分钟后将会自动刷新页面",
+        //   duration: 3000,
+        // });
+        // let reloadTimeOut = setTimeout(() => {
+        //   location.reload(true);
+        // }, 10000);
         MessageBox.confirm(
-          "🚀 新版本发布！为了确保数据准确性，请尽快刷新页面，否则可能会导致数据异常。",
-          "🔔 更新提示",
+          "新版本发布！为了确保数据准确性，请尽快刷新页面，否则可能会导致数据异常。",
+          "更新提示",
           {
             confirmButtonText: "立即刷新",
             cancelButtonText: "稍后手动刷新",
@@ -65,9 +75,11 @@ function autoRefresh() {
           }
         )
           .then(() => {
+            clearTimeout(reloadTimeOut);
             location.reload(true);
           })
           .catch(() => {
+            clearTimeout(reloadTimeOut);
             Notification({
               title: "更新提示",
               type: "warning",

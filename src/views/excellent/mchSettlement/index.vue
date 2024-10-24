@@ -21,7 +21,9 @@
     </div>
 
     <dynamicTableVue :tableData="paginatedItems" @handleSelectionChange="handleSelectionChange" :loading="loading"
-      ref="myTable">
+      :defaultSort="{
+        order: 'ascending', prop: 'mch_number'
+      }" ref="myTable">
 
       <el-table-column label="商户号 " align="center" prop="mch_number" />
       <el-table-column label="商户名称" align="center" prop="mch_name" />
@@ -168,15 +170,9 @@ export default {
       }
       let query = { ...this.queryParams };
       listMchSettlement(query).then((response) => {
-        this.last_id = response["last_id"];
-        this.DataProcessing(response.results).then((res) => {
-          this.mchSettlementList = [...this.mchSettlementList, ...res];
-          this.pageData.total = this.mchSettlementList.length;
-          this.loading = false;
-          if (response["last_id"] == '') {
-            this.RepeatedRequests = true;
-          }
-        })
+        this.mchSettlementList = response.results;
+        this.pageData.total = this.mchSettlementList.length;
+        this.loading = false;
 
       });
 
