@@ -35,6 +35,10 @@ const permission = {
         // 向后端请求路由数据
         getRouters().then((res) => {
           res = res.route;
+          // console.log("路由列表");
+
+          // console.log(res);
+
           const sdata = JSON.parse(JSON.stringify(res.data));
           const rdata = JSON.parse(JSON.stringify(res.data));
           const sidebarRoutes = filterAsyncRouter(sdata);

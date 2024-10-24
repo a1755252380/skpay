@@ -40,12 +40,11 @@
 
         </el-select>
       </el-form-item>
-      <el-form-item label="订单类型" prop="msg">
+      <el-form-item label="订单类型" prop="msg" v-if="TypeParameter.stream_type == 'total'">
         <el-select v-model="queryParams.type" placeholder="请选择交易类型" class="w100_input">
           <template v-for="dict in typelist">
             <el-option :key="dict.value" :label="dict.name" :value="dict.value"
               v-show="dict.show.includes(queryParams.operation) || dict.show.includes('all')" />
-
           </template>
 
         </el-select>
@@ -53,17 +52,13 @@
       <el-form-item label="订单创建时间" prop="create_time" class="large">
         <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'">
         </TimeFrameVue>
-        <!-- <el-date-picker v-model="timedata.create_time" value-format="yyyy-MM-dd HH:mm:ss" type="datetimerange"
-          range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间" class="w100_input"
-          @change="parseTime($event, 'create_time')" /> -->
+
       </el-form-item>
 
       <el-form-item label="流水更新时间" prop="update_time" class="large">
         <TimeFrameVue v-model="timedata.update_time" @parseTime="parseTime" :ParameterIndex="'update_time'">
         </TimeFrameVue>
-        <!-- <el-date-picker v-model="timedata.update_time" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss"
-          range-separator="-" start-placeholder="开始时间" end-placeholder="结束时间" class="w100_input"
-          @change="parseTime($event, 'update_time')"  /> -->
+
       </el-form-item>
     </template>
 
@@ -92,7 +87,8 @@ import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
 
 export default {
   name: 'WorkspaceJsonOrderSearch',
-  props: ['showSearch', 'TabsChangeStatus'],
+
+  props: ['showSearch', 'TypeParameter'],
   data() {
     return {
       queryParams: {
@@ -100,10 +96,9 @@ export default {
         merchant_order_id: null,
         order_id: null,
         chnl_id: null,
-
+        type: null,//交易类型
         msg: null,
         operation: null,
-        type: null,
         //创建时间
         create_time: null,
         create_end_time: null,
@@ -123,16 +118,7 @@ export default {
         { name: 'Frozen', value: 'Frozen', show: '1' },
         { name: 'Increase', value: 'Increase', show: '0' },
       ],
-      operationList: [
-        // 0-代收代付记录，1-待结算余额调整记录，2-代付余额调整记录，3-可用余额调整记录
-        { name: '全部', value: null, show: 'all' },
-        { name: '代收代付记录', value: 0, show: '1' },
 
-        //无代收代付选项
-        { name: '账户待结算余额调整记录', value: 1, show: '1' },
-        { name: '账户代付可用余额调整记录', value: 2, show: '1' },
-        { name: '账户可用余额调整记录', value: 3, show: '1' },
-      ],
       typelist: [
         { name: '全部', value: null, show: ['all'] },
         { name: '代收', value: 0, show: [0, null] },
@@ -143,7 +129,34 @@ export default {
   },
 
   computed: {
-
+    operationList() {
+      let operationList
+      if (this.TypeParameter.stream_type == 'total') {
+        return operationList = [
+          { name: '全部', value: null, },
+          { name: '代收代付记录', value: 0, },
+          { name: '账户待结算余额调整记录', value: 1, },
+          { name: '账户代付可用余额调整记录', value: 2, },
+          { name: '账户可用余额调整记录', value: 3, },
+        ]
+      }
+      if (this.TypeParameter.stream_type == 'payin') {
+        return operationList = [
+          { name: '全部', value: null, },
+          { name: '代收记录', value: 0, },
+          { name: '账户待结算余额调整记录', value: 1, },
+          { name: '账户可用余额调整记录', value: 3, },
+        ]
+      }
+      if (this.TypeParameter.stream_type == 'payout') {
+        return operationList = [
+          { name: '全部', value: null, },
+          { name: '代付记录', value: 0, },
+          { name: '账户代付可用余额调整记录', value: 2, },
+        ]
+      }
+      return operationList
+    }
   },
 
   mounted() {
@@ -201,7 +214,7 @@ export default {
         end_time: null,
         msg: null,
         operation: null,
-        type: null
+        type: null,//交易类型
       }
       this.queryParams.create_end_time = null
       this.queryParams.create_time = null
@@ -213,7 +226,16 @@ export default {
     handleExport() {
 
       if ((this.queryParams.create_end_time && this.queryParams.create_time) || (this.queryParams.update_time && this.queryParams.update_end_time)) {
-        const params = { ...this.queryParams };
+        let { stream_type } = this.TypeParameter
+        let type
+        const params = { ...this.queryParams, stream_type };
+        if (this.TypeParameter.stream_type == 'total') {
+          params['type'] = this.queryParams.type
+        } else {
+          params['type'] = this.TypeParameter.type
+        }
+        console.log(params);
+
         let TimeFrame = ''
         if (params['mch_number']) {
           TimeFrame += params['mch_number'] + '_'
@@ -229,6 +251,13 @@ export default {
 
           }
         }
+        if (params['type'] == 1) {
+          TimeFrame += '代付'
+        }
+        if (params['type'] == 0) {
+          TimeFrame += '代收'
+        }
+
         this.download.DownloadXlsx('/stream/download/commit', params, (TimeFrame + '流水记录'));
       } else {
         this.$message({
@@ -239,6 +268,7 @@ export default {
       }
     },
 
+    //获取筛选项的列表数据
     getChnl() {
       return listChnlSetting().then(response => {
         this.PaymentChannel = response.rows;

@@ -728,7 +728,6 @@ export default {
     TabsChange(value) {
       this.loading = true;
       this.queryPage.time_type = value.name;
-      console.log(value.name);
 
       // this.resetSearch();
       this.$refs.search.resetQuery();

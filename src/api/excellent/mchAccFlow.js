@@ -10,7 +10,7 @@ export function listMchAccFlow(query) {
       start_time: null,
       last_id: null,
       chnl_id: null,
-      type: 0,
+      type: null,
       stream_type: "order",
       order_id: null,
       merchant_order_id: null,
