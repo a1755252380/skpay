@@ -11,10 +11,10 @@
 
         </el-form-item>
         <el-form-item label="支付通道" prop="chnl_id" v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
-          <el-select v-model="queryParams.chnl_id" placeholder="请选择支付通道" clearable class="w100_input">
-            <el-option v-for="dict in ChannelAccount" :key="dict.id" :label="dict.chnl_name" :value="dict.chnl_name" />
-          </el-select>
-
+          <!-- <el-select v-model="queryParams.chnl_id" placeholder="请选择支付通道" clearable class="w100_input">
+            <el-option v-for="dict in ChannelAccount" :key="dict.id" :label="dict.chnl_name" :value="dict.id" />
+          </el-select> -->
+          <ChannelQuery v-model="queryParams.chnl_id"></ChannelQuery>
         </el-form-item>
         <!-- <el-form-item label="主体账号" prop="MainAccount">
           <el-select   v-model="queryParams.MainAccount" placeholder="请选择主体账号" clearable
@@ -94,8 +94,10 @@
 <script>
 import { listChnlSetting } from "@/api/excellent/chnlSetting";
 import { listMchSetting } from "@/api/excellent/MchSetting"
+import ChannelQuery from "@/components/Excellent/Channel/ChannelQuery.vue";
 import OrderAndSteam from "@/components/Excellent/SearchLayout/OrderAndSteam.vue";
 import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
+
 export default {
   name: 'WorkspaceJsonOrderSearch',
   props: {
@@ -198,7 +200,6 @@ export default {
   created() {
     this.getChnl()
     this.getMainAccount()
-    this.getChnlAccConfig()
 
   },
 
@@ -313,22 +314,12 @@ export default {
         return response.rows
       });
     },
-    //查询通道账户列表
-    getChnlAccConfig() {
-      if (!this.hasPermiVisible(['excellent:OrderRecords:platform'])) {
-        return
-      }
-      listChnlSetting().then(response => {
-        this.ChannelAccount = response.rows
-        return response.rows
-      });
 
-    }
   },
   components: {
     TimeFrameVue,
     OrderAndSteam,
-
+    ChannelQuery
   }
 };
 </script>

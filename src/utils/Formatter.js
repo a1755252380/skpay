@@ -28,6 +28,11 @@ export function TableTimeSecond(row, column, cellValue, index) {
     .tz("Asia/Kolkata")
     .format("YYYY-MM-DD HH:mm:ss");
 }
+export function TableTimeFormatYMD(row, column, cellValue, index) {
+  return moment(cellValue * 1000)
+    .tz("Asia/Kolkata")
+    .format("YYYY-MM-DD");
+}
 //格式化时间
 export function FormatTime(event, type = "YYYY-MM-DD HH:mm:ss") {
   return moment(event).tz("Asia/Kolkata").format(type);

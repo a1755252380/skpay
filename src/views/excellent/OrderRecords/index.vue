@@ -282,6 +282,22 @@ export default {
           Jurisdiction: ["excellent:OrderRecords:platform"],
         },
         {
+          title: "设备信息",
+          content: [
+            {
+              label: "设备号",
+              key: "device_number",
+              Jurisdiction: "",
+            },
+            {
+              label: "IP地址",
+              key: "ip",
+              Jurisdiction: "",
+            },
+          ],
+          Jurisdiction: ["excellent:OrderRecords:platform"],
+        },
+        {
           title: "订单信息",
           Jurisdiction: "",
           content: [

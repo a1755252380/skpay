@@ -2,7 +2,7 @@
   <div class="app-container fulltable_div">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="通道名称" prop="chnl_name">
-        <ChannelQuery @ChannelQueryChange="ChannelQueryChange"></ChannelQuery>
+        <ChannelQuery v-model="queryParams.chnl_name" :emitKey="'chnl_name'"></ChannelQuery>
         <!-- <el-input v-model="queryParams.chnl_name" placeholder="请输入通道名称" clearable @keyup.enter.native="handleQuery" /> -->
       </el-form-item>
       <!-- <el-form-item label="平台代号" prop="terraceSymbol">
@@ -29,7 +29,9 @@
 
     <dynamicTableVue :loading="loading" :tableData="chnlSettingList">
       <!-- <el-table-column type="selection" width="30" align="center" /> -->
-      <el-table-column label="通道名称" align="center" prop="chnl_name" />
+      <el-table-column label="通道ID" align="center" prop="id" />
+      <el-table-column label="通道名称" align="center" prop="chnl_name"
+        v-if="hasPermiVisible(['excellent:chnlSetting:edit'])" />
       <!-- <el-table-column label="平台代号" align="center" prop="terraceSymbol" /> -->
       <!-- <el-table-column label="状态" align="center" prop="state">
         <template slot-scope="scope">
@@ -327,10 +329,7 @@ export default {
         this.$set(this.chnlSettingList[index], key, ChangeData);
       });
     },
-    //通道搜索
-    ChannelQueryChange(value) {
-      this.queryParams.chnl_name = value.chnl_name
-    }
+
 
   },
   components: {

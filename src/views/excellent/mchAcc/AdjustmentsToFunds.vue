@@ -11,7 +11,7 @@
       <el-form-item label="商户号" prop="mch_number">
         <el-input v-model="form.mch_number" placeholder="请输入商户号" disabled />
       </el-form-item>
-      <el-form-item :label="fundStateData == 'CollectionAndSettlement' ? '待结算余额' : '代付余额'"
+      <el-form-item :label="fundStateData == 'CollectionAndSettlement' ? '待结算余额' : '可用余额'"
         v-if="fundStateData == 'CollectionAndSettlement' || fundStateData == 'ProxyPaymentSettlement'">
         <el-input :value="showMsg.Balance" placeholder="请输入金额" class="w100_input " disabled />
       </el-form-item>

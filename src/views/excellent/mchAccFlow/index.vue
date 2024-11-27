@@ -138,7 +138,10 @@ export default {
       if (this.pageData.currentPage === this.totalPages && this.mchAccFlowList.length < this.pageData.total + 200) {
         this.$refs.search.RequestingDataAgain();
       } else {
-        this.loading = false;
+        this.loading = true;
+        setTimeout(() => {
+          this.loading = false;
+        }, 300);
       }
     },
 

@@ -9,7 +9,10 @@
           <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'">
           </TimeFrameVue>
         </el-form-item>
+        <el-form-item label="通道名称" prop="chnl_id">
+          <ChannelQuery v-model="DetailedContentListQueryParams.chnl_id"></ChannelQuery>
 
+        </el-form-item>
 
         <el-form-item>
           <el-button type="primary" icon="el-icon-search" size="mini" @click="EmptyQuery">搜索</el-button>
@@ -25,6 +28,7 @@
 
         <el-table-column label="商户号 " align="center" prop="mch_number" />
         <el-table-column label="商户名称" align="center" prop="mch_name" />
+        <el-table-column label="通道名称" align="center" prop="chnl_name" />
         <el-table-column label="货币代号" align="center" prop="currency" />
         <el-table-column label="已结算代收金额" align="center" prop="payin_success_amount_count"
           :formatter="Formatter.TableAmount" />
@@ -35,7 +39,7 @@
           :formatter="Formatter.TableAmount" />
         <el-table-column label="总代付手续费" align="center" prop="pay_out_success_service_charge"
           :formatter="Formatter.TableAmount" />
-        <el-table-column label="截止时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond"
+        <el-table-column label="结算时间" align="center" prop="start_time" :formatter="Formatter.TableTimeFormatYMD"
           width="180">
 
         </el-table-column>
@@ -66,6 +70,8 @@ import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
 import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
 import ProxyChangeDialogVue from './DetailedContent/ProxyChangeDialog.vue';
 import { updateMchAcc } from "@/api/excellent/mchAcc";
+import ChannelQuery from "@/components/Excellent/Channel/ChannelQuery.vue";
+
 export default {
   name: 'WorkspaceJsonDetailedContent',
   props: ['DetailedContentShow', 'mch_number'],
@@ -79,7 +85,8 @@ export default {
         create_end_time: null, // 结束时间
         last_id: null, // 上一次查询的id
         pageSize: 20, // 每页显示的条数,
-        total: 1
+        total: 1,
+        chnl_id: null
       },
       timedata: {
         create_time: [],
@@ -101,7 +108,8 @@ export default {
           create_end_time: null, // 结束时间
           last_id: null, // 上一次查询的id
           pageSize: 20, // 每页显示的条数,
-          total: 1
+          total: 1,
+          chnl_id: null
         },
           this.timedata = {
             create_time: null, // 开始时间
@@ -147,7 +155,10 @@ export default {
       }
 
     },
-
+    ChannelQueryChange(value) {
+      this.$set(this.DetailedContentListQueryParams, 'chnl_id', value.id);
+      this.EmptyQuery()
+    },
     //搜索按钮
     EmptyQuery() {
       this.DetailedContentList.splice(0)
@@ -161,7 +172,7 @@ export default {
         create_end_time: null, // 结束时间
         last_id: null, // 上一次查询的id
         pageSize: 20, // 每页显示的条数,
-        total: 1
+        total: 1, chnl_id: null
       }
       this.timedata = {
         create_time: null, // 开始时间
@@ -214,8 +225,8 @@ export default {
         create_time: this.DetailedContentListQueryParams.create_time, // 开始时间
         create_end_time: this.DetailedContentListQueryParams.create_end_time, // 结束时间
         last_id: this.DetailedContentListQueryParams.last_id, // 上一次查询的id
-        mch_number: mch
-
+        mch_number: mch,
+        chnl_id: this.DetailedContentListQueryParams.chnl_id,
       };
 
       return await listMchSettlement(query).then((response) => {
@@ -257,7 +268,7 @@ export default {
     },
   },
   components: {
-    dynamicTableVue, TimeFrameVue, ProxyChangeDialogVue
+    dynamicTableVue, TimeFrameVue, ProxyChangeDialogVue, ChannelQuery
   }
 };
 </script>

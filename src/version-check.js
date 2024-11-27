@@ -46,7 +46,7 @@ const DURATION = 1000 * 10;
 
 function autoRefresh() {
   // 开发环境不检测
-  // if (process.env.NODE_ENV == "development") return;
+  if (process.env.NODE_ENV == "development") return;
   setTimeout(async () => {
     console.log("window.navigator.onLine", window.navigator.onLine);
     // 判断是否离线
@@ -75,11 +75,11 @@ function autoRefresh() {
           }
         )
           .then(() => {
-            clearTimeout(reloadTimeOut);
+            // clearTimeout(reloadTimeOut);
             location.reload(true);
           })
           .catch(() => {
-            clearTimeout(reloadTimeOut);
+            // clearTimeout(reloadTimeOut);
             Notification({
               title: "更新提示",
               type: "warning",

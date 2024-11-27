@@ -8,3 +8,11 @@ export function listOrderSuccessRate(query) {
     data: query,
   });
 }
+
+export function listChnlSuccessRate(query) {
+  return request({
+    url: "/chnl/today/rate",
+    method: "post",
+    data: query,
+  });
+}

@@ -20,25 +20,22 @@
         v-if="!checkRole(['admin'])"></right-toolbar>
     </div>
 
-    <dynamicTableVue :tableData="paginatedItems" @handleSelectionChange="handleSelectionChange" :loading="loading"
-      :defaultSort="{
-        order: 'ascending', prop: 'mch_number'
-      }" ref="myTable">
-
+    <dynamicTableVue :tableData="mchSettlementListShow" @handleSelectionChange="handleSelectionChange"
+      :loading="loading" :defaultSort="{ order: 'ascending', prop: 'mch_number' }" ref="myTable">
       <el-table-column label="商户号 " align="center" prop="mch_number" />
-      <el-table-column label="商户名称" align="center" prop="mch_name" />
-      <el-table-column label="货币代号" align="center" prop="currency" />
+      <!-- <el-table-column label="商户名称" align="center" prop="mch_name" /> -->
+      <!-- <el-table-column label="货币代号" align="center" prop="currency" /> -->
       <el-table-column label="已结算代收金额" align="center" prop="payin_success_amount_count"
         :formatter="Formatter.TableAmount" />
       <el-table-column label="已结算代付金额" align="center" prop="pay_out_success_amount_count"
         :formatter="Formatter.TableAmount" />
-      <el-table-column label="在途代付金额" align="center" prop="pending_amount_count" :formatter="Formatter.TableAmount" />
+      <!-- <el-table-column label="在途代付金额" align="center" prop="pending_amount_count" :formatter="Formatter.TableAmount" /> -->
       <el-table-column label="总代收手续费" align="center" prop="pay_in_success_service_charge"
         :formatter="Formatter.TableAmount" />
       <el-table-column label="总代付手续费" align="center" prop="pay_out_success_service_charge"
         :formatter="Formatter.TableAmount" />
-      <el-table-column label="截止时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond"
-        width="180" />
+      <!-- <el-table-column label="截止时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond"
+        width="180" /> -->
       <el-table-column label="历史" align="center" class-name="small-padding ">
         <template slot-scope="scope">
           <el-button size="mini" type="text" icon="el-icon-warning-outline"
@@ -49,8 +46,7 @@
 
     </dynamicTableVue>
 
-    <pagination ref="pagination" v-show="totalPages > 0" :total="total" :page.sync="pageData.currentPage"
-      :limit.sync="pageData.pageSize" @pagination="handleCurrentChange" />
+
 
     <!-- 详细弹窗 -->
 
@@ -63,7 +59,7 @@
 
 <script>
 
-import { listMchSettlement, getMchSettlementDay, delMchSettlement, addMchSettlement, updateMchSettlement } from "@/api/excellent/mchSettlement";
+import { listMchSettlementList, getMchSettlementDay, delMchSettlement, addMchSettlement, updateMchSettlement } from "@/api/excellent/mchSettlement";
 import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
 import DetailedContentVue from "./DetailedContent.vue";
@@ -121,23 +117,15 @@ export default {
     };
   },
   computed: {
-    // 计算当前页显示的数据
-    paginatedItems() {
+    mchSettlementListShow() {
 
-      const start = (this.pageData.currentPage - 1) * this.pageData.pageSize;
-      const end = this.pageData.currentPage * this.pageData.pageSize;
-      if (this.queryParams.mchNum) {
-        return this.mchSettlementList.slice(this.SearchIndex, this.SearchIndex + 1);
-
+      if (!this.queryParams.mchNum) {
+        return this.mchSettlementList
       } else {
-        return this.mchSettlementList.slice(start, end);
 
+        return this.mchSettlementList.slice(this.SearchIndex, this.SearchIndex + 1)
       }
-    },
-    // 计算总页数
-    totalPages() {
-      return Math.ceil(this.pageData.total / this.pageData.pageSize);
-    },
+    }
 
 
   },
@@ -169,7 +157,7 @@ export default {
         return
       }
       let query = { ...this.queryParams };
-      listMchSettlement(query).then((response) => {
+      listMchSettlementList(query).then((response) => {
         this.mchSettlementList = response.results;
         this.pageData.total = this.mchSettlementList.length;
         this.loading = false;
@@ -250,6 +238,7 @@ export default {
     resetQuery() {
       this.daterangeCreateTime = [];
       this.resetForm("queryForm");
+      this.queryParams.mchNum = null; this.SearchIndex = -1
       this.handleQuery();
     },
 

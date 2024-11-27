@@ -18,8 +18,9 @@
 
     <dynamicTableVue :loading="loading" :tableData="OrderSuccessRateListSort" :cellClassName="'HoverTooltipCopy'"
       @cellDblclick="cellDblclick">
-      <el-table-column prop="mch_number" label="商户号" align="center" fixed="left">
-
+      <el-table-column prop="mch_number" label="商户号" align="center" fixed="left" v-if="routeFlag == 'order'">
+      </el-table-column>
+      <el-table-column prop="chnl_name" label="通道名称" align="center" fixed="left" v-else>
       </el-table-column>
       <el-table-column prop="payin_success_rate" label="代收成功率" align="center" class-name="rate_show"
         :formatter="Formatter.TableRate">
@@ -80,14 +81,17 @@
 </template>
 
 <script>
-import { listOrderSuccessRate } from "@/api/excellent/OrderSuccessRate";
+import { listOrderSuccessRate, listChnlSuccessRate } from "@/api/excellent/OrderSuccessRate";
 import dynamicTableVue from "@/components/Excellent/dynamicTable.vue";
 import { listMchAccConfig } from "@/api/excellent/mchAccConfig";
+import { listChnlSetting } from "@/api/excellent/chnlSetting";
 export default {
   name: "OrderSuccessRate",
   components: { dynamicTableVue },
   data() {
     return {
+      routeFlag: 'order', //路由标识
+
       loading: false,
       showSearch: true,
       queryParams: { StatisticalTime: "five" },
@@ -106,55 +110,108 @@ export default {
 
   },
   created() {
+    this.routeFlag = this.$route.meta.flag;
     this.loading = true;
   },
   mounted() {
+    console.log(this.routeFlag);
     this.fetchMchSettings();
   },
   methods: {
-    fetchMchSettings() {
-      listMchAccConfig().then((res) => {
-        this.mch_list = res.rows.map((item) => item.mch_num);
-        for (let index = 0; index < this.mch_list.length; index++) {
-          this.OrderSuccessRateList.push({
-            mch_number: this.mch_list[index],
-            payin_success_amount: 0,
-            payin_success_count: 0,
-            payin_success_rate: 0,
-            payin_total_amount: 0,
-            payin_total_count: 0,
-            payout_success_amount: 0,
-            payout_success_count: 0,
-            payout_success_rate: 0,
-            payout_total_amount: 0,
-            payout_total_count: 0, payout_pending_amount_count: 0, payout_pending_count: 0
-          });
+    //添加数据
+    async AddData(res) {
+      this.OrderSuccessRateList.splice(0)
+      for (let index = 0; index < res.length; index++) {
+        let q = {}
+        if (this.routeFlag == 'order') {
+          q["mch_number"] = res[index]
+        } else {
+          q["chnl_name"] = res[index]
         }
-        this.getList();
-      });
-    },
-    getList() {
-      this.loading = true;
-      const query = {
-        mch_list: this.mch_list,
-        cycle: this.queryParams.StatisticalTime,
-      };
-      listOrderSuccessRate(query).then((response) => {
-        // this.OrderSuccessRateList = response.data;
-        for (let index = 0; index < response.data.length; index++) {
-          this.$set(
-            this.OrderSuccessRateList,
-            this.OrderSuccessRateList.findIndex((res) => {
-              return response.data[index].mch_number === res.mch_number;
-            }),
-            response.data[index]
-          );
-        }
-        this.handleSort().then(() => {
-          this.loading = false;
 
-        })
-      });
+        this.OrderSuccessRateList.push({
+          ...q,
+          payin_success_amount: 0,
+          payin_success_count: 0,
+          payin_success_rate: 0,
+          payin_total_amount: 0,
+          payin_total_count: 0,
+          payout_success_amount: 0,
+          payout_success_count: 0,
+          payout_success_rate: 0,
+          payout_total_amount: 0,
+          payout_total_count: 0, payout_pending_amount_count: 0, payout_pending_count: 0
+        });
+
+
+      }
+    },
+    async UpdateData(list) {
+
+      let key = this.routeFlag === 'order' ? "mch_number" : "chnl_name"
+      console.log(key);
+      for (let index = 0; index < list.length; index++) {
+        this.$set(
+          this.OrderSuccessRateList,
+          this.OrderSuccessRateList.findIndex((res) => {
+            console.log(res[key]);
+
+            return list[index][key] === res[key];
+          }),
+          list[index]
+        );
+      }
+      this.handleSort().then(() => {
+        this.loading = false;
+
+      })
+    },
+    fetchMchSettings() {
+      if (this.routeFlag == "order") {
+        listMchAccConfig().then((res) => {
+          this.mch_list = res.rows.map((item) => item.mch_num);
+          this.AddData(this.mch_list).then(res => {
+            this.getList();
+
+          })
+
+        });
+      }
+      if (this.routeFlag == "chnl") {
+        listChnlSetting().then((res) => {
+          this.mch_list = res.rows.map((item) => item.chnl_name);
+          this.AddData(this.mch_list).then(res => {
+            this.getList();
+          })
+
+        });
+      }
+    },
+    getList(NumList) {
+      this.loading = true;
+
+      if (this.routeFlag == "chnl") {
+        const query = {
+          chnl_list: this.mch_list,
+          cycle: this.queryParams.StatisticalTime,
+        };
+        listChnlSuccessRate(query).then((response) => {
+
+          this.UpdateData(response.data);
+        });
+      } else {
+        const query = {
+          mch_list: this.mch_list,
+          cycle: this.queryParams.StatisticalTime,
+        };
+        listOrderSuccessRate(query).then((response) => {
+
+          this.UpdateData(response.data);
+        });
+      }
+
+
+
     },
     resetQuery() {
       this.queryParams.StatisticalTime = "today";
@@ -200,6 +257,11 @@ export default {
 }
 
 .el-table .el-table__body tr:hover .rate_show {
+  background: rgb(186, 231, 255) !important;
+  color: #000;
+}
+
+.hover-row .rate_show {
   background: rgb(186, 231, 255) !important;
   color: #000;
 }

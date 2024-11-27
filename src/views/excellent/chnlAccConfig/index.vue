@@ -2,7 +2,7 @@
   <div class="app-container fulltable_div">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="通道名称" prop="channelName">
-        <ChannelQuery @ChannelQueryChange="ChannelQueryChange"></ChannelQuery>
+        <ChannelQuery v-model="DetailedContentListQueryParams.channelName" :emitKey="'channelName'"></ChannelQuery>
         <!-- <el-input
           v-model="queryParams.channelName"
           placeholder="请输入通道名称"
@@ -221,10 +221,7 @@ export default {
     this.SeekChannel()
   },
   methods: {
-    //通道搜索
-    ChannelQueryChange(value) {
-      this.queryParams.channelName = value.channelName
-    },
+
     /** 查询通道账户配置列表 */
     getList() {
       this.loading = true;

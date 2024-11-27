@@ -37,8 +37,7 @@ const permission = {
           res = res.route;
           // console.log("路由列表");
 
-          // console.log(res);
-
+          // res.data.push();
           const sdata = JSON.parse(JSON.stringify(res.data));
           const rdata = JSON.parse(JSON.stringify(res.data));
           const sidebarRoutes = filterAsyncRouter(sdata);

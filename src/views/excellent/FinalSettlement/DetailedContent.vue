@@ -47,9 +47,8 @@
 
 
       </dynamicTableVue>
-      <pagination ref="pagination" v-show="DetailedContentListQueryParams.total > 0"
-        :total="DetailedContentListQueryParams.total" :page.sync="DetailedContentListQueryParams.page"
-        :limit.sync="DetailedContentListQueryParams.limit" @pagination="handleCurrentChange" />
+      <pagination ref="pagination" v-show="pageData.total > 0" :total="pageData.total" :page.sync="pageData.page"
+        :limit.sync="pageData.limit" @pagination="handleCurrentChange" />
     </div>
 
   </el-dialog>
@@ -71,6 +70,9 @@ export default {
       DetailedContentListQueryParams: {
         create_time: null, // 开始时间
         create_end_time: null, // 结束时间
+
+      },
+      pageData: {
         limit: 20, // 每页显示的条数,
         page: 1,
         total: 0
@@ -90,14 +92,17 @@ export default {
         this.DetailedContentListQueryParams = {
           create_time: null, // 开始时间
           create_end_time: null, // 结束时间
-          limit: 20, // 每页显示的条数,
-          page: 1,
-          total: 0
+
         },
-          this.timedata = {
-            create_time: [], // 开始时间
-            create_end_time: null, // 结束时间
-          },
+          this.pageData = {
+            limit: 10, // 每页显示的条数,
+            page: 1,
+            total: 0
+          }
+        this.timedata = {
+          create_time: [], // 开始时间
+          create_end_time: null, // 结束时间
+        },
           this.$emit('ReturnDetailedContentShow', value);
       },
       get() {
@@ -143,8 +148,7 @@ export default {
     // },
     //搜索按钮
     EmptyQuery() {
-      this.DetailedContentList.splice(0)
-      this.DetailedContentListQueryParams.last_id = null
+
       this.getList()
     },
     DetailedContentSearchresetQuery() {
@@ -160,19 +164,21 @@ export default {
 
     /** 查询商户结算列表 */
     getList(mch_number) {
+      this.DetailedContentList.splice(0)
       let num = mch_number ? mch_number : this.mch_number
       if (this.DetailedContentLoading) {
         return
       }
       this.DetailedContentLoading = true;
       let query = {
-        create_time: this.DetailedContentListQueryParams.create_time, // 开始时间
-        create_end_time: this.DetailedContentListQueryParams.create_end_time, // 结束时间
+        ...this.DetailedContentListQueryParams,
+        page: this.pageData.page,
+        limit: this.pageData.limit,
         mch_num: num
       };
       listMchSettlement(query).then((response) => {
-        this.DetailedContentList = this.$util.deepFreeze(response.rows);
-        this.DetailedContentListQueryParams.total = this.DetailedContentList.length;
+        this.DetailedContentList = response.rows
+        this.pageData.total = response.total;
         this.$nextTick(() => {
           this.$refs.DetailedContentList.rebuildTable()
           this.DetailedContentLoading = false;
@@ -183,13 +189,14 @@ export default {
     },
     //分页处理
     handleCurrentChange(page) {
-      this.DetailedContentListQueryParams.currentPage = page.page;
-      this.DetailedContentLoading = true;
-      this.$refs.DetailedContentList.Totop();
+
+      this.pageData.page = page.page;
       this.getList();
+
+      this.$refs.DetailedContentList.Totop();
     },
     handleSizeChange(size) {
-      this.DetailedContentListQueryParams.pageSize = size;
+      this.pageData.limit = size;
     },
   },
   components: {
