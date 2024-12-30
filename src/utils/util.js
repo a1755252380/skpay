@@ -236,3 +236,41 @@ export const startAnimation = () => {
     }, 1000);
   }, 1000); // 与 CSS transition 时间一致
 };
+//批量发送请求的方法
+// 延时函数
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function batchRequest(submitList, requestFn, delayTime = 100) {
+  if (!Array.isArray(submitList) || typeof requestFn !== "function") {
+    throw new Error(
+      "Invalid arguments: submitList should be an array and requestFn should be a function"
+    );
+  }
+
+  const results = [];
+  for (let i = 0; i < submitList.length; i++) {
+    const item = submitList[i];
+
+    try {
+      // 请求前延时
+      if (delayTime > 0) {
+        await delay(delayTime);
+      }
+
+      // 调用请求函数
+      const response = await requestFn(item);
+      results.push({ success: true, item, response });
+    } catch (error) {
+      results.push({ success: false, item, error });
+    }
+  }
+
+  // 分类整理成功和失败的结果
+  const successList = results.filter((result) => result.success);
+  const errorList = results.filter((result) => !result.success);
+
+  // 返回成功和失败的结果
+  return { successList, errorList };
+}

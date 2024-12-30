@@ -40,6 +40,14 @@
             <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
               v-hasPermi="['excellent:mchAccConfig:add']">商户开户</el-button>
           </el-col>
+          <el-col :span="1.5">
+            <el-button type="primary" plain icon="el-icon-refresh" size="mini" @click="BatchSwitchingChannels"
+              v-hasPermi="['excellent:mchAccConfig:add']">批量切换通道</el-button>
+          </el-col>
+          <el-col :span="1.5">
+            <el-button type="primary" plain icon="el-icon-refresh" size="mini" @click="BatchDiversionChannels"
+              v-hasPermi="['excellent:mchAccConfig:add']">批量设置分流</el-button>
+          </el-col>
           <!-- <el-col :span="1.5">
         <el-button type="success" plain icon="el-icon-edit" size="mini" :disabled="single" @click="handleUpdate"
           v-hasPermi="['excellent:mchAccConfig:edit']">修改（启用/禁用）</el-button>
@@ -47,14 +55,15 @@
           <!-- <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar> -->
         </el-row>
 
-        <dynamicTableVue :loading="loading" :tableData="mchAccConfigList">
-          <!-- <el-table-column type="selection" width="55" align="center" fixed /> -->
+        <dynamicTableVue :loading="loading" :tableData="mchAccConfigList"
+          @handleSelectionChange="handleSelectionChange">
+          <el-table-column type="selection" width="55" align="center" fixed />
           <!--      <el-table-column label="商户id" align="center" prop="mchId" />-->
           <el-table-column label="商户号 " align="center" prop="mch_num" fixed />
           <el-table-column label="货币代号" align="center" prop="currency" />
-          <el-table-column label="代收通道" align="center" prop="payin_chnl_name" />
+          <el-table-column label="代收通道" align="center" prop="payin_chnl_name" width="100" />
 
-          <el-table-column label="代付通道" align="center" prop="payout_chnl_name" />
+          <el-table-column label="代付通道" align="center" prop="payout_chnl_name" width="100" />
           <el-table-column label="结算模式" align="center" prop="settle_mode">
             <template slot-scope="scope">
               <span v-if="scope.row.settle_mode === 0">实时结算</span>
@@ -84,8 +93,13 @@
             </template>
           </el-table-column>
           <!-- <el-table-column label="支付方式  " align="center" prop="paymentMode" /> -->
+          <el-table-column label="代收分流金额" align="center" prop="payin_over_amount" width="120"
+            :formatter="Formatter.TableAmount2" />
+          <el-table-column label="代收分流通道" align="center" prop="payin_over_chnl_name" width="120" />
           <el-table-column label="代收费率" align="center" prop="payin_rate" />
-
+          <el-table-column label="代付分流金额" align="center" prop="payout_over_amount" width="120"
+            :formatter="Formatter.TableAmount2" />
+          <el-table-column label="代付分流通道" align="center" prop="payout_over_chnl_name" width="120" />
           <el-table-column label="代付费率" align="center" prop="payout_rate" />
 
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width" fixed="right"
@@ -103,7 +117,7 @@
           :limit.sync="queryParams.limit" @pagination="getList" />
       </div>
 
-      <div v-show="open" style="padding: 20px" key="edit">
+      <div v-show="open" style="padding: 8px" key="edit">
         <el-form ref="form" :model="form" :rules="rules" label-width="80px" label-position="top">
           <el-card class="form_card_first" :header="'商户信息'">
             <el-form-item label="商户号 " prop="mch_num">
@@ -132,6 +146,7 @@
                     :key="index"></el-option>
                 </el-select>
               </el-form-item><br>
+
 
               <el-form-item label="代付费率" prop="payout_rate">
                 <el-input-number v-model="form.payout_rate" placeholder="请输入代付费率" :min="0.0" :precision="4"
@@ -162,6 +177,16 @@
                 <el-input-number v-model="form.agent_payout_fee" placeholder="请输入代理账户单笔代付手续费" :min="0"
                   class="w100_input" />
               </el-form-item>
+              <el-form-item label="代付分流金额" prop="payout_over_amount">
+                <el-input-number v-model="form.payout_over_amount" placeholder="请输入代付分流金额" :min="0"
+                  class="w100_input" />
+              </el-form-item>
+              <el-form-item label="代付分流通道" prop="payout_over_chnl_id" v-if="form.payout_over_amount > 0">
+                <el-select v-model="form.payout_over_chnl_id" placeholder="请选择代付分流通道" class="w100_input">
+                  <el-option :label="item.chnl_name" :value="item.id" v-for="(item, index) in PassageList"
+                    :key="index"></el-option>
+                </el-select>
+              </el-form-item>
 
             </el-card>
             <el-card class="form_card" :header="'代收设置'">
@@ -171,6 +196,8 @@
                     :key="index"></el-option>
                 </el-select>
               </el-form-item><br>
+
+
               <el-form-item label="代收费率" prop="payin_rate">
                 <el-input-number v-model="form.payin_rate" placeholder="请输入代收费率" :min="0.0" :precision="4"
                   :step="0.0001" class="w100_input" />
@@ -187,7 +214,16 @@
               <el-form-item label="单笔代收最低限额" prop="payin_min_limit">
                 <el-input-number v-model="form.payin_min_limit" placeholder="请输入单笔代收最低限额" :min="0" class="w100_input" />
               </el-form-item>
-
+              <el-form-item label="代收分流金额" prop="payin_over_amount">
+                <el-input-number v-model="form.payin_over_amount" placeholder="请输入代收分流金额" :min="0" class="w100_input"
+                  :precision="0" />
+              </el-form-item>
+              <el-form-item label="代收分流通道" prop="payin_over_chnl_id" v-if="form.payin_over_amount > 0">
+                <el-select v-model="form.payin_over_chnl_id" placeholder="请选择代收分流通道" class="w100_input">
+                  <el-option :label="item.chnl_name" :value="item.id" v-for="(item, index) in PassageList"
+                    :key="index"></el-option>
+                </el-select>
+              </el-form-item>
 
             </el-card>
           </div>
@@ -199,14 +235,15 @@
         </div>
       </div>
 
-      <!-- 添加或修改商户账户配置对话框 -->
-      <!-- <el-dialog :title="title" :visible.sync="open" width="50rem" append-to-body>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
-      </div>
-    </el-dialog> -->
+
     </transition-group>
+    <!-- 批量切换支付通道 -->
+    <BatchChangeChannels :visibleShow="batchChangeChannelsVisible" @updateVisible="updateVisible" @submit="batchSubmit"
+      :ChangeList="ChangeList">
+    </BatchChangeChannels>
+    <!-- 批量进行分流设置 -->
+    <BatchDiversionVue :visibleShow="BatchDiversionVisible" @updateVisible="updateBatchDiversionVisible"
+      @submit="batchDiversion" :ChangeList="ChangeList"></BatchDiversionVue>
   </div>
 </template>
 
@@ -222,9 +259,16 @@ import { listChnlSetting } from "@/api/excellent/chnlSetting";
 import { listMchSetting } from "@/api/excellent/MchSetting";
 import dynamicTableVue from "@/components/Excellent/dynamicTable.vue";
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
+import BatchChangeChannels from "./modules/BatchChangeChannels.vue";
+import BatchDiversionVue from './modules/BatchDiversion.vue';
 
 export default {
   name: "MchAccConfig",
+  computed: {
+    ChangeList() {
+      return this.ids.map((item) => item.mch_num)
+    }
+  },
   data() {
     const validateNumber = function (rule, value, callback) {
       if (value === "") {
@@ -237,6 +281,7 @@ export default {
         callback();
       }
     };
+
     return {
       //商户号是否可修改
       mchNumChange: false,
@@ -308,6 +353,43 @@ export default {
           { required: true, message: "请输入正确的单笔代付手续费", trigger: "change" },
           { validator: validateNumber, message: '请输入正确的单笔代付手续费', trigger: "change" }
         ],
+        payin_over_amount: [
+          { required: true, message: "请输入代收分流金额", trigger: "change" },
+        ],
+        payout_over_amount: [
+          { required: true, message: "请输入代付分流金额", trigger: "change" },
+        ],
+        payout_over_chnl_id: [
+          {
+            validator: (rule, value, callback) => {
+              console.log(this.form.payout_over_amount);
+              console.log(value);
+
+              if (this.form.payout_over_amount == 0) {
+                callback();
+              } else {
+                if (value == null) {
+                  callback(new Error('请选择代付分流通道'));
+                }
+                callback();
+              }
+            }, message: '请选择代付分流通道', trigger: "change"
+          }
+        ],
+        payin_over_chnl_id: [
+          {
+            validator: (rule, value, callback) => {
+              if (this.form.payin_over_amount == 0) {
+                callback();
+              } else {
+                if (value == null) {
+                  callback(new Error('请选择代收分流通道'));
+                }
+                callback();
+              }
+            }, message: '请选择代收分流通道', trigger: "change"
+          }
+        ]
       },
       //通道列表
       PassageList: [],
@@ -317,6 +399,11 @@ export default {
       FirstSearched: true,
       //修改遮盖层
       editloading: false,
+
+      //批量切换通道
+      batchChangeChannelsVisible: false,
+      //批量设置分流
+      BatchDiversionVisible: false,
     };
   },
   created() {
@@ -327,6 +414,96 @@ export default {
     });
   },
   methods: {
+    //批量切换支付通道
+    BatchSwitchingChannels() {
+      if (this.ids.length == 0) {
+        this.$message.error("请选择要切换的商户");
+        return
+      }
+      this.batchChangeChannelsVisible = true;
+    },
+    BatchDiversionChannels() {
+      if (this.ids.length == 0) {
+        this.$message.error("请选择要设置的商户");
+        return
+      }
+      this.BatchDiversionVisible = true;
+    },
+
+    updateVisible() {
+      this.batchChangeChannelsVisible = false;
+    },
+    updateBatchDiversionVisible() {
+      this.BatchDiversionVisible = false;
+    },
+    // 模拟延时功能
+    async delay(duration) {
+      return new Promise(resolve => setTimeout(resolve, duration));
+    },
+    // 封装带延时的请求方法
+    async delayedRequest(query, delayDuration) {
+      await this.delay(delayDuration); // 延时
+      updateMchAccConfig(query).then(response => {
+        return response;
+      }).catch(error => {
+        throw error; // 确保 Promise 保持失败状态
+      })
+
+    },
+    //批量提交修改通道
+    batchSubmit(confirmList) {
+      console.log(confirmList);
+
+      const loading = this.$loading({
+        lock: true,
+        text: '正在切换，请稍候...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      })
+      let promiseList = []
+      confirmList.forEach((element, index) => {
+        promiseList.push(this.delayedRequest(element, 200 * index))
+      });
+      Promise.all(promiseList).then((res) => {
+
+        this.$message({
+          message: '批量切换成功',
+          type: 'success',
+        });
+        this.batchChangeChannelsVisible = false;
+        setTimeout(() => {
+          loading.close();
+          this.ids.splice(0, this.ids.length);
+          this.getList();
+        }, 500);
+      })
+    },
+    //批量设置分流数据
+    batchDiversion(confirmList) {
+
+      const loading = this.$loading({
+        lock: true,
+        text: '正在切换，请稍候...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      })
+      this.$util.batchRequest(confirmList, updateMchAccConfig, 200).then((res) => {
+        this.$message({
+          message: '批量切换成功',
+          type: 'success',
+        });
+        this.BatchDiversionVisible = false;
+        setTimeout(() => {
+          loading.close();
+          this.ids.splice(0, this.ids.length);
+          this.getList();
+        }, 500);
+      })
+
+
+
+
+    },
     /** 查询商户账户配置列表 */
     getList() {
       this.loading = true;
@@ -373,6 +550,7 @@ export default {
         createTime: null,
         update_by: null,
         update_time: null,
+        payin_over_amount: 0, payout_over_amount: 0, payin_over_chnl_id: null, payin_over_chnl_name: null, payout_over_chnl_id: null, payout_over_chnl_name: null
       };
       this.resetForm("form");
     },
@@ -388,9 +566,8 @@ export default {
     },
     // 多选框选中数据
     handleSelectionChange(selection) {
-      this.ids = selection.map((item) => item.id);
-      this.single = selection.length !== 1;
-      this.multiple = !selection.length;
+      this.ids = selection;
+      //   this.ids.map((item) => item.id)
     },
     /** 新增按钮操作 */
     handleAdd() {
@@ -415,6 +592,7 @@ export default {
     },
     /** 提交按钮 */
     submitForm() {
+
       this.$refs["form"].validate((valid) => {
         // payoutProductName代付通道名称
         // payinProductName代收通道名称
@@ -428,28 +606,38 @@ export default {
           this.PassageList[payoutProductIndex].chnl_name;
         this.form["payin_chnl_name"] =
           this.PassageList[payinProductIndex].chnl_name;
-        let form = this.form;
         let UserIndex = this.ClientSearchList.findIndex((res) => {
           return res.mch_num === this.form.mch_num;
         });
-        // form["mchId"] = this.ClientSearchList[UserIndex]["id"];
-        // form["userId"] = this.ClientSearchList[UserIndex]["userId"];
-        // form["mchName"] = this.ClientSearchList[UserIndex]["mchName"];
-
+        //分流代收通道名称
+        if (this.form['payin_over_amount'] != 0 && this.form['payin_over_chnl_id']) {
+          let payInOverIndex = this.PassageList.findIndex((res) => {
+            return res.id === this.form.payin_over_chnl_id;
+          });
+          this.form['payin_over_chnl_name'] = this.PassageList[payInOverIndex].chnl_name
+        }
+        //分流代付通道数据
+        if (this.form['payout_over_amount'] != 0 && this.form['payout_over_chnl_id']) {
+          let payOutOverIndex = this.PassageList.findIndex((res) => {
+            return res.id === this.form.payout_over_chnl_id;
+          });
+          this.form['payout_over_chnl_name'] = this.PassageList[payOutOverIndex].chnl_name
+        }
+        //提交内容
+        let form = this.form;
         if (valid) {
-          // console.log(form);
 
           if (this.form.id != null) {
             let submitForm = {}
             submitForm["mch_num"] = form.mch_num;
             for (const key in this.FormBackup) {
               if (form[key] != this.FormBackup[key]) {
-                submitForm[key] = form[key]
+                console.log(form[key] + " " + this.FormBackup[key]);
 
+                submitForm[key] = form[key]
               }
             }
             console.log(submitForm);
-            // return
             updateMchAccConfig(submitForm).then((response) => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
@@ -458,6 +646,8 @@ export default {
           } else {
             form["mch_id"] = this.ClientSearchList[UserIndex]["id"];
             form["mch_num"] = this.ClientSearchList[UserIndex]["mch_num"];
+            console.log(form);
+
             addMchAccConfig(form).then((response) => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
@@ -547,7 +737,6 @@ export default {
         form['payout_state'] = ChangeData;
         key = "payout_state";
       }
-      console.log(form);
       updateMchAccConfig(form).then((response) => {
         this.$modal.msgSuccess("修改成功");
         this.$set(this.mchAccConfigList[index], key, ChangeData);
@@ -555,7 +744,8 @@ export default {
     },
 
   },
-  components: { dynamicTableVue, MchNumSelect },
+
+  components: { dynamicTableVue, MchNumSelect, BatchChangeChannels, BatchDiversionVue },
 };
 </script>
 

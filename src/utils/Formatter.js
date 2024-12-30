@@ -14,6 +14,20 @@ export function TableAmount(row, column, cellValue, index) {
     return "0.00";
   }
 }
+export function TableAmount2(row, column, cellValue, index) {
+  // console.log("------------------------------------");
+  // console.log(row.mch_num);
+
+  // console.log(column.label, ":", cellValue);
+  let value = Math.floor(cellValue);
+  // console.log(column.label, ":", value.toFixed(2));
+  // console.log("------------------------------------");
+  if (value) {
+    return value.toFixed(2);
+  } else {
+    return "0.00";
+  }
+}
 //表格费率格式化
 export function TableRate(row, column, cellValue, index) {
   if (cellValue) {

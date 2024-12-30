@@ -13,16 +13,20 @@
         :TabsChangeStatus="queryPage.time_type" @RequestingDataAgain="RequestingDataAgain">
         <el-button type="primary" icon="el-icon-refresh-left" size="mini" @click="OpenBatchModification"
           v-hasPermi="['excellent:OrderRecords:edit']" slot="btn">批量修改</el-button>
-        <!-- <el-button type="primary" icon="el-icon-refresh-left" size="mini" @click="OpenBatchModification"
-          slot="btn">批量回调</el-button> -->
+        <el-button type="primary" icon="el-icon-refresh-left" size="mini" @click="OpenBatchCallBack"
+          v-hasPermi="['excellent:OrderRecords:edit']" slot="btn"
+          v-if="queryPage.time_type == 'history'">批量回调</el-button>
+        <!-- <el-button type="primary" icon="el-icon-refresh-left" size="mini" @click="BatchAdditionShow = true"
+          v-if="queryPage.time_type == 'history'" slot="btn">批量补单</el-button> -->
         <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
       </OrderSearch>
 
       <dynamicTableVue :loading="loading" :tableData="paginatedItems" ref="myTable" @cellDblclick="(row, column, cell, event) => {
         this.$util.copyToClipboard(cell.innerText);
       }" :cellClassName="'HoverTooltipCopy'" @handleSelectionChange="handleSelectionChange">
+        <!-- :selectable="(row, index) => { return row.status != 0 }" -->
+
         <el-table-column type="selection" width="55" align="center"
-          :selectable="(row, index) => { return row.status != 0 }"
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
         </el-table-column>
         <!-- <el-table-column label="订单id" align="center" prop="id" /> -->
@@ -30,10 +34,10 @@
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
 
         </el-table-column>
-        <el-table-column label="商户订单号" align="center" prop="merchant_order_id" min-width="210">
+        <el-table-column label="商户订单号" align="center" prop="merchant_order_id" min-width="210" show-overflow-tooltip>
 
         </el-table-column>
-        <el-table-column label="系统订单号" align="center" prop="_id" min-width="130">
+        <el-table-column label="系统订单号" align="center" prop="_id" min-width="130" show-overflow-tooltip>
 
         </el-table-column>
         <el-table-column label="三方订单号" align="center" prop="platform_order_id"
@@ -98,10 +102,13 @@
       @ChangeOrderStatusRow="ChangeOrderStatusRow" :type="queryPage.time_type"></AdjustOrderStatus>
     <!-- 批量修改弹窗 -->
     <BatchModification :show="BatchModificationShow" @CloseBatchModification="CloseBatchModification"
-      :type="queryPage.time_type" @ChangeBatchModification="ChangeBatchModification"></BatchModification>
+      :type="queryPage.time_type" @ChangeBatchModification="ChangeBatchModification">
+    </BatchModification>
     <!-- 内容详情弹窗 -->
     <DetailedContent :show="detailShow" @updateShow="updateShow" :detail="form" :detailkey="detailKeyList">
     </DetailedContent>
+    <!-- 输入订单号的方式进行补单 -->
+    <BatchReplenishmentOfOrdersVue v-model="BatchAdditionShow"></BatchReplenishmentOfOrdersVue>
   </div>
 </template>
 
@@ -114,12 +121,15 @@ import {
   updateOrderRecords,
   ModifyOrderStatus,
 } from "@/api/excellent/OrderRecords";
-import AdjustOrderStatus from "./AdjustOrderStatus.vue";
-import OrderSearch from "./OrderSearch.vue";
+import AdjustOrderStatus from "./modules/AdjustOrderStatus.vue";
+import OrderSearch from "./modules/OrderSearch.vue";
 import DetailedContent from "@/components/Excellent/DetailedContent.vue";
 import dynamicTableVue from "@/components/Excellent/dynamicTable.vue";
 import moment from "moment-timezone";
-import BatchModification from "./BatchModification.vue";
+import BatchModification from "./modules/BatchModification.vue";
+import BatchReplenishmentOfOrdersVue from './modules/BatchReplenishmentOfOrders.vue';
+import ProgressDialog from "@/components/dialog/ProgressDialog.vue";
+
 export default {
   name: "OrderRecords",
   filters: {
@@ -168,7 +178,7 @@ export default {
     AdjustOrderStatus,
     DetailedContent,
     dynamicTableVue,
-    BatchModification,
+    BatchModification, BatchReplenishmentOfOrdersVue
   },
   computed: {
     // 计算当前页显示的数据
@@ -407,6 +417,9 @@ export default {
       //批量修改
       BatchModificationShow: false,
       BatchModificationList: [],
+      //批量添加补单
+      BatchAdditionShow: false,
+
     };
   },
   created() {
@@ -449,29 +462,28 @@ export default {
             ? this.BatchModificationList[index].status
             : value.operation;
 
-        setTimeout(() => {
-          promise.push(this.ChangeOrderStatus(query, false));
-        }, 200);
+        promise.push(query);
       }
-      console.log(promise);
-
-      Promise.all(promise).then((res) => {
+      this.$util.batchRequest(promise, ModifyOrderStatus).then(res => {
 
         this.$refs.myTable.clearSelection();
         this.BatchModificationList.splice(0);
         this.BatchModificationShow = false;
 
-        setTimeout(() => {
-          loading.close();
-          this.RepeatedRequests = false
-          this.$refs.search.handleQuery();//重新搜索一次
-        }, 300);
+        loading.close();
         this.$message({
           message: "批量修改成功",
           type: "success",
         });
+        this.RepeatedRequests = false
+        this.$refs.search.handleQuery();//重新搜索一次
 
-      });
+      }).catch(err => {
+        loading.close();
+        this.$message.error("批量回调失败");
+      })
+
+
     },
     //单个修改状态
     ChangeOrderStatusRow(value) {
@@ -486,6 +498,7 @@ export default {
     },
     //点击回调
     handleCallback(value) {
+
       this.$confirm('是否对该订单进行回调？', '确认信息', {
         distinguishCancelAndClose: true,
         confirmButtonText: '确定',
@@ -518,6 +531,48 @@ export default {
         return;
       } else {
         this.BatchModificationShow = true;
+      }
+    },
+    OpenBatchCallBack() {
+      if (this.BatchModificationList.length == 0) {
+        this.$message.warning("请选择要修改的数据");
+        return;
+      } else {
+        this.$confirm('是否对该订单进行回调？', '确认信息', {
+          distinguishCancelAndClose: true,
+          confirmButtonText: '确定',
+          cancelButtonText: '取消'
+        }).then(res => {
+          let loading = this.$loading({
+            lock: true,
+            text: "正在批量调整状态，请稍后...",
+            spinner: "el-icon-loading",
+            background: "rgba(0, 0, 0, 0.7)",
+          });
+          let confirmList = []
+          for (let index = 0; index < this.BatchModificationList.length; index++) {
+            confirmList.push({
+              _id: this.BatchModificationList[index]._id,
+              mch_number: this.BatchModificationList[index].mch_number,
+              order_type: parseInt(this.queryPage.type),
+              operation: 3,
+            })
+          }
+
+          this.$util.batchRequest(confirmList, ModifyOrderStatus).then(res => {
+            console.log(res);
+            loading.close();
+            this.$message.success("批量回调成功");
+            this.$refs.myTable.clearSelection();
+            this.BatchModificationList.splice(0);
+            this.RepeatedRequests = false
+            this.$refs.search.handleQuery();//重新搜索一次
+          }).catch(err => {
+            console.log(err);
+            this.$message.error("批量回调失败");
+          })
+
+        })
       }
     },
     handleSelectionChange(value) {

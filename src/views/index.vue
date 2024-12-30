@@ -286,7 +286,7 @@ export default {
         console.log("离开页面，取消递归请求");
         return
       }
-      if (this.$store.state.user.roles.includes('admin')) {
+      if (this.$store.state.user.roles && this.$store.state.user.roles.includes('admin')) {
 
         statistics().then((res) => {
           res = res.data;

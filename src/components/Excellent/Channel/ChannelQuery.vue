@@ -45,11 +45,10 @@ export default {
   methods: {
     //抛出选择内容
     ChannelQueryChange(value) {
-      let index = this.ChannelQueryList.findIndex(item => item.id == value)
+      let index = this.ChannelQueryList.findIndex(item => item[this.emitKey] == value)
       this.$emit('ChannelQueryChange', this.ChannelQueryList[index]);
     },
     handleChange(value) {
-      console.log('ChannelQuery', value);
 
       // 触发自定义的 change 事件，将值传递给父组件
       this.$emit('change', value);

@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :title="'历史数据'" :visible.sync="DetailedContentShowData" width="80%" append-to-body>
+  <el-dialog :title="'历史数据'" :visible.sync="DetailedContentShowData" width="80rem" append-to-body>
 
     <div class="fulltable_div" style="min-height: 70vh;">
       <el-form ref="DetailedContentSearch" size="small" :inline="true" label-width="120px">
@@ -26,8 +26,8 @@
           this.$util.copyToClipboard(cell.innerText);
         }" :cellClassName="'HoverTooltipCopy'">
 
-        <el-table-column label="商户号 " align="center" prop="mch_number" />
-        <el-table-column label="商户名称" align="center" prop="mch_name" />
+        <el-table-column label="商户号 " align="center" prop="mch_number" width="80" />
+        <el-table-column label="商户名称" align="center" prop="mch_name" width="130" />
         <el-table-column label="通道名称" align="center" prop="chnl_name" />
         <el-table-column label="货币代号" align="center" prop="currency" />
         <el-table-column label="已结算代收金额" align="center" prop="payin_success_amount_count"
@@ -40,10 +40,10 @@
         <el-table-column label="总代付手续费" align="center" prop="pay_out_success_service_charge"
           :formatter="Formatter.TableAmount" />
         <el-table-column label="结算时间" align="center" prop="start_time" :formatter="Formatter.TableTimeFormatYMD"
-          width="180">
+          width="120">
 
         </el-table-column>
-        <el-table-column label="操作" align="center" prop="create_time" width="180">
+        <el-table-column label="操作" align="center" prop="create_time" width="100">
           <template slot-scope="scope">
             <el-button type="text" size="small" @click="Settlement(scope.row)" icon="el-icon-refresh"
               v-if="scope.row.payout_settle_status == 0">代付结算</el-button>
@@ -202,13 +202,13 @@ export default {
 
       updateMchAcc(value).then((response) => {
         this.$modal.msgSuccess("提交成功");
+
+      }).finally(() => {
         this.ProxyChangeDialogShow = false;
         this.$set(this.DetailedContentList[index], 'payout_settle_status', 1);
-
         loading.close();
-      }).catch(res => {
-        loading.close();
-      });
+      })
+        ;
     },
     /** 查询商户结算列表 */
     async getList(mch_number) {

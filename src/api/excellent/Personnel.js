@@ -36,7 +36,7 @@ export function BatchAddBlacklist(list) {
     url: "/user/add/order/blacklist",
     method: "post",
     data: {
-      data: list,
+      list: list,
     },
   });
 }

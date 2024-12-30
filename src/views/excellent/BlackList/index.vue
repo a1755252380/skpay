@@ -12,6 +12,9 @@
         <el-form-item label="银行账户acc" prop="user_bank_acct">
           <el-input v-model="addBlackForm.user_bank_acct" placeholder="请输入银行账户acc"></el-input>
         </el-form-item>
+        <el-form-item label="UPI_ID" prop="upi_id">
+          <el-input v-model="addBlackForm.upi_id" placeholder="请输入UPI_ID"></el-input>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="CloseAddBlack" size="small">取 消</el-button>
@@ -42,6 +45,7 @@
         <el-table-column label="设备号 " align="center" prop="device_number" fixed="left" />
         <el-table-column label="ip地址段" align="center" prop="ip_segment" />
         <el-table-column label="银行账户acc" align="center" prop="user_bank_acct" />
+        <el-table-column label="UPI_ID" align="center" prop="upi_id" />
         <el-table-column label="创建时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond" />
         <el-table-column label="操作" align="center" prop="amount" width="150">
           <template slot-scope="scope">
@@ -77,6 +81,7 @@ export default {
         device_number: null,
         ip_segment: null,
         user_bank_acct: null,
+        upi_id: null,
       },
       showAddBlack: false,
       loading: true, // 加载状态
@@ -110,11 +115,23 @@ export default {
         device_number: null,
         ip_segment: null,
         user_bank_acct: null,
+        upi_id: null,
       }
       this.showAddBlack = false;
     },
     AddBlack() {
       this.showAddBlack = true;
+    },
+    //检测upi_id是否合法
+    checkUPI() {
+
+      const upiIdRegex = /^.+\@.+/;
+      if (!upiIdRegex.test(this.addBlackForm.upi_id)) {
+        this.$message.error('UPI_ID 格式不正确,正确格式应为***@***');
+        return false;
+      } else {
+        return true
+      }
     },
     //提交添加黑名单
     confirmAddBlack() {
@@ -124,6 +141,12 @@ export default {
       if (!OnjectNotNull) {
         this.$message.error('请确保有一选项不为空！');
         return;
+      }
+      if ((this.addBlackForm.upi_id)) {
+        if (!this.checkUPI()) {
+          return
+        }
+
       }
       for (const key in this.addBlackForm) {
         if (typeof this.addBlackForm[key] === 'string') {
