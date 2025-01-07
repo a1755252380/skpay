@@ -10,7 +10,7 @@
       </el-form-item>
       <el-form-item label="代收分流通道" v-if="form.payin_over_amount > 0" prop="payin_over_chnl_id">
         <el-select v-model="form.payin_over_chnl_id" placeholder="请选择代收通道" class="w100_input">
-          <el-option v-for="item in ChnlOptions" :key="'payin_' + item.chnl_name" :label="item.chnl_name"
+          <el-option v-for="item in ChnlOptions" :key="'payin_' + item.id" :label="item.id"
             :value="item.id"></el-option>
         </el-select>
 
@@ -20,7 +20,7 @@
       </el-form-item>
       <el-form-item label="代付分流通道" v-if="form.payout_over_amount > 0" prop="payout_over_chnl_id">
         <el-select v-model="form.payout_over_chnl_id" placeholder="请选择代付分流通道" class="w100_input">
-          <el-option v-for="item in ChnlOptions" :key="'payin_' + item.chnl_name" :label="item.chnl_name"
+          <el-option v-for="item in ChnlOptions" :key="'payin_' + item.id" :label="item.id"
             :value="item.id"></el-option>
         </el-select>
 
@@ -160,7 +160,7 @@ export default {
               item.payin_over_chnl_name = this.ChnlOptions[payinIndex].chnl_name
               return item
             })
-            message = message + '代收分流金额为 ' + this.form.payin_over_amount + ' 代收分流通道切换为 ' + this.ChnlOptions[payinIndex].chnl_name
+            message = message + '代收分流金额为 ' + this.form.payin_over_amount + ' 代收分流通道切换为 ' + this.ChnlOptions[payinIndex].id
           }
 
           //代付分流金额不为0，需要选择代付分流通道
@@ -171,7 +171,7 @@ export default {
               item.payout_over_chnl_name = this.ChnlOptions[payoutIndex].chnl_name
               return item
             })
-            message = message + '代付分流金额为 ' + this.form.payout_over_amount + ' 代付分流通道切换为 ' + this.ChnlOptions[payoutIndex].chnl_name
+            message = message + '代付分流金额为 ' + this.form.payout_over_amount + ' 代付分流通道切换为 ' + this.ChnlOptions[payoutIndex].id
 
           }
           console.log(confirmList);

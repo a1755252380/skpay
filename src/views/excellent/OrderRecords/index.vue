@@ -62,19 +62,19 @@
           <template slot-scope="scope">
             <el-tag :type="formatStatus(scope.row.status).type">{{
               formatStatus(scope.row.status).name
-              }}</el-tag>
+            }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="回调状态" align="center" prop="callback_status" width="100" class-name="NoTooltip">
           <template slot-scope="scope">
             <el-tag :type="formatCallbackStatus(scope.row.callback_status).type">{{
               formatCallbackStatus(scope.row.callback_status).name
-            }}</el-tag>
+              }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="通道名称" align="center" prop="chnl_name"
+        <el-table-column label="通道ID" align="center" prop="chnl_id"
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" />
-        <el-table-column label="UTR" align="center" prop="utr" width="170">
+        <el-table-column label="UTR" align="center" prop="utr" width="160">
 
         </el-table-column>
         <!-- <el-table-column label="通道费率" align="center" prop="chnl_fee_ratio" width="80" />
@@ -278,8 +278,8 @@ export default {
           title: "通道信息",
           content: [
             {
-              label: "通道名称",
-              key: "chnl_name",
+              label: "通道ID",
+              key: "chnl_id",
               Jurisdiction: "",
             },
             {

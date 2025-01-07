@@ -9,7 +9,7 @@ module.exports = {
     proxy: {
       [process.env.VUE_APP_ORDER_API]: {
         target: "http://192.168.1.3:35312",
-        // target: "https://2-buddy.in",
+        // target: "https://www.2-buddy.in",
         changeOrigin: true,
         pathRewrite: {
           ["^" + process.env.VUE_APP_ORDER_API]: process.env.VUE_APP_ORDER_API,

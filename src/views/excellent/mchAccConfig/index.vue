@@ -14,7 +14,7 @@
           </el-form-item>
           <el-form-item label="代付通道" prop="payout_chnl_id">
             <el-select v-model="queryParams.payout_chnl_id" placeholder="请选择代付通道" @change="handleQuery">
-              <el-option :label="item.chnl_name" :value="item.id" v-for="(item, index) in PassageList"
+              <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
                 :key="index"></el-option>
             </el-select>
             <!-- <el-input v-model="queryParams.payout_chnl_id" placeholder="请输入代付产品" clearable
@@ -22,7 +22,7 @@
           </el-form-item>
           <el-form-item label="代收通道" prop="payin_chnl_id">
             <el-select v-model="queryParams.payin_chnl_id" placeholder="请选择代付通道" @change="handleQuery">
-              <el-option :label="item.chnl_name" :value="item.id" v-for="(item, index) in PassageList"
+              <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
                 :key="index"></el-option>
             </el-select>
             <!-- <el-input v-model="queryParams.payin_chnl_id" placeholder="请输入代收产品" clearable
@@ -61,9 +61,9 @@
           <!--      <el-table-column label="商户id" align="center" prop="mchId" />-->
           <el-table-column label="商户号 " align="center" prop="mch_num" fixed />
           <el-table-column label="货币代号" align="center" prop="currency" />
-          <el-table-column label="代收通道" align="center" prop="payin_chnl_name" width="100" />
+          <el-table-column label="代收通道" align="center" prop="payin_chnl_id" width="100" />
 
-          <el-table-column label="代付通道" align="center" prop="payout_chnl_name" width="100" />
+          <el-table-column label="代付通道" align="center" prop="payout_chnl_id" width="100" />
           <el-table-column label="结算模式" align="center" prop="settle_mode">
             <template slot-scope="scope">
               <span v-if="scope.row.settle_mode === 0">实时结算</span>
@@ -93,14 +93,23 @@
             </template>
           </el-table-column>
           <!-- <el-table-column label="支付方式  " align="center" prop="paymentMode" /> -->
+
+          <el-table-column label="代收费率" align="center" prop="payin_rate" />
+          <el-table-column label="代付费率" align="center" prop="payout_rate" />
           <el-table-column label="代收分流金额" align="center" prop="payin_over_amount" width="120"
             :formatter="Formatter.TableAmount2" />
-          <el-table-column label="代收分流通道" align="center" prop="payin_over_chnl_name" width="120" />
-          <el-table-column label="代收费率" align="center" prop="payin_rate" />
+          <el-table-column label="代收分流通道" align="center" prop="payin_over_chnl_id" width="120" />
           <el-table-column label="代付分流金额" align="center" prop="payout_over_amount" width="120"
             :formatter="Formatter.TableAmount2" />
-          <el-table-column label="代付分流通道" align="center" prop="payout_over_chnl_name" width="120" />
-          <el-table-column label="代付费率" align="center" prop="payout_rate" />
+          <el-table-column label="代付分流通道" align="center" prop="payout_over_chnl_id" width="120" />
+          <el-table-column label="单笔代收最高限额" align="center" prop="payin_max_limit" width="140"
+            :formatter="Formatter.TableAmount2" />
+          <el-table-column label="单笔代收最低限额" align="center" prop="payin_min_limit" width="140"
+            :formatter="Formatter.TableAmount2" />
+          <el-table-column label="单笔代付最高限额" align="center" prop="payout_max_limit" width="140"
+            :formatter="Formatter.TableAmount2" />
+          <el-table-column label="单笔代付最低限额" align="center" prop="payout_min_limit" width="140"
+            :formatter="Formatter.TableAmount2" />
 
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width" fixed="right"
             v-if="hasPermiVisible(['excellent:mchAccConfig:edit'])">
@@ -139,10 +148,47 @@
             </el-form-item>
           </el-card>
           <div style="display: flex;align-items: flex-start;width: 100%;">
+            <el-card class="form_card" :header="'代收设置'">
+              <el-form-item label="代收通道" prop="payin_chnl_id">
+                <el-select v-model="form.payin_chnl_id" placeholder="请选择代收通道" class="w100_input">
+                  <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
+                    :key="index"></el-option>
+                </el-select>
+              </el-form-item><br>
+
+
+              <el-form-item label="代收费率" prop="payin_rate">
+                <el-input-number v-model="form.payin_rate" placeholder="请输入代收费率" :min="0.0" :precision="4"
+                  :step="0.0001" class="w100_input" />
+              </el-form-item>
+
+              <el-form-item label="代理账户代收费率" prop="agent_payin_rate">
+                <el-input-number v-model="form.agent_payin_rate" placeholder="请输入代理账户代收费率" :min="0.0" :precision="4"
+                  :step="0.0001" class="w100_input" />
+              </el-form-item>
+              <el-form-item label="单笔代收最高限额" prop="payin_max_limit">
+                <el-input-number v-model="form.payin_max_limit" placeholder="请输入单笔代收最大限额" :min="0" class="w100_input" />
+              </el-form-item>
+
+              <el-form-item label="单笔代收最低限额" prop="payin_min_limit">
+                <el-input-number v-model="form.payin_min_limit" placeholder="请输入单笔代收最低限额" :min="0" class="w100_input" />
+              </el-form-item>
+              <el-form-item label="代收分流金额" prop="payin_over_amount">
+                <el-input-number v-model="form.payin_over_amount" placeholder="请输入代收分流金额" :min="0" class="w100_input"
+                  :precision="0" />
+              </el-form-item>
+              <el-form-item label="代收分流通道" prop="payin_over_chnl_id" v-if="form.payin_over_amount > 0">
+                <el-select v-model="form.payin_over_chnl_id" placeholder="请选择代收分流通道" class="w100_input">
+                  <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
+                    :key="index"></el-option>
+                </el-select>
+              </el-form-item>
+
+            </el-card>
             <el-card class="form_card" :header="'代付设置'">
               <el-form-item label="代付通道" prop="payout_chnl_id">
                 <el-select v-model="form.payout_chnl_id" placeholder="请选择代付通道" class="w100_input">
-                  <el-option :label="item.chnl_name" :value="item.id" v-for="(item, index) in PassageList"
+                  <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
                     :key="index"></el-option>
                 </el-select>
               </el-form-item><br>
@@ -183,49 +229,13 @@
               </el-form-item>
               <el-form-item label="代付分流通道" prop="payout_over_chnl_id" v-if="form.payout_over_amount > 0">
                 <el-select v-model="form.payout_over_chnl_id" placeholder="请选择代付分流通道" class="w100_input">
-                  <el-option :label="item.chnl_name" :value="item.id" v-for="(item, index) in PassageList"
+                  <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
                     :key="index"></el-option>
                 </el-select>
               </el-form-item>
 
             </el-card>
-            <el-card class="form_card" :header="'代收设置'">
-              <el-form-item label="代收通道" prop="payin_chnl_id">
-                <el-select v-model="form.payin_chnl_id" placeholder="请选择代收通道" class="w100_input">
-                  <el-option :label="item.chnl_name" :value="item.id" v-for="(item, index) in PassageList"
-                    :key="index"></el-option>
-                </el-select>
-              </el-form-item><br>
 
-
-              <el-form-item label="代收费率" prop="payin_rate">
-                <el-input-number v-model="form.payin_rate" placeholder="请输入代收费率" :min="0.0" :precision="4"
-                  :step="0.0001" class="w100_input" />
-              </el-form-item>
-
-              <el-form-item label="代理账户代收费率" prop="agent_payin_rate">
-                <el-input-number v-model="form.agent_payin_rate" placeholder="请输入代理账户代收费率" :min="0.0" :precision="4"
-                  :step="0.0001" class="w100_input" />
-              </el-form-item>
-              <el-form-item label="单笔代收最高限额" prop="payin_max_limit">
-                <el-input-number v-model="form.payin_max_limit" placeholder="请输入单笔代收最大限额" :min="0" class="w100_input" />
-              </el-form-item>
-
-              <el-form-item label="单笔代收最低限额" prop="payin_min_limit">
-                <el-input-number v-model="form.payin_min_limit" placeholder="请输入单笔代收最低限额" :min="0" class="w100_input" />
-              </el-form-item>
-              <el-form-item label="代收分流金额" prop="payin_over_amount">
-                <el-input-number v-model="form.payin_over_amount" placeholder="请输入代收分流金额" :min="0" class="w100_input"
-                  :precision="0" />
-              </el-form-item>
-              <el-form-item label="代收分流通道" prop="payin_over_chnl_id" v-if="form.payin_over_amount > 0">
-                <el-select v-model="form.payin_over_chnl_id" placeholder="请选择代收分流通道" class="w100_input">
-                  <el-option :label="item.chnl_name" :value="item.id" v-for="(item, index) in PassageList"
-                    :key="index"></el-option>
-                </el-select>
-              </el-form-item>
-
-            </el-card>
           </div>
 
         </el-form>

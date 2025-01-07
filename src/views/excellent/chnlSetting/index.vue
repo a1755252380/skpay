@@ -1,8 +1,8 @@
 <template>
   <div class="app-container fulltable_div">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="通道名称" prop="chnl_name">
-        <ChannelQuery v-model="queryParams.chnl_name" :emitKey="'chnl_name'"></ChannelQuery>
+      <el-form-item label="通道ID" prop="chnl_id">
+        <ChannelQuery v-model="queryParams.chnl_id"></ChannelQuery>
         <!-- <el-input v-model="queryParams.chnl_name" placeholder="请输入通道名称" clearable @keyup.enter.native="handleQuery" /> -->
       </el-form-item>
       <!-- <el-form-item label="平台代号" prop="terraceSymbol">
@@ -30,17 +30,9 @@
     <dynamicTableVue :loading="loading" :tableData="chnlSettingList">
       <!-- <el-table-column type="selection" width="30" align="center" /> -->
       <el-table-column label="通道ID" align="center" prop="id" />
-      <el-table-column label="通道名称" align="center" prop="chnl_name"
-        v-if="hasPermiVisible(['excellent:chnlSetting:edit'])" />
+      <!-- <el-table-column label="通道名称" align="center" prop="id" v-if="hasPermiVisible(['excellent:chnlSetting:edit'])" /> -->
       <!-- <el-table-column label="平台代号" align="center" prop="terraceSymbol" /> -->
-      <!-- <el-table-column label="状态" align="center" prop="state">
-        <template slot-scope="scope">
-          <el-switch v-model="scope.row.state" active-color="#409EFF" inactive-color="#DCDFE6" :active-value="0"
-            :inactive-value="1" @change="ChangeState($event, scope.row, 0)">
-          </el-switch>
 
-        </template>
-</el-table-column> -->
       <el-table-column label="代收状态" align="center" prop="payin_state">
         <template slot-scope="scope">
           <el-switch v-model="scope.row.payin_state" active-color="#409EFF" inactive-color="#DCDFE6" :active-value="0"
@@ -78,8 +70,8 @@
     <el-dialog :title="title" :visible.sync="open" width="680px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px" class="Breakdown-el-form"
         label-position="top">
-        <el-form-item label="通道名称" prop="chnl_name">
-          <el-input v-model="form.chnl_name" placeholder="请输入平台名称" />
+        <el-form-item label="通道ID" prop="id" v-if="form.id">
+          <el-input v-model="form.id" placeholder="请输入通道名称" disabled />
         </el-form-item>
 
 
@@ -133,6 +125,7 @@
 import { listChnlSetting, getChnlSetting, delChnlSetting, addChnlSetting, updateChnlSetting } from "@/api/excellent/chnlSetting";
 import ChannelQuery from "../../../components/Excellent/Channel/ChannelQuery.vue";
 import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
+import moment from "moment";
 
 export default {
   name: "ChnlSetting",
@@ -168,9 +161,9 @@ export default {
       form: {},
       // 表单校验
       rules: {
-        chnl_name: [
-          { required: true, message: "通道名称不能为空", trigger: "blur" }
-        ],
+        // chnl_name: [
+        //   { required: true, message: "通道名称不能为空", trigger: "blur" }
+        // ],
         // state: [
         //   { required: true, message: "状态 0.启用 1.禁用不能为空", trigger: "change" }
         // ],
@@ -278,7 +271,7 @@ export default {
               this.getList();
             });
           } else {
-            this.form['chnl_name'] = String(this.form['chnl_name'])
+            this.form['chnl_name'] = String(moment().format('YYYY-MM-DD/HH:mm:ss'));
             addChnlSetting(this.form).then(response => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;

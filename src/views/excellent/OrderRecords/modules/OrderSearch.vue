@@ -36,6 +36,9 @@
           <el-input v-model="queryParams.platform_order_id"
             :placeholder="'请输入三方平台' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" clearable @clear="handleQuery" />
         </el-form-item>
+        <el-form-item label="UTR" prop="UTR">
+          <el-input v-model="queryParams.utr" placeholder="请输入UTR" clearable @clear="handleQuery" />
+        </el-form-item>
         <el-form-item label="订单状态" prop="status">
           <el-select v-model="queryParams.status" placeholder="请选择订单状态" clearable class="w100_input">
             <el-option v-for="dict in OrderStatus" :key="dict.value" :label="dict.name" :value="dict.value"
@@ -116,6 +119,7 @@ export default {
   data() {
     return {
       queryParams: {
+        utr: null, //交易流水号
         mch_number: null,
         merchant_order_id: null,
         order_id: null,
@@ -243,6 +247,7 @@ export default {
         update_time: []
       }
       this.queryParams = {
+        utr: null,
         mch_number: null,
         merchant_order_id: null,
         order_id: null,

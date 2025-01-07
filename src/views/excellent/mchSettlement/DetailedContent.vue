@@ -9,7 +9,7 @@
           <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'">
           </TimeFrameVue>
         </el-form-item>
-        <el-form-item label="通道名称" prop="chnl_id">
+        <el-form-item label="通道ID" prop="chnl_id">
           <ChannelQuery v-model="DetailedContentListQueryParams.chnl_id"></ChannelQuery>
 
         </el-form-item>
@@ -28,7 +28,7 @@
 
         <el-table-column label="商户号 " align="center" prop="mch_number" width="80" />
         <el-table-column label="商户名称" align="center" prop="mch_name" width="130" />
-        <el-table-column label="通道名称" align="center" prop="chnl_name" />
+        <el-table-column label="通道ID" align="center" prop="chnl_id" />
         <el-table-column label="货币代号" align="center" prop="currency" />
         <el-table-column label="已结算代收金额" align="center" prop="payin_success_amount_count"
           :formatter="Formatter.TableAmount" />

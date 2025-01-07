@@ -6,14 +6,14 @@
       </el-form-item>
       <el-form-item label="代收通道">
         <el-select v-model="form.payin_chnl_id" placeholder="请选择代收通道" class="w100_input">
-          <el-option v-for="item in ChnlOptions" :key="'payin_' + item.chnl_name" :label="item.chnl_name"
+          <el-option v-for="item in ChnlOptions" :key="'payin_' + item.id" :label="item.id"
             :value="item.id"></el-option>
         </el-select>
 
       </el-form-item>
       <el-form-item label="代付通道">
         <el-select v-model="form.payout_chnl_id" placeholder="请选择代付通道" class="w100_input">
-          <el-option v-for="item in ChnlOptions" :key="'payin_' + item.chnl_name" :label="item.chnl_name"
+          <el-option v-for="item in ChnlOptions" :key="'payin_' + item.id" :label="item.id"
             :value="item.id"></el-option>
         </el-select>
       </el-form-item>
@@ -63,8 +63,8 @@ export default {
   data() {
     return {
       form: {
-        payin_chnl_id: null,
-        payout_chnl_id: null,
+        payin_chnl_id: '默认',
+        payout_chnl_id: '默认',
       },
       ChnlOptions: [],
     };
@@ -83,15 +83,15 @@ export default {
       }
       listChnlSetting().then(res => {
         this.ChnlOptions = [{
-          chnl_name: '默认',
-          id: null
+          id: '默认',
+          chnl_name: '默认'
         }].concat(res.rows)
       })
 
     },
     //提交修改
     submit() {
-      if (this.form.payin_chnl_id == null && this.form.payout_chnl_id == null) {
+      if (this.form.payin_chnl_id == '默认' && this.form.payout_chnl_id == '默认') {
         this.$message({
           type: 'info',
           message: '未选择通道，已取消'
@@ -100,6 +100,8 @@ export default {
         this.visible = false
         return
       }
+      console.log(this.form.payin_chnl_id, this.form.payout_chnl_id);
+
       let confirmList = this.ChangeList.map(item => {
         return {
           mch_num: item,
@@ -107,25 +109,25 @@ export default {
       })
       let message = ''
       //选择了代收通道
-      if (this.form.payin_chnl_id != null) {
+      if (this.form.payin_chnl_id != '默认') {
         let index = this.ChnlOptions.findIndex(item => item.id == this.form.payin_chnl_id)
         confirmList = confirmList.map(item => {
           item.payin_chnl_id = this.ChnlOptions[index].id
           item.payin_chnl_name = this.ChnlOptions[index].chnl_name
           return item
         })
-        message = message + '代收通道切换为 ' + this.ChnlOptions[index].chnl_name
+        message = message + '代收通道切换为 ' + this.ChnlOptions[index].id
       }
 
       //选择了代付通道
-      if (this.form.payout_chnl_id != null) {
+      if (this.form.payout_chnl_id != '默认') {
         let index = this.ChnlOptions.findIndex(item => item.id == this.form.payout_chnl_id)
         confirmList = confirmList.map(item => {
           item.payout_chnl_id = this.ChnlOptions[index].id
           item.payout_chnl_name = this.ChnlOptions[index].chnl_name
           return item
         })
-        message = message + '，代付通道切换为 ' + this.ChnlOptions[index].chnl_name
+        message = message + '，代付通道切换为 ' + this.ChnlOptions[index].id
 
       }
       const h = this.$createElement;
@@ -137,8 +139,8 @@ export default {
           cancelButtonText: '取消',
         }).then(() => {
           this.form = {
-            payin_chnl_id: null,
-            payout_chnl_id: null,
+            payin_chnl_id: '默认',
+            payout_chnl_id: '默认',
           }
           this.$emit('submit', confirmList)
           return

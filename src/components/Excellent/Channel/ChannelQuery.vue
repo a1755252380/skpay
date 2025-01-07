@@ -1,8 +1,7 @@
 <template>
   <el-select :value="modelValue" clearable ref="ChannelQuery" placeholder="请选择通道" :loading="Loading"
     @change="handleChange" class="w100_input">
-    <el-option v-for="item in ChannelQueryList" :key="item.id" :label="item.chnl_name"
-      :value="item[emitKey]"></el-option>
+    <el-option v-for="item in ChannelQueryList" :key="item.id" :label="item.id" :value="item[emitKey]"></el-option>
   </el-select>
   <!-- filterable :filter-method="ChannelQuerySearch" -->
 </template>

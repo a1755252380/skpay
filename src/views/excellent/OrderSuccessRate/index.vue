@@ -20,7 +20,7 @@
       @cellDblclick="cellDblclick">
       <el-table-column prop="mch_number" label="商户号" align="center" fixed="left" v-if="routeFlag == 'order'">
       </el-table-column>
-      <el-table-column prop="chnl_name" label="通道名称" align="center" fixed="left" v-else>
+      <el-table-column prop="chnl_id" label="通道ID" align="center" fixed="left" v-else>
       </el-table-column>
       <el-table-column prop="payin_success_rate" label="代收成功率" align="center" class-name="rate_show"
         :formatter="Formatter.TableRate">
