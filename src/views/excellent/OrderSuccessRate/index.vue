@@ -1,7 +1,7 @@
 <template>
   <div class="app-container fulltable_div">
     <div class="FlexBetween" ref="search">
-      <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="120px">
+      <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="160px">
         <el-form-item label="统计时间（分钟）" prop="StatisticalTime">
           <el-select v-model="queryParams.StatisticalTime" placeholder="请选择统计时间">
             <el-option v-for="item in StatisticalTimeOptions" :key="item.value" :label="item.label"
@@ -126,7 +126,7 @@ export default {
         if (this.routeFlag == 'order') {
           q["mch_number"] = res[index]
         } else {
-          q["chnl_name"] = res[index]
+          q["chnl_id"] = res[index].id
         }
 
         this.OrderSuccessRateList.push({
@@ -148,13 +148,11 @@ export default {
     },
     async UpdateData(list) {
 
-      let key = this.routeFlag === 'order' ? "mch_number" : "chnl_name"
-      console.log(key);
+      let key = this.routeFlag === 'order' ? "mch_number" : "chnl_id"
       for (let index = 0; index < list.length; index++) {
         this.$set(
           this.OrderSuccessRateList,
           this.OrderSuccessRateList.findIndex((res) => {
-            console.log(res[key]);
 
             return list[index][key] === res[key];
           }),
@@ -179,7 +177,7 @@ export default {
       }
       if (this.routeFlag == "chnl") {
         listChnlSetting().then((res) => {
-          this.mch_list = res.rows.map((item) => item.chnl_name);
+          this.mch_list = res.rows;
           this.AddData(this.mch_list).then(res => {
             this.getList();
           })
@@ -192,7 +190,7 @@ export default {
 
       if (this.routeFlag == "chnl") {
         const query = {
-          chnl_list: this.mch_list,
+          chnl_list: this.mch_list.map((item) => item.chnl_name),
           cycle: this.queryParams.StatisticalTime,
         };
         listChnlSuccessRate(query).then((response) => {

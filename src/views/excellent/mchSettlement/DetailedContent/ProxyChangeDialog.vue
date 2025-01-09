@@ -82,10 +82,11 @@ export default {
         if (valid) {
           const mergedObj = { ...this.form };
           mergedObj['big_amount'] = mergedObj['big_amount'] * -1
-          mergedObj['msg'] += '（通道：' + this.Change['chnl_id'] + '，结算时间：' + this.Formatter.FormatTime(this.Change['start_time'] * 1000, 'YYYY-MM-DD') + '）'
+          mergedObj['msg'] += '（通道：' + this.Change['chnl_id'] + + '，结算时间：' + this.Formatter.FormatTime(
+            this.Change['start_time'] * 1000, 'YYYY-MM-DD HH:mm:ss') + '-' + this.Formatter.FormatTime(this.Change['create_time'] * 1000, 'YYYY-MM-DD HH:mm:ss') + '）'
 
           this.resetForm()
-          this.$emit('UpdateProxyChangeDialog', mergedObj, this.Change._id)
+          this.$emit('UpdateProxyChangeDialog', mergedObj, this.Change)
         } else {
           console.log('error submit!!');
           return false;

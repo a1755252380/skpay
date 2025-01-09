@@ -20,13 +20,11 @@ export default {
     ParameterIndex: {
       type: String,
       default: 'create_time'
-    }
-  },
-  data() {
-    return {
-      internalValue: this.modelValue,  // 绑定的内部值
-      pickerOptions: {
-        shortcuts: [
+    },
+    shortcuts: {
+      type: Array,
+      default:
+        [
           {
             text: '今天一天',
             onClick(picker) {
@@ -59,7 +57,15 @@ export default {
               picker.$emit('pick', [start, end]);
             }
           }
+
         ]
+    }
+  },
+  data() {
+    return {
+      internalValue: this.modelValue,  // 绑定的内部值
+      pickerOptions: {
+        shortcuts: this.shortcuts
       }
     };
   },

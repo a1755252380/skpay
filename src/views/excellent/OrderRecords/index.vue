@@ -109,6 +109,7 @@
     </DetailedContent>
     <!-- 输入订单号的方式进行补单 -->
     <BatchReplenishmentOfOrdersVue v-model="BatchAdditionShow"></BatchReplenishmentOfOrdersVue>
+    <ProgressDialog v-model="progressShow" ref="ProgressDialog"></ProgressDialog>
   </div>
 </template>
 
@@ -178,7 +179,7 @@ export default {
     AdjustOrderStatus,
     DetailedContent,
     dynamicTableVue,
-    BatchModification, BatchReplenishmentOfOrdersVue
+    BatchModification, BatchReplenishmentOfOrdersVue, ProgressDialog
   },
   computed: {
     // 计算当前页显示的数据
@@ -419,7 +420,8 @@ export default {
       BatchModificationList: [],
       //批量添加补单
       BatchAdditionShow: false,
-
+      //进度条显示
+      progressShow: false,
     };
   },
   created() {
@@ -434,12 +436,8 @@ export default {
     },
     //批量修改状态
     ChangeBatchModification(value) {
-      let loading = this.$loading({
-        lock: true,
-        text: "正在批量调整状态，请稍后...",
-        spinner: "el-icon-loading",
-        background: "rgba(0, 0, 0, 0.7)",
-      });
+      this.progressShow = true
+
 
       let promise = [];
       for (let index = 0; index < this.BatchModificationList.length; index++) {
@@ -464,13 +462,12 @@ export default {
 
         promise.push(query);
       }
-      this.$util.batchRequest(promise, ModifyOrderStatus).then(res => {
+      this.$refs.ProgressDialog.batchRequest(promise, ModifyOrderStatus).then(res => {
 
         this.$refs.myTable.clearSelection();
         this.BatchModificationList.splice(0);
         this.BatchModificationShow = false;
 
-        loading.close();
         this.$message({
           message: "批量修改成功",
           type: "success",
@@ -478,10 +475,25 @@ export default {
         this.RepeatedRequests = false
         this.$refs.search.handleQuery();//重新搜索一次
 
-      }).catch(err => {
-        loading.close();
-        this.$message.error("批量回调失败");
       })
+      // this.$util.batchRequest(promise, ModifyOrderStatus).then(res => {
+
+      //   this.$refs.myTable.clearSelection();
+      //   this.BatchModificationList.splice(0);
+      //   this.BatchModificationShow = false;
+
+      //   loading.close();
+      //   this.$message({
+      //     message: "批量修改成功",
+      //     type: "success",
+      //   });
+      //   this.RepeatedRequests = false
+      //   this.$refs.search.handleQuery();//重新搜索一次
+
+      // }).catch(err => {
+      //   loading.close();
+      //   this.$message.error("批量回调失败");
+      // })
 
 
     },
@@ -538,17 +550,12 @@ export default {
         this.$message.warning("请选择要修改的数据");
         return;
       } else {
-        this.$confirm('是否对该订单进行回调？', '确认信息', {
+        this.$confirm('是否对这些订单进行回调？', '确认信息', {
           distinguishCancelAndClose: true,
           confirmButtonText: '确定',
           cancelButtonText: '取消'
         }).then(res => {
-          let loading = this.$loading({
-            lock: true,
-            text: "正在批量调整状态，请稍后...",
-            spinner: "el-icon-loading",
-            background: "rgba(0, 0, 0, 0.7)",
-          });
+          this.progressShow = true;
           let confirmList = []
           for (let index = 0; index < this.BatchModificationList.length; index++) {
             confirmList.push({
@@ -558,19 +565,16 @@ export default {
               operation: 3,
             })
           }
+          this.$refs.ProgressDialog.batchRequest(confirmList, ModifyOrderStatus).then(res => {
 
-          this.$util.batchRequest(confirmList, ModifyOrderStatus).then(res => {
-            console.log(res);
-            loading.close();
             this.$message.success("批量回调成功");
             this.$refs.myTable.clearSelection();
             this.BatchModificationList.splice(0);
             this.RepeatedRequests = false
             this.$refs.search.handleQuery();//重新搜索一次
-          }).catch(err => {
-            console.log(err);
-            this.$message.error("批量回调失败");
+
           })
+
 
         })
       }

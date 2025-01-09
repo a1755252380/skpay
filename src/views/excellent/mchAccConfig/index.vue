@@ -254,6 +254,8 @@
     <!-- 批量进行分流设置 -->
     <BatchDiversionVue :visibleShow="BatchDiversionVisible" @updateVisible="updateBatchDiversionVisible"
       @submit="batchDiversion" :ChangeList="ChangeList"></BatchDiversionVue>
+    <!-- 进度条弹窗 -->
+    <ProgressDialog v-model="progressVisible" ref="ProgressDialog"></ProgressDialog>
   </div>
 </template>
 
@@ -271,6 +273,7 @@ import dynamicTableVue from "@/components/Excellent/dynamicTable.vue";
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
 import BatchChangeChannels from "./modules/BatchChangeChannels.vue";
 import BatchDiversionVue from './modules/BatchDiversion.vue';
+import ProgressDialog from "@/components/dialog/ProgressDialog.vue";
 
 export default {
   name: "MchAccConfig",
@@ -414,6 +417,8 @@ export default {
       batchChangeChannelsVisible: false,
       //批量设置分流
       BatchDiversionVisible: false,
+      //进度条弹窗
+      progressVisible: false,
     };
   },
   created() {
@@ -446,69 +451,36 @@ export default {
     updateBatchDiversionVisible() {
       this.BatchDiversionVisible = false;
     },
-    // 模拟延时功能
-    async delay(duration) {
-      return new Promise(resolve => setTimeout(resolve, duration));
-    },
-    // 封装带延时的请求方法
-    async delayedRequest(query, delayDuration) {
-      await this.delay(delayDuration); // 延时
-      updateMchAccConfig(query).then(response => {
-        return response;
-      }).catch(error => {
-        throw error; // 确保 Promise 保持失败状态
-      })
 
-    },
     //批量提交修改通道
     batchSubmit(confirmList) {
-      console.log(confirmList);
-
-      const loading = this.$loading({
-        lock: true,
-        text: '正在切换，请稍候...',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      })
-      let promiseList = []
-      confirmList.forEach((element, index) => {
-        promiseList.push(this.delayedRequest(element, 200 * index))
-      });
-      Promise.all(promiseList).then((res) => {
-
+      this.progressVisible = true;
+      this.batchChangeChannelsVisible = false;
+      this.$refs.ProgressDialog.batchRequest(confirmList, updateMchAccConfig).then((res) => {
         this.$message({
           message: '批量切换成功',
           type: 'success',
         });
-        this.batchChangeChannelsVisible = false;
-        setTimeout(() => {
-          loading.close();
-          this.ids.splice(0, this.ids.length);
-          this.getList();
-        }, 500);
+        this.ids.splice(0, this.ids.length);
+        this.getList();
       })
+
     },
     //批量设置分流数据
     batchDiversion(confirmList) {
-
-      const loading = this.$loading({
-        lock: true,
-        text: '正在切换，请稍候...',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      })
-      this.$util.batchRequest(confirmList, updateMchAccConfig, 200).then((res) => {
+      this.progressVisible = true;
+      this.BatchDiversionVisible = false;
+      this.$refs.ProgressDialog.batchRequest(confirmList, updateMchAccConfig).then((res) => {
         this.$message({
-          message: '批量切换成功',
+          message: '批量设置分流成功',
           type: 'success',
         });
-        this.BatchDiversionVisible = false;
-        setTimeout(() => {
-          loading.close();
-          this.ids.splice(0, this.ids.length);
-          this.getList();
-        }, 500);
+
+        this.ids.splice(0, this.ids.length);
+        this.getList();
+
       })
+
 
 
 
@@ -755,7 +727,7 @@ export default {
 
   },
 
-  components: { dynamicTableVue, MchNumSelect, BatchChangeChannels, BatchDiversionVue },
+  components: { dynamicTableVue, MchNumSelect, BatchChangeChannels, BatchDiversionVue, ProgressDialog },
 };
 </script>
 

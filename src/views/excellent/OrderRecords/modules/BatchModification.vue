@@ -149,7 +149,7 @@ export default {
 }
 
 .radio-item {
-  display: grid;
+  display: grid !important;
   gap: 6px;
 
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));

@@ -239,7 +239,7 @@ export const startAnimation = () => {
 //批量发送请求的方法
 // 延时函数
 function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(() => resolve(true), ms));
 }
 
 export async function batchRequest(submitList, requestFn, delayTime = 100) {
@@ -249,23 +249,26 @@ export async function batchRequest(submitList, requestFn, delayTime = 100) {
     );
   }
 
-  const results = [];
-  for (let i = 0; i < submitList.length; i++) {
-    const item = submitList[i];
+  // 创建请求任务数组，每个任务在启动前按索引延时
+  const tasks = submitList.map((item, index) =>
+    (async () => {
+      try {
+        // 按索引延时
+        if (delayTime > 0) {
+          await delay(index * delayTime);
+        }
 
-    try {
-      // 请求前延时
-      if (delayTime > 0) {
-        await delay(delayTime);
+        // 调用请求函数
+        const response = await requestFn(item);
+        return { success: true, item, response };
+      } catch (error) {
+        return { success: false, item, error };
       }
+    })()
+  );
 
-      // 调用请求函数
-      const response = await requestFn(item);
-      results.push({ success: true, item, response });
-    } catch (error) {
-      results.push({ success: false, item, error });
-    }
-  }
+  // 并发执行所有请求任务
+  const results = await Promise.all(tasks);
 
   // 分类整理成功和失败的结果
   const successList = results.filter((result) => result.success);

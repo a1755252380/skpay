@@ -261,7 +261,6 @@ export default {
       this.DetailedContentShow = true
       this.DetailedContentListLoading = true
       this.DetailedContentNumber = row.mch_number
-      this.$refs.DetailedContentVue.getList(this.DetailedContentNumber)
 
     },
     ReturnDetailedContentShow(value) {
