@@ -241,6 +241,29 @@ export const startAnimation = () => {
 function delay(ms) {
   return new Promise((resolve) => setTimeout(() => resolve(true), ms));
 }
+import Vue from "vue";
+import ProgressDialog from "@/components/dialog/ProgressDialog2.vue"; // 引入你需要创建的组件
+
+// 创建一个 Vue 实例，并手动挂载
+function createComponent() {
+  // 动态创建组件实例
+  const MyComponentConstructor = Vue.extend(ProgressDialog);
+
+  // 创建该组件的实例
+  const instance = new MyComponentConstructor().$mount();
+
+  // 将实例的 DOM 元素插入到页面中
+  document.body.appendChild(instance.$el);
+
+  // 返回组件实例（你可以用于销毁组件）
+  return instance;
+}
+function destroyComponent(componentInstance) {
+  if (componentInstance) {
+    componentInstance.$destroy();
+    componentInstance.$el.remove(); // 从 DOM 中移除组件
+  }
+}
 
 export async function batchRequest(submitList, requestFn, delayTime = 100) {
   if (!Array.isArray(submitList) || typeof requestFn !== "function") {
@@ -277,3 +300,58 @@ export async function batchRequest(submitList, requestFn, delayTime = 100) {
   // 返回成功和失败的结果
   return { successList, errorList };
 }
+//自动显示进度条的批量请求
+export async function ProgressRequest(submitList, requestFn, delayTime = 100) {
+  if (!Array.isArray(submitList) || typeof requestFn !== "function") {
+    throw new Error(
+      "Invalid arguments: submitList should be an array and requestFn should be a function"
+    );
+  }
+  console.log(submitList);
+
+  // 动态创建组件实例
+  const MyComponentConstructor = Vue.extend(ProgressDialog);
+
+  // 创建该组件的实例
+  const instance = new MyComponentConstructor().$mount();
+
+  // 将实例的 DOM 元素插入到页面中
+  document.body.appendChild(instance.$el);
+  console.log(instance);
+
+  const Result = instance.batchRequest(submitList, requestFn, delayTime);
+  setTimeout(() => {
+    instance.$destroy();
+  }, 2000);
+  return Result;
+}
+//base32编码
+export const Base32Encode = (input) => {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"; // Base32 字母表
+
+  const inputBuffer = new TextEncoder().encode(input);
+  let output = "";
+  let bits = 0;
+  let value = 0;
+  let index = 0;
+
+  for (const byte of inputBuffer) {
+    value = (value << 8) | byte;
+    bits += 8;
+    while (bits >= 5) {
+      index = (value >> (bits - 5)) & 31;
+      output += alphabet[index];
+      bits -= 5;
+    }
+  }
+
+  if (bits > 0) {
+    output += alphabet[(value << (5 - bits)) & 31];
+  }
+
+  while (output.length % 8 !== 0) {
+    output += "=";
+  }
+
+  return output;
+};

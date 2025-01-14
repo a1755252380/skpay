@@ -9,8 +9,18 @@
 
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+
+        <el-button type="primary" icon="el-icon-s-claim" size="mini" @click="Settlement">结算</el-button>
+        <!-- <el-button  icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button> -->
+
         <!-- <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :search="false"></right-toolbar> -->
+      </el-form-item>
+      <el-form-item>
+        <div style="display: flex;">
+          <el-input v-model="checkListInput" placeholder="请输入商户号,用逗号分隔" clearable size="mini"
+            style=" margin-right: 6px;"></el-input>
+          <el-button type="primary" icon="el-icon-download" size="mini" @click="CheckChoose">选择</el-button>
+        </div>
       </el-form-item>
     </el-form>
     <div class="CalculationFormula">
@@ -20,11 +30,13 @@
         v-if="!checkRole(['admin'])"></right-toolbar>
     </div>
 
-    <dynamicTableVue :tableData="mchSettlementListShow" @handleSelectionChange="handleSelectionChange"
-      :loading="loading" :defaultSort="{ order: 'ascending', prop: 'mch_number' }" ref="myTable">
+    <el-table v-AutoHeight="{
+      Ref: 'myTable'
+    }" :data="mchSettlementListShow" @selection-change="handleSelectionChange" v-loading="loading"
+      :default-sort="{ order: 'ascending', prop: 'mch_number' }" ref="myTable" border :row-key="'mch_number'"
+      @select="handSelect" :highlight-selection-row="true">
+      <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="商户号 " align="center" prop="mch_number" />
-      <!-- <el-table-column label="商户名称" align="center" prop="mch_name" /> -->
-      <!-- <el-table-column label="货币代号" align="center" prop="currency" /> -->
       <el-table-column label="已结算代收金额" align="center" prop="payin_success_amount_count"
         :formatter="Formatter.TableAmount" />
       <el-table-column label="已结算代付金额" align="center" prop="pay_out_success_amount_count"
@@ -34,24 +46,23 @@
         :formatter="Formatter.TableAmount" />
       <el-table-column label="总代付手续费" align="center" prop="pay_out_success_service_charge"
         :formatter="Formatter.TableAmount" />
-      <!-- <el-table-column label="截止时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond"
-        width="180" /> -->
-      <el-table-column label="历史" align="center" class-name="small-padding ">
+
+      <!-- <el-table-column label="历史" align="center" class-name="small-padding ">
         <template slot-scope="scope">
           <el-button size="mini" type="text" icon="el-icon-warning-outline"
             @click="handleUpdate(scope.row)">历史数据</el-button>
         </template>
-      </el-table-column>
+</el-table-column> -->
 
 
-    </dynamicTableVue>
+    </el-table>
 
 
 
     <!-- 详细弹窗 -->
 
-    <DetailedContentVue :DetailedContentShow="DetailedContentShow" ref="DetailedContentVue"
-      :mch_number="DetailedContentNumber" @ReturnDetailedContentShow="ReturnDetailedContentShow">
+    <DetailedContentVue :DetailedContentShow="DetailedContentShow" ref="DetailedContentVue" :ChooseRows="ChooseRows"
+      @ReturnDetailedContentShow="ReturnDetailedContentShow">
     </DetailedContentVue>
 
   </div>
@@ -71,6 +82,11 @@ export default {
   },
   data() {
     return {
+      //输入想选中的行
+      checkListInput: "",
+      //选中数据
+      ChooseRows: [],
+      maxSelect: 5,//最大选中数
       // 遮罩层
       loading: true,
       // 选中数组
@@ -113,10 +129,12 @@ export default {
       RepeatedRequests: false,
       // 详情
       DetailedContentShow: false,
-      DetailedContentNumber: 0
     };
   },
   computed: {
+    // isSelectDisabled() {
+    //   return this.ChooseRows.length >= this.maxSelect;
+    // },
     mchSettlementListShow() {
 
       if (!this.queryParams.mchNum) {
@@ -136,6 +154,32 @@ export default {
     this.getList();
   },
   methods: {
+    CheckChoose() {
+      if (this.checkListInput == "") {
+        return this.$message.warning("请输入商户号");
+      }
+      this.ChooseRows.splice(0)
+      const list = this.checkListInput.split(/[,，]/).map(item => item.trim());
+
+      for (let index = 0; index < list.length; index++) {
+        const element = this.mchSettlementList.find(item => item.mch_number == list[index])
+        element.isSelect = true
+
+        this.$refs.myTable.toggleRowSelection(element, true);
+      }
+
+    },
+    //进行结算
+    Settlement() {
+      if (this.ChooseRows.length == 0) {
+        this.$message({
+          message: "请选择需要结算的商户",
+          type: "warning",
+        });
+        return
+      }
+      this.DetailedContentShow = true
+    },
     //数据处理
     async DataProcessing(list) {
       list = this.$util.deepFreeze(list)
@@ -144,6 +188,8 @@ export default {
           // 比较 mch_num 相同的对象，保留 create_time 最大的
           if (!acc[obj.mch_number] || acc[obj.mch_number].create_time < obj.create_time) {
             acc[obj.mch_number] = obj;
+            console.log(acc[obj.mch_number]);
+
           }
           return acc;
         }, {})
@@ -159,6 +205,9 @@ export default {
       let query = { ...this.queryParams };
       listMchSettlementList(query).then((response) => {
         this.mchSettlementList = response.results;
+        this.mchSettlementList.map((item) => {
+          item['isSelect'] = false
+        })
         this.pageData.total = this.mchSettlementList.length;
         this.loading = false;
 
@@ -241,13 +290,26 @@ export default {
       this.queryParams.mchNum = null; this.SearchIndex = -1
       this.handleQuery();
     },
+    handSelect(selection, row) {
+      row.isSelect = !row.isSelect
 
-    // 多选框选中数据
-    handleSelectionChange(selection) {
-      this.ids = selection.map(item => item.id)
-      this.single = selection.length !== 1
-      this.multiple = !selection.length
     },
+    // 多选框选中数据
+    handleSelectionChange(ChooseRows) {
+
+      this.ChooseRows = ChooseRows;  // 更新选中的行
+
+    },
+    //是否禁用选择
+    // selectableFun(row, index) {
+    //   if (row.isSelect) {
+    //     return true
+    //   }
+    //   if (this.isSelectDisabled) {
+    //     return false
+    //   }
+    //   return true
+    // },
     /** 新增按钮操作 */
     handleAdd() {
       this.reset();
@@ -331,4 +393,9 @@ export default {
   font-weight: bold;
   color: #000
 }
-</style>
+
+// ::v-deep .el-table__header .el-table-column--selection {
+//   .cell {
+//     display: none;
+//   }
+// }</style>

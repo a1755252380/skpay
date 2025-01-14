@@ -1,7 +1,8 @@
 import { login, logout, getInfo, refreshToken } from "@/api/login";
 import { getToken, setToken, setExpiresIn, removeToken } from "@/utils/auth";
-import jsCookie from "js-cookie";
+import { Base32Encode } from "@/utils/util";
 import router from "@/router";
+import Cookies from "js-cookie";
 const user = {
   state: {
     token: getToken(),
@@ -13,6 +14,11 @@ const user = {
     permissions: [],
     //缓存数据
     CacheData: {},
+    //是否需要弹窗绑定二维码
+    isShowBindQrCode:
+      getToken() != "" ? (Cookies.get("totp") == 1 ? true : false) : false,
+    totp: Cookies.get("totp") ? Cookies.get("totp") : 0,
+    passwordBase32: Cookies.get("passBase32") ? Cookies.get("passBase32") : "",
   },
 
   mutations: {
@@ -37,18 +43,36 @@ const user = {
     SET_PERMISSIONS: (state, permissions) => {
       state.permissions = permissions;
     },
+    SET_passwordBase32: (state, passwordBase32) => {
+      state.passwordBase32 = passwordBase32;
+    },
+    SET_isShowBindQrCode: (state, permissions) => {
+      state.isShowBindQrCode = permissions;
+    },
   },
 
   actions: {
     // 登录
-    Login({ commit }, userInfo) {
+    Login({ commit, state }, userInfo) {
       const username = userInfo.username.trim();
       const password = userInfo.password;
       const captcha_input = userInfo.captcha_input;
-      const captcha_id = userInfo.captcha_id;
+      console.log("登录");
+
       return new Promise((resolve, reject) => {
-        login(username, password, captcha_input, captcha_id)
+        login(username, password, captcha_input)
           .then((res) => {
+            //0是已激活没给验证码
+            //1是未激活需绑定
+            commit("SET_passwordBase32", Base32Encode(password));
+            Cookies.set("passBase32", Base32Encode(password));
+            if (res.totp == 1) {
+              Cookies.set("totp", res.totp);
+
+              setTimeout(() => {
+                commit("SET_isShowBindQrCode", true);
+              }, 1000);
+            }
             let data = res.user_info;
             // setToken(data.access_token);
             // commit("SET_TOKEN", data.access_token);
@@ -58,10 +82,11 @@ const user = {
             commit("SET_EXPIRES_IN", data.cookie_expire);
             setExpiresIn(data.cookie_expire);
 
-            resolve(data);
+            return resolve(data);
           })
           .catch((error) => {
-            reject(error);
+            console.log(error);
+            return reject(error);
           });
       });
     },

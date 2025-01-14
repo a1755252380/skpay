@@ -8,6 +8,11 @@
 
     <div class="right-menu">
       <template v-if="device !== 'mobile'">
+        <screenfull id="screenfull" class="right-menu-item hover-effect" />
+
+        <div class="right-menu-item">
+          <el-button size="mini" type="primary" @click="GetQrCode">绑定二维码</el-button>
+        </div>
         <!-- <search id="header-search" class="right-menu-item" />
 
         <el-tooltip content="源码地址" effect="dark" placement="bottom">
@@ -18,7 +23,6 @@
           <ruo-yi-doc id="ruoyi-doc" class="right-menu-item hover-effect" />
         </el-tooltip> -->
 
-        <screenfull id="screenfull" class="right-menu-item hover-effect" />
 
         <!-- <el-tooltip content="布局大小" effect="dark" placement="bottom">
           <size-select id="size-select" class="right-menu-item hover-effect" />
@@ -115,6 +119,9 @@ export default {
           location.href = '/index';
         })
       }).catch(() => { });
+    },
+    GetQrCode() {
+      this.$store.commit('SET_isShowBindQrCode', true)
     }
   }
 }
@@ -166,6 +173,7 @@ export default {
     float: right;
     height: 100%;
     line-height: 50px;
+    display: flex;
 
     &:focus {
       outline: none;
@@ -173,11 +181,12 @@ export default {
 
     .right-menu-item {
       display: inline-block;
-      padding: 0 8px;
+      padding: 0 12px;
       height: 100%;
       font-size: 18px;
       color: #5a5e66;
       vertical-align: text-bottom;
+
 
       &.hover-effect {
         cursor: pointer;

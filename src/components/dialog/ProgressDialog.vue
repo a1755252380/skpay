@@ -14,7 +14,7 @@
               successCount }} </span> 失败:<span class="error"> {{ errorCount }} </span> </div>
       </div>
     </div>
-    <template #footer v-if="isFinish">
+    <template #footer v-if="isFinish && isClose">
       <!-- <el-button type="danger" size="small" @click="startTasks">复制失败的订单号</el-button> -->
       <el-button type="primary" size="small" @click="() => {
         reset()
@@ -50,6 +50,7 @@ export default {
       set(val) {
         this.$emit('update:dialogShow', val)
       }
+
     },
 
     percentage() {
@@ -89,6 +90,7 @@ export default {
       errorCount: 0, // 失败数量
       errorList: [], // 失败列表
       successList: [], // 成功列表
+      isClose: true, // 是否关闭
       //是否完成请求
       isFinish: false,
       customColors: [
@@ -107,9 +109,13 @@ export default {
 
   methods: {
     delay(ms) {
-      return new Promise((resolve) => setTimeout(() => {
-        resolve(true)
-      }, ms));
+      return new Promise((resolve) => {
+        const time = setTimeout(() => {
+          clearTimeout(time)
+          resolve(true)
+        }, ms)
+
+      });
     },
 
     async batchRequest(submitList, requestFn, delayTime = 200) {
@@ -118,6 +124,7 @@ export default {
           "Invalid arguments: submitList should be an array and requestFn should be a function"
         );
       }
+      this.centerDialogVisible = true
       console.log(submitList);
       this.isFinish = false
       this.totalCount = submitList.length;
@@ -157,6 +164,14 @@ export default {
         this.isFinish = true
         this.dialogTitle = '提交结果'
       }
+      if (!this.isClose) {
+        setTimeout(() => {
+          this.centerDialogVisible = false
+          this.isClose = true
+          this.reset()
+        }, 800);
+      }
+
       return { successList: this.successList, errorList: this.errorList };
     },
     //重置进度条

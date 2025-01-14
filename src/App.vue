@@ -2,15 +2,19 @@
   <div id="app">
     <router-view />
     <theme-picker v-show="false" />
+    <!-- 弹窗绑定二维码 -->
+    <qrCodeDialogVue></qrCodeDialogVue>
   </div>
 </template>
 
 <script>
 import ThemePicker from "@/components/ThemePicker";
+import qrCodeDialogVue from './components/dialog/qrCodeDialog.vue';
+
 export default {
   name: "App",
   components: {
-    ThemePicker,
+    ThemePicker, qrCodeDialogVue
   },
   data() {
     return {

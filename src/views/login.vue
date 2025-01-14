@@ -29,39 +29,40 @@
         <div class="hand left"></div>
         <div class="hand right"></div>
         <h1>Buddy后台管理系统</h1>
-
-        <div class="ipt-box">
-          <input type="text" required v-model="loginForm.username">
-          <label>用户名</label>
-        </div>
-
-
-
-        <div class="ipt-box">
-          <input :type="passwordVisible ? 'text' : 'password'" id="password" v-model="loginForm.password" required>
-          <label>密码</label>
-          <!-- 切换密码显示状态的图标 -->
-          <span @click="passwordVisible = !passwordVisible" class="password-toggle" v-show="loginForm.password">
-            <i :class="passwordVisible ? 'el-icon-view' : 'el-icon-view'"></i>
-          </span>
-        </div>
-        <div class="ipt-box code_input">
-          <input v-model="loginForm.captcha_input" required>
-          <label>验证码</label>
-          <el-image :src="codeUrl" style="height: 40px;cursor: pointer;" @click="getCode">
-            <div slot="placeholder" class="image-slot " style="height: 40px;width:90px">
-              <i class="el-icon-loading"></i>
+        <div class="input_div">
+          <div class="input_box">
+            <div class="ipt-box" v-show="codeNeed">
+              <input type="text" required v-model="loginForm.username">
+              <label>用户名</label>
             </div>
-            <div slot="error" class="image-slot" style="height: 40px;width:90px">
-              <i class="el-icon-picture-outline"></i>
+
+
+
+            <div class="ipt-box" v-show="codeNeed">
+              <input :type="passwordVisible ? 'text' : 'password'" id="password" v-model="loginForm.password" required>
+              <label>密码</label>
+              <!-- 切换密码显示状态的图标 -->
+              <span @click="passwordVisible = !passwordVisible" class="password-toggle" v-show="loginForm.password">
+                <i :class="passwordVisible ? 'el-icon-view' : 'el-icon-view'"></i>
+              </span>
             </div>
-          </el-image>
-          <!-- 验证码图片 -->
+
+            <div class="ipt-box code_input" v-show="!codeNeed">
+              <input v-model="loginForm.captcha_input" required>
+              <label>验证码</label>
+
+              <!-- 验证码图片 -->
+            </div>
+          </div>
+          <div class="login_btn">
+            <el-checkbox v-model="loginForm.rememberMe" style="margin:10px auto">记住密码</el-checkbox>
+            <button @click="handleLogin" :disabled="loading"> <template v-if="!loading">登
+                录</template>
+              <template v-else><i class="el-icon-loading"></i></template></button>
+          </div>
         </div>
-        <el-checkbox v-model="loginForm.rememberMe" style="margin:10px auto">记住密码</el-checkbox>
-        <button @click="handleLogin" :disabled="loading"> <template v-if="!loading">登
-            录</template>
-          <template v-else><i class="el-icon-loading"></i></template></button>
+
+
       </div>
     </div>
 
@@ -92,14 +93,16 @@ export default {
   },
   data() {
     return {
+      // 是否需要验证码
+      codeNeed: true,
       passwordVisible: false,
       codeUrl: null,
+
       loginForm: {
         username: "",
         password: "",
         rememberMe: false,
         captcha_input: "",
-        captcha_id: ""
       },
       loginRules: {
         username: [
@@ -108,7 +111,7 @@ export default {
         password: [
           { required: true, trigger: "blur", message: "请输入您的密码" }
         ],
-        captcha_input: [{ required: true, trigger: "change", message: "请输入验证码" }]
+        // captcha_input: [{ required: true, trigger: "change", message: "请输入验证码" }]
       },
       loading: false,
       // 验证码开关
@@ -127,7 +130,6 @@ export default {
     }
   },
   created() {
-    this.getCode();
     this.getCookie();
   },
   mounted() {
@@ -151,18 +153,7 @@ export default {
     })
   },
   methods: {
-    getCode() {
-      getCodeImgID().then(res => {
-        this.loginForm.captcha_id = res.captcha_id;
-        this.codeUrl = "/console/captcha/image?id=" + res.captcha_id
-        // getCodeImg(res.captcha_id).then(res => {
-        //   console.log(res);
 
-        //   this.codeUrl = res
-        // })
-      })
-
-    },
     getCookie() {
       const username = Cookies.get("Buddy-username");
       const password = Cookies.get("Buddy-password");
@@ -171,20 +162,18 @@ export default {
         username: username === undefined ? this.loginForm.username : username,
         password: password === undefined ? this.loginForm.password : decrypt(password),
         rememberMe: rememberMe === undefined ? false : Boolean(rememberMe),
-        captcha_input: "",
-        captcha_id: ""
       };
     },
     handleLogin() {
       this.loading = true;
 
       this.$store.dispatch("Login", this.loginForm).then((res) => {
+        console.log(res);
 
-        // this.$message.success();
+
+        this.$message.success("登录成功");
         if (process.env.VUE_APP_ENV === 'production') {
           this.$util.startAnimation()
-
-
         }
         if (this.loginForm.rememberMe) {
           Cookies.set("Buddy-username", this.loginForm.username, { expires: 30 });
@@ -198,11 +187,10 @@ export default {
 
         this.$router.push({ path: this.redirect || "/" });
 
-      }).catch(() => {
+      }).catch((res) => {
+        this.codeNeed = false;
         this.loading = false;
-        if (this.captchaEnabled) {
-          this.getCode();
-        }
+
       });
       // this.$refs.loginForm.validate(valid => {
       //   if (valid) {
@@ -215,6 +203,29 @@ export default {
 </script>
 
 <style rel="stylesheet/scss" lang="scss">
+.input_div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0 25px 0;
+  justify-content: space-between;
+  width: 65%;
+  align-items: center;
+
+  .input_box {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+  }
+
+  .login_btn {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
 .login {
   display: flex;
   justify-content: center;
@@ -433,11 +444,12 @@ export default {
   /* 身体 */
   .body {
     width: 250px;
-    height: 340px;
+    height: 345px;
+
     background-color: #fff;
     position: relative;
     left: -25px;
-    top: -35px;
+    top: -60px;
     border-radius: 100px 100px 100px 100px / 126px 126px 96px 96px;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
   }
@@ -448,7 +460,7 @@ export default {
     height: 120px;
     background-color: #000;
     position: absolute;
-    bottom: -8px;
+    bottom: 10px;
     z-index: 3;
     border-radius: 40px 40px 35px 40px / 26px 26px 63px 63px;
     box-shadow: 0 5px 5px rgba(0, 0, 0, 0.2);
@@ -534,8 +546,8 @@ export default {
 
   /* 登录框 */
   .login-box {
-    width: 450px;
-    height: 350px;
+    width: 400px;
+    height: 325px;
     background-color: #fff;
     border-radius: 3px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
@@ -560,7 +572,7 @@ export default {
   }
 
   .ipt-box {
-    width: 80%;
+    width: 100%;
     margin-top: 25px;
     position: relative;
   }
@@ -622,7 +634,7 @@ export default {
 
   /* 登录框向上举 */
   .up {
-    transform: translate(-50%, -180px);
+    transform: translate(-50%, -130px);
   }
 
 }

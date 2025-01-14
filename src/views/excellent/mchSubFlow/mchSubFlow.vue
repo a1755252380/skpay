@@ -28,7 +28,8 @@
         </el-select>
       </el-form-item>
       <el-form-item label="创建时间" prop="create_time" class="large">
-        <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'">
+        <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'"
+          :shortcuts="shortcuts">
         </TimeFrameVue>
 
       </el-form-item>
@@ -49,7 +50,7 @@ import { listChnlSetting } from "@/api/excellent/chnlSetting";
 import { listMchSetting } from "@/api/excellent/MchSetting";
 import OrderAndSteam from "@/components/Excellent/SearchLayout/OrderAndSteam.vue";
 import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
-
+import moment from 'moment';
 export default {
   name: 'WorkspaceJsonOrderSearch',
   props: ['showSearch', 'TabsChangeStatus'],
@@ -61,14 +62,14 @@ export default {
         order_id: null,
         chnl_id: null,
         create_time: null,
-        end_time: null,
+        create_end_time: null,
         msg: null,
         operation: null,
         stream_type: 'amount'
       },
       timedata: {
         create_time: [],
-        // end_time: null
+        // create_end_time: null
       },
       PaymentChannel: [],
       MainAccount: [],
@@ -86,6 +87,40 @@ export default {
         { name: '账户待结算余额调整记录', value: 1, show: '1' },
         { name: '账户代付可用余额调整记录', value: 2, show: '1' },
         { name: '账户可用余额调整记录', value: 3, show: '1' },
+      ],
+      shortcuts: [
+        {
+          text: '今天一天',
+          onClick(picker) {
+            const start = moment().tz("Asia/Kolkata").startOf('day').format("YYYY-MM-DD HH:mm:ss");
+            const end = moment().tz("Asia/Kolkata").add(1, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
+            picker.$emit('pick', [start, end]);
+          }
+        },
+        {
+          text: '昨天一天',
+          onClick(picker) {
+            const start = moment().tz("Asia/Kolkata").subtract(1, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
+            const end = moment().tz("Asia/Kolkata").startOf('day').format("YYYY-MM-DD HH:mm:ss");
+            picker.$emit('pick', [start, end]);
+          }
+        },
+        {
+          text: '前天一天',
+          onClick(picker) {
+            const start = moment().tz("Asia/Kolkata").subtract(2, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
+            const end = moment().tz("Asia/Kolkata").subtract(1, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
+            picker.$emit('pick', [start, end]);
+          }
+        },
+        {
+          text: '近三天',
+          onClick(picker) {
+            const end = moment().tz("Asia/Kolkata").add(1, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
+            const start = moment().tz("Asia/Kolkata").subtract(3, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
+            picker.$emit('pick', [start, end]);
+          }
+        }
       ],
     };
   },
@@ -114,7 +149,7 @@ export default {
       let utcTimeEnd = value[1];
       if (index == 'create_time') {
         this.$set(this.queryParams, 'create_time', utcTimebegin);
-        this.$set(this.queryParams, 'end_time', utcTimeEnd);
+        this.$set(this.queryParams, 'create_end_time', utcTimeEnd);
       }
 
     },
@@ -123,7 +158,7 @@ export default {
       this.$set(this.timedata, index, []);
       if (index == 'create_time') {
         this.$set(this.queryParams, 'create_time', null);
-        this.$set(this.queryParams, 'end_time', null);
+        this.$set(this.queryParams, 'create_end_time', null);
       }
     },
     handleQuery() {
@@ -140,22 +175,22 @@ export default {
         order_id: null,
         chnl_id: null,
         create_time: null,
-        end_time: null,
+        create_end_time: null,
         msg: null,
         operation: null,
         stream_type: 'amount'
       }
       this.timedata = {
         create_time: null,
-        end_time: null
+        create_end_time: null
       },
-        this.queryParams.end_time = null
+        this.queryParams.create_end_time = null
       this.queryParams.create_time = null
       this.handleQuery();
     },
 
     handleExport() {
-      if (this.queryParams.create_time && this.queryParams.end_time) {
+      if (this.queryParams.create_time && this.queryParams.create_end_time) {
         let TimeFrame = '';
         const params = { ...this.queryParams };
         if (params['mch_number']) {

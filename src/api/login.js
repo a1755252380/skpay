@@ -69,3 +69,14 @@ export function getCodeImgID() {
     method: "get",
   });
 }
+//验证totp验证码
+export function verifyTotp(data) {
+  return request({
+    url: "/user/verify/totp",
+    headers: {
+      isToken: false,
+    },
+    method: "post",
+    data: data,
+  });
+}

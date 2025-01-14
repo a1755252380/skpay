@@ -1,0 +1,943 @@
+<template>
+  <div style="padding: 10px 20px;">
+    <el-form ref="DetailedContentSearch" :inline="true" label-width="80px" size="small"
+      :model="DetailedContentListQueryParams">
+      <el-form-item label="商户号 " prop="mchNum">
+        <MchNumSelect v-model="DetailedContentListQueryParams.mch_number"></MchNumSelect>
+      </el-form-item>
+      <el-form-item label="通道ID" prop="chnl_id">
+        <ChannelQuery v-model="DetailedContentListQueryParams.chnl_id" @change="ChannelQueryChange"></ChannelQuery>
+      </el-form-item>
+      <el-form-item label="查询时间" prop="create_time">
+
+        <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'"
+          :shortcuts="shortcuts">
+        </TimeFrameVue>
+      </el-form-item>
+
+      <el-form-item>
+        <el-button icon="el-icon-refresh" @click="reset" size="mini">重置</el-button>
+        <el-button type="primary" icon="el-icon-search" @click="EmptyQuery" size="mini">搜索</el-button>
+        <el-button type="primary" icon="el-icon-refresh" @click="BatchSettlement" size="mini">批量结算</el-button>
+      </el-form-item>
+    </el-form>
+
+    <div class="tableTip">（<span class="todayText">蓝色部分</span>表示今日数据，<span class="secondText">浅蓝色部分</span>表示昨日数据）
+    </div>
+    <el-table v-AutoHeight="{
+      Ref: 'multipleTable'
+    }" :data="DetailedContentPaginatedItems" :class="!ReadyRequest ? 'SettlementForm' : ''" row-key="id"
+      v-loading="DetailedContentLoading" :key="tableId" height="100%"
+      :empty-text="!ReadyRequest ? '请先选择通道以及时间段再进行查询' : '暂无数据'" :highlight-current-row="false" ref="multipleTable"
+      :row-class-name="rowClassNameFun" @select="selectFun" @select-all="selectAllFun"
+      :header-row-class-name="headerRowClassName" :tree-props="{ hasChildren: 'hasChildren', children: 'children' }"
+      @expand-change="expandChange" border>
+      <el-table-column type="selection" width="55" align="center" :selectable="readyselectable" />
+      <el-table-column label="商户号 " align="center" prop="mch_number" width="150" />
+      <!-- <el-table-column label="商户名称" align="center" prop="mch_name" width="80" show-overflow-tooltip /> -->
+      <el-table-column label="通道ID" align="center" prop="chnl_id" width="80" />
+      <!-- <el-table-column label="货币代号" align="center" prop="currency" /> -->
+      <el-table-column label="已结算代收金额" align="center" prop="payin_success_amount_count" min-width="130"
+        :formatter="Formatter.TableAmount" />
+      <!-- <el-table-column label="已结算代付金额" align="center" prop="pay_out_success_amount_count" min-width="130"
+          :formatter="Formatter.TableAmount" />
+        <el-table-column label="在途代付金额" align="center" prop="pending_amount_count" :formatter="Formatter.TableAmount"
+          min-width="130" />
+        <el-table-column label="总代收手续费" align="center" prop="pay_in_success_service_charge" min-width="130"
+          :formatter="Formatter.TableAmount" />
+        <el-table-column label="总代付手续费" align="center" prop="pay_out_success_service_charge" min-width="130"
+          :formatter="Formatter.TableAmount" /> -->
+      <!-- <el-table-column label="日期" align="center" width="100" prop="date"></el-table-column> -->
+
+      <el-table-column label="开始时间" align="center" prop="start_time" :formatter="Formatter.TableTimeSecond" width="200">
+      </el-table-column>
+      <el-table-column label="结束时间" align="center" prop="end_time" :formatter="Formatter.TableTimeSecond" width="200">
+      </el-table-column>
+      <el-table-column label="操作" align="center" width="100" fixed="right">
+        <template slot-scope="scope">
+          <div v-if="scope.row.parentId != 0">
+            <el-button type="text" size="small" @click="Settlement(scope.row)" icon="el-icon-refresh"
+              v-if="scope.row.payout_settle_status == 0">代付结算</el-button>
+            <span class="disabledFont" v-else>代付已结算</span>
+          </div>
+
+        </template>
+
+      </el-table-column>
+
+
+    </el-table>
+
+
+    <div class="" style="display: flex;    justify-content: flex-end;
+    align-items: center;">
+      <pagination ref="pagination" v-show="DetailedContentTotalPages > 0" :total="DetailedContentListQueryParams.total"
+        :page.sync="DetailedContentListQueryParams.currentPage" :limit.sync="DetailedContentListQueryParams.pageSize"
+        @pagination="handleCurrentChange" />
+
+
+    </div>
+
+    <ProxyChangeDialogVue :Change="ProxyChange" ref="ProxyChangeDialogVue" :show="ProxyChangeDialogShow"
+      @CloseProxyChangeDialog="CloseProxyChangeDialog" @UpdateProxyChangeDialog="UpdateProxyChangeDialog">
+    </ProxyChangeDialogVue>
+    <!-- 进度条 -->
+    <ProgressDialog v-model="bathProgress" ref="ProgressDialog"></ProgressDialog>
+  </div>
+
+
+</template>
+
+<script>
+import { listMchSettlement } from "@/api/excellent/mchSettlement";
+import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
+import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
+import ProxyChangeDialogVue from './DetailedContent/ProxyChangeDialog.vue';
+import { updateMchAcc } from "@/api/excellent/mchAcc";
+import ChannelQuery from "@/components/Excellent/Channel/ChannelQuery.vue";
+import ProgressDialog from "@/components/dialog/ProgressDialog.vue";
+import moment from 'moment-timezone';
+import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
+export default {
+  name: 'WorkspaceJsonDetailedContent',
+  props: ['DetailedContentShow', 'mch_number'],
+
+  data() {
+    return {
+      shortcuts: [
+        {
+          text: '今天一天',
+          onClick(picker) {
+            const start = moment().tz("Asia/Kolkata").startOf('day').format("YYYY-MM-DD HH:mm:ss");
+            const end = moment().tz("Asia/Kolkata").add(1, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
+            picker.$emit('pick', [start, end]);
+          }
+        },
+        {
+          text: '昨天一天',
+          onClick(picker) {
+            const start = moment().tz("Asia/Kolkata").subtract(1, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
+            const end = moment().tz("Asia/Kolkata").startOf('day').format("YYYY-MM-DD HH:mm:ss");
+            picker.$emit('pick', [start, end]);
+          }
+        },
+        {
+          text: '前天一天',
+          onClick(picker) {
+            const start = moment().tz("Asia/Kolkata").subtract(2, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
+            const end = moment().tz("Asia/Kolkata").subtract(1, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
+            picker.$emit('pick', [start, end]);
+          }
+        },
+        {
+          text: '近三天',
+          onClick(picker) {
+            const end = moment().tz("Asia/Kolkata").add(1, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
+            const start = moment().tz("Asia/Kolkata").subtract(3, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
+            picker.$emit('pick', [start, end]);
+          }
+        }
+      ],
+      tableId: 'one',
+      selectedRows: [], // 用于保存选中的行
+      DetailedContentList: [],//原有数据
+      treeTableData: [],//树形表格数据
+      treeTableDataClone: [],//树形表格数据备份
+      DetailedContentListLoading: true,
+      DetailedContentListQueryParams: {
+        mch_number: null, // 商户号
+        start_time: null, // 开始时间
+        end_time: null, // 结束时间
+        last_id: null, // 上一次查询的id
+        pageSize: 10, // 每页显示的条数,
+        total: 1,
+        chnl_id: null,
+        currentPage: 1,
+      },
+      timedata: {
+        create_time: [],
+      },
+      DetailedContentLoading: false,
+      RepeatedRequests: false,
+      //代付结算弹窗数据
+      ProxyChange: {},
+      ProxyChangeDialogShow: false,
+      //批量进度条
+      bathProgress: false,
+      //高亮选项
+      SelectValue: null,
+      SelectOptions: []
+    };
+  },
+  computed: {
+
+    // 计算详情页总页数
+    DetailedContentTotalPages() {
+      return Math.ceil(this.DetailedContentListQueryParams.total / this.DetailedContentListQueryParams.pageSize);
+    },
+    // 计算详情页当前页显示的数据
+    DetailedContentPaginatedItems() {
+      const start = (this.DetailedContentListQueryParams.currentPage - 1) * this.DetailedContentListQueryParams.pageSize;
+      const end = this.DetailedContentListQueryParams.currentPage * this.DetailedContentListQueryParams.pageSize;
+      return this.treeTableData.slice(isNaN(start) ? 0 : start, isNaN(end) ? this.treeTableData.length : end);
+    },
+    //是否可以进行请求查询
+    ReadyRequest() {
+      if (this.DetailedContentListQueryParams.chnl_id && this.DetailedContentListQueryParams.start_time &&
+
+        this.DetailedContentListQueryParams.end_time) {
+        return true
+      }
+      return false
+    }
+
+  },
+
+
+  mounted() {
+    this.reset();
+
+  },
+
+  methods: {
+    parseTime(value, index) {
+
+      let utcTimeBegin = value[0]
+      let utcTimeEnd = value[1]
+      if (index == "create_time") {
+        this.$set(this.DetailedContentListQueryParams, 'start_time', utcTimeBegin);
+        this.$set(this.DetailedContentListQueryParams, 'end_time', utcTimeEnd);
+      }
+
+    },
+    ChannelQueryChange(value) {
+      this.$set(this.DetailedContentListQueryParams, 'chnl_id', value);
+
+    },
+    //搜索按钮
+    EmptyQuery() {
+      if (!this.ReadyRequest) {
+        this.$message.error('请确保筛选条件，再进行查询');
+        return
+      }
+
+      this.DetailedContentList.splice(0)
+      this.DetailedContentListQueryParams.last_id = null
+      this.expandRowKeys = []
+      this.tableId = Math.random().toString(36).substr(2, 8)
+      this.getList()
+    },
+    //重置请求参数
+    reset() {
+      this.treeTableData.splice(0)
+      this.timedata = {
+        create_time: [], // 开始时间
+      };
+      this.DetailedContentListQueryParams = {
+        start_time: null, // 开始时间
+        end_time: null, // 结束时间
+        last_id: null, // 上一次查询的id
+        pageSize: 10, // 每页显示的条数,
+        total: 1, chnl_id: null
+      }
+    },
+
+    //关闭代付结算弹窗
+    CloseProxyChangeDialog() {
+      this.ProxyChangeDialogShow = false
+    },
+    //打开代付结算弹窗
+    Settlement(value) {
+
+      this.ProxyChange = value
+      this.ProxyChangeDialogShow = true
+    },
+    //批量结算
+    BatchSettlement() {
+
+      let selectData = []
+      function filterTreeData(data) {
+        data.forEach(item => {
+          if (item.isSelect && item.payout_settle_status != 1 && item.parentId != 0) {
+            selectData.push(item)
+          }
+          if (item.children && item.children.length > 0) {
+            filterTreeData(item.children)
+          }
+        })
+      }
+      filterTreeData(this.treeTableData)
+
+      if (selectData.length == 0) {
+        this.$message({
+          message: '请选择需要结算的订单',
+          type: 'warning'
+        });
+        return
+      }
+      this.$prompt('请输入备注信息', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+      }).then(({ value }) => {
+
+        let confirmList = []
+        for (let index = 0; index < selectData.length; index++) {
+          const mergedObj = {
+            mch_number: selectData[index].mch_number,
+            msg: value,
+            operation: 5,
+            big_amount: selectData[index].payin_success_amount_count,
+            end_time: selectData[index].end_time,
+            payout_settle_status: 1,
+            chnl_id: selectData[index].chnl_id
+          };
+          mergedObj['big_amount'] = mergedObj['big_amount'] * -1
+          mergedObj['msg'] += '（通道：' + selectData[index]['chnl_id'] + '，结算时间：'
+            + this.Formatter.FormatTime(selectData[index]['start_time'] * 1000, 'YYYY-MM-DD HH:mm:ss')
+            + '-' + this.Formatter.FormatTime(selectData[index]['end_time'] * 1000, 'YYYY-MM-DD HH:mm:ss') + '）'
+          confirmList.push(mergedObj)
+        }
+        this.bathProgress = true
+        this.$refs.ProgressDialog.batchRequest(confirmList, updateMchAcc).then(res => {
+          this.$message({
+            type: 'success',
+            message: '批量结算成功'
+          });
+          this.EmptyQuery()
+        })
+
+        return
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '取消输入'
+        });
+      });
+    },
+    //提交修改信息
+    UpdateProxyChangeDialog(value, data) {
+      let index = this.treeTableData.findIndex(item => item.date == data.date)
+      let childrenIndex = this.treeTableData[index].children.findIndex(item => item._id == data._id)
+      const loading = this.$loading({
+        lock: true,
+        text: '正在提交，请稍后...',
+        // spinner: 'el-icon-loading',
+      });
+
+      updateMchAcc(value).then((response) => {
+        this.$modal.msgSuccess("提交成功");
+
+      }).finally(() => {
+        this.ProxyChangeDialogShow = false;
+        this.$set(this.treeTableData[index].children[childrenIndex], 'payout_settle_status', 1);
+        loading.close();
+      })
+        ;
+    },
+    /** 查询商户结算列表 */
+    async getList() {
+
+      if (this.DetailedContentLoading || this.RepeatedRequests) {
+        this.RepeatedRequests = false
+        return
+      }
+      this.DetailedContentLoading = true;
+      console.log(this.DetailedContentListQueryParams);
+
+      let query = {
+        start_time: this.DetailedContentListQueryParams.start_time, // 开始时间
+        end_time: this.DetailedContentListQueryParams.end_time, // 结束时间
+        last_id: this.DetailedContentListQueryParams.last_id, // 上一次查询的id
+        mch_number: this.DetailedContentListQueryParams.mch_number,
+        chnl_id: this.DetailedContentListQueryParams.chnl_id,
+      };
+
+      return await listMchSettlement(query).then(async (response) => {
+        this.DetailedContentListQueryParams.last_id = response["last_id"];
+        // response.results = this.$util.deepFreeze(response.results)
+        this.DetailedContentList = [...this.DetailedContentList, ...response.results];
+        this.treeTableData = await this.processData(this.DetailedContentList)
+        this.DetailedContentListQueryParams.total = this.treeTableData.length;
+        this.$nextTick(() => {
+          this.DetailedContentLoading = false;
+
+          if (response["last_id"] == '') {
+            this.RepeatedRequests = true;
+          }
+          this.$forceUpdate()
+        })
+
+      });
+    },
+    //分页处理
+    handleCurrentChange(page) {
+      this.DetailedContentListQueryParams.currentPage = page.page;
+      this.DetailedContentLoading = true;
+      this.$refs.multipleTable.scrollTop = 0;
+
+      // 如果到达最后一页并且没有足够的数据，则加载更多数据
+      if (
+        this.DetailedContentListQueryParams.currentPage === this.totalPages &&
+        this.DetailedContentList.length < this.DetailedContentListQueryParams.total + 200
+      ) {
+        this.getList()
+      } else {
+        setTimeout(() => {
+          this.DetailedContentLoading = false;
+        }, 380);
+      }
+    },
+    handleSizeChange(size) {
+      this.DetailedContentListQueryParams.pageSize = size;
+    },
+    //数据处理
+    // 时间戳转日期
+    formatDate(timestamp) {
+      const date = moment(timestamp).tz("Asia/Kolkata");
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    },
+    // 时间戳转详细时间
+    formatTimestamp(timestamp) {
+      if (!timestamp) return "-";
+      const date = new Date(timestamp * 1000);
+      return date.toLocaleString();
+    },
+    // // 处理数据为树形结构
+    async processData() {
+      this.SelectValue = null
+      this.SelectOptions.splice(0)
+      let num = 0
+      const groupedData = this.DetailedContentList.reduce((acc, item) => {
+        // 将 start_time 和 create_time 转换为 Moment 对象，考虑到传入秒值
+        const startDate = moment.utc(item.start_time * 1000).tz("Asia/Kolkata"); // 确保时区转换
+
+        const groupKey = startDate.format("YYYY-MM-DD");// 按天分组
+        const dayStart = moment(groupKey).tz("Asia/Kolkata").startOf('day');
+        const dayEnd = moment(groupKey).tz("Asia/Kolkata").add(1, 'days').startOf('day');
+
+        // // 判断 startDate 是否在 dayStart 之后，并且 createDate 是否在 dayEnd 之前
+        if (startDate.isSameOrAfter(dayStart) && startDate.isSameOrAfter(dayEnd)) {
+          if (!acc[groupKey]) {
+
+            if (num <= 1) {
+              this.SelectOptions.push({
+                value: groupKey,
+                label: 'T' + num,
+              })
+            }
+            num++
+            acc[groupKey] = [];
+          }
+          acc[groupKey].push(item);
+        }
+
+        return acc;
+      }, {});
+
+
+      // 转换为树形结构
+      let q = Object.keys(groupedData).map((date, index) => {
+        const children = groupedData[date];
+        const end = Math.max(...children.map((child) => child.end_time))
+        // 汇总父节点数据
+        const parentNode = {
+          parentId: 0, // 设置父节点的层级为 1
+
+          id: `parent-${index}`, // 父节点唯一 ID\
+          date, // 日期作为父节点的名称
+          "chnl_id": this.DetailedContentListQueryParams.chnl_id ? this.DetailedContentListQueryParams.chnl_id : '',
+          "currency": children[0].currency,
+          "mch_name": children[0].mch_name,
+          "mch_number": children[0].mch_number,
+          "pay_in_success_service_charge": children.reduce(
+            (sum, child) => sum + child.pay_in_success_service_charge,
+            0
+          ),
+          "pay_out_success_amount_count": children.reduce(
+            (sum, child) => sum + child.pay_out_success_amount_count,
+            0
+          ),
+          "pay_out_success_service_charge": children.reduce(
+            (sum, child) => sum + child.pay_out_success_service_charge,
+            0
+          ),
+          "payin_success_amount_count": children.reduce(
+            (sum, child) => sum + child.payin_success_amount_count,
+            0
+          ),
+          "payout_settle_status": '',
+          "pending_amount_count": children.reduce(
+            (sum, child) => sum + child.pending_amount_count,
+            0
+          ),
+          start_time: Math.min(...children.map((child) => child.start_time)),
+          end_time: isNaN(end) ? moment().tz("Asia/Kolkata").add(1, 'days').startOf('day') / 1000 : end,
+
+          children: children.map((child, idx) => ({
+            ...child,
+
+            date, // 将日期添加到子节点
+            id: `child-${index}-${idx}`, // 子节点唯一 ID
+            parentId: `parent-${index}`, // 设置父节点的层级为 1
+          })),
+          hasChildren: children.length <= 0, // 标记为有子节点
+        };
+
+        return parentNode;
+      });
+      //初始化数据
+      function initData(data) {
+
+        data.forEach((item) => {
+
+          item.isSelect = false; //默认为不选中
+
+          if (item.children && item.children.length) {
+
+            initData(item.children);
+          }
+        });
+      }
+      initData(q);
+      this.treeTableDataClone = JSON.parse(JSON.stringify(q));
+      const clearChildren = q.map((item) => {
+        item.children.splice(1, item.children.length - 1);
+        return item
+      })
+
+      return clearChildren
+
+    },
+    //展开子项
+    expandChange(row, expanded) {
+      console.log(row, expanded);
+      if (expanded) {
+        // 如果是展开操作，则获取子节点数据
+        const index = this.treeTableDataClone.findIndex((item) => {
+          return row.id === item.id // 根据id判断是否是当前行的数据
+        })
+        if (index !== -1) {
+          // const sum = this.treeTableDataClone[index].children.length / 5
+          // const sum2 = this.treeTableDataClone[index].children.length % 5
+
+          let num = 1
+          let that = this
+          function renderChunk() {
+            if (num < that.treeTableDataClone[index].children.length) {
+              // 渲染一条数据到列表
+              row.children.push(that.treeTableDataClone[index].children[num]);
+              num++
+              requestAnimationFrame(renderChunk);  // 继续渲染下一条
+            }
+          }
+
+          requestAnimationFrame(renderChunk);
+
+          // for (let i = 1; i < num; i++) {
+          //   setTimeout(() => {
+          //     if (i === num) {
+          //       row.children = row.children.concat(this.treeTableDataClone[index].children.slice(i * 5, (i + 1) * 5))
+          //     }
+          //     row.children = row.children.concat(this.treeTableDataClone[index].children.slice(i * 5, (i + 1) * 5))
+          //   }, 200);
+
+          // }
+        }
+        console.log(row.children);
+
+
+      } else {
+        row.children.splice(1, row.children.length - 1);
+      }
+
+    },
+    // 复选框点击事件
+    selectFun(selection, row) {
+      this.setRowIsSelect(row);
+
+    },
+    // 复选框点击事件
+    setRowIsSelect(row) {
+      //当点击父级点复选框时，当前的状态可能为未知状态，所以当前行状态设为false并选中，即可实现子级点全选效果
+
+      if (row.isSelect === "") {
+        if (row.payout_settle_status != 1) {
+          row.isSelect = false;
+          this.$refs.multipleTable.toggleRowSelection(row, true);
+        }
+
+
+      }
+      row.isSelect = !row.isSelect;
+
+      let that = this;
+
+      function selectAllChildrens(data) {
+
+
+        data.forEach((item) => {
+          if (item.payout_settle_status != 1) {
+            item.isSelect = row.isSelect;
+
+            that.$refs.multipleTable.toggleRowSelection(item, row.isSelect);
+          }
+
+
+          if (item.children && item.children.length) {
+
+            selectAllChildrens(item.children);
+
+          }
+
+        });
+
+      }
+      function getSelectStatus(selectStatuaArr, data) {
+
+        data.forEach((childrenItem) => {
+
+          selectStatuaArr.push(childrenItem.isSelect);
+
+          if (childrenItem.children && childrenItem.children.length) {
+
+            getSelectStatus(selectStatuaArr, childrenItem.children);
+
+          }
+
+        });
+
+        return selectStatuaArr;
+
+      }
+
+      function getLevelStatus(row) {
+
+        //如果当前节点的parantId =0 并且有子节点，则为1
+
+        //如果当前节点的parantId !=0 并且子节点没有子节点 则为3
+
+        if (row.parentId == 0) {
+
+          if (row.children && row.children.length) {
+
+            return 1;
+
+          } else {
+
+            return 4;
+
+          }
+
+        } else {
+
+          if (!row.children || !row.children.length) {
+
+            return 3;
+
+          } else {
+
+            return 2;
+
+          }
+
+        }
+
+      }
+
+      let result = {};
+
+      //获取明确的节点
+
+      function getExplicitNode(data, parentId) {
+
+        data.forEach((item) => {
+
+          if (item.id == parentId) {
+
+            result = item;
+
+          }
+
+          if (item.children && item.children.length) {
+
+            getExplicitNode(item.children, parentId);
+
+          }
+
+        })
+
+        return result;
+
+      }
+
+      function operateLastLeve(row) {
+
+        //操作的是子节点  1、获取父节点  2、判断子节点选中个数，如果全部选中则父节点设为选中状态，如果都不选中，则为不选中状态，如果部分选择，则设为不明确状态
+
+        let selectStatuaArr = [];
+
+        let item = getExplicitNode(that.treeTableData, row.parentId);
+
+        selectStatuaArr = item.children;
+
+        if (
+
+          selectStatuaArr.every((selectItem) => {
+
+            return true == selectItem;
+
+          })
+
+        ) {
+
+          item.isSelect = true;
+
+          that.$refs.multipleTable.toggleRowSelection(item, true);
+
+        } else if (
+
+          selectStatuaArr.every((selectItem) => {
+
+            return false == selectItem;
+
+          })
+
+        ) {
+
+          item.isSelect = false;
+
+          that.$refs.multipleTable.toggleRowSelection(item, false);
+
+        } else {
+
+          item.isSelect = "";
+
+        }
+
+        //则还有父级
+
+        if (item.parentId != 0) {
+
+          operateLastLeve(item)
+
+        }
+
+      }
+
+      //判断操作的是子级点复选框还是父级点复选框，如果是父级点，则控制子级点的全选和不全选
+
+      //1、只是父级 2、既是子集，又是父级 3、只是子级
+
+      let levelSataus = getLevelStatus(row);
+
+      if (levelSataus == 1) {
+
+        selectAllChildrens(row.children);
+
+      } else if (levelSataus == 2) {
+
+        selectAllChildrens(row.children);
+
+        operateLastLeve(row);
+
+      } else if (levelSataus == 3) {
+
+        operateLastLeve(row);
+
+      }
+
+    },
+    // 检测表格数据是否全选
+    checkIsAllSelect() {
+      this.selectedRows = [];
+      this.treeTableData.forEach((item) => {
+        this.selectedRows.push(item.isSelect);
+      });
+      //判断一级产品是否是全选.如果一级产品全为true，则设置为取消全选，否则全选
+
+      let isAllSelect = this.selectedRows.every((selectStatusItem) => {
+        return true == selectStatusItem;
+      });
+      return isAllSelect;
+    },
+    // 表格全选事件
+    selectAllFun(selection) {
+      let isAllSelect = this.checkIsAllSelect();
+
+      this.treeTableData.forEach((item) => {
+        if (item.payout_settle_status != 1) {
+          item.isSelect = isAllSelect;
+          this.$refs.multipleTable.toggleRowSelection(item, !isAllSelect);
+        }
+
+
+        this.selectFun(selection, item);
+
+      });
+
+    },
+    handleSelectChange(value) {
+
+      this.SelectValue = value;
+    },
+    // 表格行样式 当当前行的状态为不明确状态时，添加样式，使其复选框为不明确状态样式
+    rowClassNameFun({ row }) {
+
+      if (row.isSelect === "") {
+        return "indeterminate";
+      }
+
+      // if (row.date == this.SelectValue) {
+      //   return "SelectRow";
+      // }
+      const startDate = moment.utc(row.start_time * 1000).tz("Asia/Kolkata"); // 确保时区转换
+
+      if (startDate.isSame(moment().tz("Asia/Kolkata"), "day")) {
+        return "todayRow";
+      } else if (startDate.isSame(moment().subtract(1, 'day').tz("Asia/Kolkata"), "day")) {
+        return "secondRow"; // 昨天日期
+      }
+    },
+    // 表格标题样式 当一级目录有为不明确状态时，添加样式，使其全选复选框为不明确状态样式
+    headerRowClassName({ row }) {
+      let selectedRows = [];
+
+      this.treeTableData.forEach((item) => {
+        selectedRows.push(item.isSelect);
+      });
+
+      if (selectedRows.includes("")) {
+        return "indeterminate";
+      }
+
+      return "";
+
+    },
+    readyselectable(row, index) {
+      if (row.parentId === 0) {
+        const allSelect = row.children.every((selectStatusItem) => {
+
+          return selectStatusItem.payout_settle_status == 1;
+
+        })
+        return !allSelect;
+      } else {
+        if (row.payout_settle_status) {
+          return false
+        } else {
+          return true
+        }
+      }
+
+    }
+  },
+  components: {
+    dynamicTableVue, TimeFrameVue, ProxyChangeDialogVue, ChannelQuery, ProgressDialog, MchNumSelect,
+  }
+};
+</script>
+<style lang="scss" scoped>
+.tableTip {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.todayText {
+  color: #2cabef !important;
+}
+
+.secondText {
+  color: #92cdff !important;
+}
+
+.disabledFont {
+  color: #C0C4CC;
+  cursor: not-allowed;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+::v-deep .hover-row,
+::v-deep .hover-row>td.el-table__cell {
+  background: transparent !important;
+}
+
+::v-deep .el-table__row--level-1,
+::v-deep .el-table__row--level-1.hover-row>td.el-table__cell,
+::v-deep .el-table__row--level-1.hover-row {
+  background: #F5F7FA !important;
+}
+
+::v-deep .indeterminate .el-checkbox__input .el-checkbox__inner {
+  background-color: #409eff !important;
+  border-color: #409eff !important;
+  color: #fff !important;
+}
+
+::v-deep .SelectRow,
+::v-deep .SelectRow.hover-row,
+::v-deep.SelectRow.hover-row>td.el-table__cell {
+  background: #e9f5ff !important;
+}
+
+::v-deep .indeterminate .el-checkbox__input.is-checked .el-checkbox__inner::after {
+  transform: scale(0.5);
+}
+
+::v-deep .indeterminate .el-checkbox__input .el-checkbox__inner {
+  background-color: #f2f6fc;
+  border-color: #dcdfe6;
+}
+
+::v-deep .indeterminate .el-checkbox__input .el-checkbox__inner::after {
+  border-color: #c0c4cc !important;
+  background-color: #c0c4cc;
+}
+
+.product-show th .el-checkbox__inner {
+  display: none !important;
+}
+
+::v-deep .indeterminate .el-checkbox__input .el-checkbox__inner::after {
+  // content: "";
+  position: absolute;
+  display: block;
+  background-color: #fff;
+  height: 2px;
+  transform: scale(0.5);
+  left: 0;
+  right: 0;
+  top: 5px;
+  width: auto !important;
+}
+
+::v-deep .el-dialog__body {
+  padding: 10px 20px !important;
+}
+
+::v-deep .todayRow {
+  background-color: #BAE7FF !important;
+}
+
+::v-deep .secondRow {
+  background-color: #e9f5ff !important;
+}
+
+
+
+::v-deep .thirdRow {
+  background-color: #f2f9ff !important;
+}
+
+::v-deep .SettlementForm .el-table__empty-text {
+  color: red !important;
+  font-size: 16px;
+  font-weight: 600;
+}
+</style>

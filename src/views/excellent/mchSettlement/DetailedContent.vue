@@ -1,59 +1,36 @@
 <template>
   <el-dialog :title="'历史数据'" :visible.sync="DetailedContentShowData" width="90%" :close-on-click-modal="false">
-
-    <div class="fulltable_div" style="height: 650px;">
+    <div class="fulltable_div" style="height: 650px">
       <el-form ref="DetailedContentSearch" :inline="true" label-width="80px" size="small">
-
         <el-form-item label="查询时间" prop="create_time">
-
           <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'"
             :shortcuts="shortcuts">
           </TimeFrameVue>
         </el-form-item>
         <el-form-item label="通道ID" prop="chnl_id">
           <ChannelQuery v-model="DetailedContentListQueryParams.chnl_id" @change="ChannelQueryChange"></ChannelQuery>
-
         </el-form-item>
 
         <el-form-item>
-
-          <el-button icon="el-icon-refresh" @click="reset" size="mini">重置</el-button>
           <el-button type="primary" icon="el-icon-search" @click="EmptyQuery" size="mini">搜索</el-button>
           <el-button type="primary" icon="el-icon-refresh" @click="BatchSettlement" size="mini">批量结算</el-button>
-          <!-- <el-select v-model="SelectValue" placeholder="高亮范围" @change="handleSelectChange" size="small" clearable
-            style="margin-left: 12px; width: 120px;">
-            <el-option v-for="item in SelectOptions" :key="item.value" :label="item.label" :value="item.value">
-            </el-option>
-          </el-select> -->
-
+          <el-button icon="el-icon-refresh" @click="reset" size="mini">重置</el-button>
         </el-form-item>
       </el-form>
 
-      <div class="tableTip">（<span class="todayText">蓝色部分</span>表示今日数据，<span class="secondText">浅蓝色部分</span>表示昨日数据）
+      <div class="tableTip">
+        （<span class="todayText">蓝色部分</span>表示今日数据，<span class="secondText">浅蓝色部分</span>表示昨日数据）
       </div>
-
-      <el-table :data="DetailedContentPaginatedItems" :class="!ReadyRequest ? 'SettlementForm' : ''" row-key="id"
-        v-loading="DetailedContentLoading" :key="tableId" :empty-text="!ReadyRequest ? '请先选择通道以及时间段再进行查询' : '暂无数据'"
-        :highlight-current-row="false" ref="multipleTable" :row-class-name="rowClassNameFun" @select="selectFun"
+      <el-table v-if="!DetailedContentLoading" :data="treeTableData" :class="!ReadyRequest ? 'SettlementForm' : ''"
+        row-key="id" :key="tableId" :empty-text="!ReadyRequest ? '请先选择通道以及时间段再进行查询' : '暂无数据'
+          " :highlight-current-row="false" ref="multipleTable" :row-class-name="rowClassNameFun" @select="selectFun"
         @select-all="selectAllFun" :header-row-class-name="headerRowClassName"
         :tree-props="{ hasChildren: 'hasChildren', children: 'children' }" :height="350" border>
-        <el-table-column type="selection" width="30" align="center" :selectable="readyselectable" />
-        <el-table-column label="商户号 " align="center" prop="mch_number" width="100" />
-        <!-- <el-table-column label="商户名称" align="center" prop="mch_name" width="80" show-overflow-tooltip /> -->
+        <el-table-column type="selection" width="55" align="center" :selectable="readyselectable" />
+        <el-table-column label="商户号 " align="center" prop="mch_number" width="150" />
         <el-table-column label="通道ID" align="center" prop="chnl_id" width="80" />
-        <!-- <el-table-column label="货币代号" align="center" prop="currency" /> -->
         <el-table-column label="已结算代收金额" align="center" prop="payin_success_amount_count" min-width="130"
           :formatter="Formatter.TableAmount" />
-        <!-- <el-table-column label="已结算代付金额" align="center" prop="pay_out_success_amount_count" min-width="130"
-          :formatter="Formatter.TableAmount" />
-        <el-table-column label="在途代付金额" align="center" prop="pending_amount_count" :formatter="Formatter.TableAmount"
-          min-width="130" />
-        <el-table-column label="总代收手续费" align="center" prop="pay_in_success_service_charge" min-width="130"
-          :formatter="Formatter.TableAmount" />
-        <el-table-column label="总代付手续费" align="center" prop="pay_out_success_service_charge" min-width="130"
-          :formatter="Formatter.TableAmount" /> -->
-        <!-- <el-table-column label="日期" align="center" width="100" prop="date"></el-table-column> -->
-
         <el-table-column label="开始时间" align="center" prop="start_time" :formatter="Formatter.TableTimeSecond"
           width="200">
         </el-table-column>
@@ -62,94 +39,121 @@
         <el-table-column label="操作" align="center" width="100" fixed="right">
           <template slot-scope="scope">
             <div v-if="scope.row.parentId != 0">
-              <el-button type="text" size="small" @click="Settlement(scope.row)" icon="el-icon-refresh"
-                v-if="scope.row.payout_settle_status == 0">代付结算</el-button>
+              <el-button type="text" size="small" @click="Settlement(scope.row)" icon="el-icon-refresh" v-if="
+                scope.row.payout_settle_status == 0 &&
+                scope.row.payin_success_amount_count != 0
+              ">代付结算</el-button>
+              <span class="disabledFont" v-else-if="scope.row.payin_success_amount_count == 0">无数据结算</span>
               <span class="disabledFont" v-else>代付已结算</span>
             </div>
-
           </template>
-
         </el-table-column>
-
-
       </el-table>
-      <div class="" style="display: flex;    justify-content: flex-end;
-    align-items: center;">
-        <pagination ref="pagination" v-show="DetailedContentTotalPages > 0"
-          :total="DetailedContentListQueryParams.total" :page.sync="DetailedContentListQueryParams.currentPage"
-          :limit.sync="DetailedContentListQueryParams.pageSize" @pagination="handleCurrentChange" />
-
-
-      </div>
-
     </div>
     <ProxyChangeDialogVue :Change="ProxyChange" ref="ProxyChangeDialogVue" :show="ProxyChangeDialogShow"
       @CloseProxyChangeDialog="CloseProxyChangeDialog" @UpdateProxyChangeDialog="UpdateProxyChangeDialog">
     </ProxyChangeDialogVue>
     <!-- 进度条 -->
-    <ProgressDialog v-model="bathProgress" ref="ProgressDialog"></ProgressDialog>
+    <ProgressDialog ref="ProgressDialog" v-model="progressShow"></ProgressDialog>
   </el-dialog>
-
 </template>
 
 <script>
 import { listMchSettlement } from "@/api/excellent/mchSettlement";
-import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
-import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
-import ProxyChangeDialogVue from './DetailedContent/ProxyChangeDialog.vue';
+import dynamicTableVue from "@/components/Excellent/dynamicTable.vue";
+import TimeFrameVue from "@/components/Excellent/SearchOption/TimeFrame.vue";
+import ProxyChangeDialogVue from "./DetailedContent/ProxyChangeDialog.vue";
 import { updateMchAcc } from "@/api/excellent/mchAcc";
 import ChannelQuery from "@/components/Excellent/Channel/ChannelQuery.vue";
 import ProgressDialog from "@/components/dialog/ProgressDialog.vue";
-import moment from 'moment-timezone';
+import moment from "moment-timezone";
 export default {
-  name: 'WorkspaceJsonDetailedContent',
-  props: ['DetailedContentShow', 'mch_number'],
+  name: "WorkspaceJsonDetailedContent",
+  props: ["DetailedContentShow", "ChooseRows"],
 
   data() {
     return {
       shortcuts: [
         {
-          text: '今天一天',
+          text: "今天一天",
           onClick(picker) {
-            const start = moment().tz("Asia/Kolkata").startOf('day').format("YYYY-MM-DD HH:mm:ss");
-            const end = moment().tz("Asia/Kolkata").add(1, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
-            picker.$emit('pick', [start, end]);
-          }
+            const start = moment()
+              .tz("Asia/Kolkata")
+              .startOf("day")
+              .format("YYYY-MM-DD HH:mm:ss");
+            const end = moment()
+              .tz("Asia/Kolkata")
+              .add(1, "days")
+              .startOf("day")
+              .format("YYYY-MM-DD HH:mm:ss");
+            picker.$emit("pick", [start, end]);
+          },
         },
         {
-          text: '昨天一天',
+          text: "昨天一天",
           onClick(picker) {
-            const start = moment().tz("Asia/Kolkata").subtract(1, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
-            const end = moment().tz("Asia/Kolkata").startOf('day').format("YYYY-MM-DD HH:mm:ss");
-            picker.$emit('pick', [start, end]);
-          }
+            const start = moment()
+              .tz("Asia/Kolkata")
+              .subtract(1, "days")
+              .startOf("day")
+              .format("YYYY-MM-DD HH:mm:ss");
+            const end = moment()
+              .tz("Asia/Kolkata")
+              .startOf("day")
+              .format("YYYY-MM-DD HH:mm:ss");
+            picker.$emit("pick", [start, end]);
+          },
         },
         {
-          text: '前天一天',
+          text: "前天一天",
           onClick(picker) {
-            const start = moment().tz("Asia/Kolkata").subtract(2, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
-            const end = moment().tz("Asia/Kolkata").subtract(1, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
-            picker.$emit('pick', [start, end]);
-          }
+            const start = moment()
+              .tz("Asia/Kolkata")
+              .subtract(2, "days")
+              .startOf("day")
+              .format("YYYY-MM-DD HH:mm:ss");
+            const end = moment()
+              .tz("Asia/Kolkata")
+              .subtract(1, "days")
+              .startOf("day")
+              .format("YYYY-MM-DD HH:mm:ss");
+            picker.$emit("pick", [start, end]);
+          },
         },
-        {
-          text: '近三天',
-          onClick(picker) {
-            const end = moment().tz("Asia/Kolkata").add(1, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
-            const start = moment().tz("Asia/Kolkata").subtract(3, 'days').startOf('day').format("YYYY-MM-DD HH:mm:ss");
-            picker.$emit('pick', [start, end]);
-          }
-        }
-      ],
-      tableId: 'one',
-      selectedRows: [], // 用于保存选中的行
-      DetailedContentList: [],//原有数据
-      treeTableData: [],//树形表格数据
-      DetailedContentListLoading: true,
 
+        {
+          text:
+            moment()
+              .tz("Asia/Kolkata")
+              .subtract(3, "days")
+              .startOf("day")
+              .date() +
+            "日" +
+            "-" +
+            moment().tz("Asia/Kolkata").startOf("day").date() +
+            "日",
+          onClick(picker) {
+            const end = moment()
+              .tz("Asia/Kolkata")
+              .startOf("day")
+              .format("YYYY-MM-DD HH:mm:ss");
+            const start = moment()
+              .tz("Asia/Kolkata")
+              .subtract(3, "days")
+              .startOf("day")
+              .format("YYYY-MM-DD HH:mm:ss");
+            picker.$emit("pick", [start, end]);
+          },
+        },
+      ],
+      tableId: "one",
+      selectedRows: [], // 用于保存选中的行
+      DetailedContentList: [], //原有数据
+      treeTableData: [], //树形表格数据
+      DetailedContentListLoading: true,
       DetailedContentListQueryParams: {
         start_time: null, // 开始时间
-        create_time: null, // 结束时间
+        end_time: null, // 结束时间
         last_id: null, // 上一次查询的id
         pageSize: 10, // 每页显示的条数,
         total: 1,
@@ -164,81 +168,79 @@ export default {
       //代付结算弹窗数据
       ProxyChange: {},
       ProxyChangeDialogShow: false,
-      //批量进度条
-      bathProgress: false,
+      //progress
+      progressShow: false,
+
       //高亮选项
       SelectValue: null,
-      SelectOptions: []
+      SelectOptions: [],
     };
   },
   computed: {
     DetailedContentShowData: {
       set(value) {
-        this.DetailedContentList.splice(0)
-        this.reset()
-        this.$emit('ReturnDetailedContentShow', value);
+        this.DetailedContentList.splice(0);
+        this.reset();
+        this.$emit("ReturnDetailedContentShow", value);
       },
       get() {
         return this.DetailedContentShow;
-      }
-    },
-    // 计算详情页总页数
-    DetailedContentTotalPages() {
-      return Math.ceil(this.DetailedContentListQueryParams.total / this.DetailedContentListQueryParams.pageSize);
-    },
-    // 计算详情页当前页显示的数据
-    DetailedContentPaginatedItems() {
-      const start = (this.DetailedContentListQueryParams.currentPage - 1) * this.DetailedContentListQueryParams.pageSize;
-      const end = this.DetailedContentListQueryParams.currentPage * this.DetailedContentListQueryParams.pageSize;
-      return this.treeTableData.slice(isNaN(start) ? 0 : start, isNaN(end) ? this.treeTableData.length : end);
+      },
     },
     //是否可以进行请求查询
     ReadyRequest() {
-      if (this.DetailedContentListQueryParams.chnl_id && this.DetailedContentListQueryParams.start_time && this.DetailedContentListQueryParams.end_time) {
-        return true
+      if (
+        this.DetailedContentListQueryParams.chnl_id &&
+        this.DetailedContentListQueryParams.start_time &&
+        this.DetailedContentListQueryParams.end_time
+      ) {
+        return true;
       }
-      return false
-    }
-
+      return false;
+    },
+    //查询商户结算详情
+    QueryDetailedContentList() {
+      return this.ChooseRows.map((row) => {
+        return row.mch_number;
+      });
+    },
   },
-
 
   mounted() {
     this.reset();
-
   },
 
   methods: {
     parseTime(value, index) {
-
-      let utcTimeBegin = value[0]
-      let utcTimeEnd = value[1]
+      let utcTimeBegin = value[0];
+      let utcTimeEnd = value[1];
       if (index == "create_time") {
-        this.$set(this.DetailedContentListQueryParams, 'start_time', utcTimeBegin);
-        this.$set(this.DetailedContentListQueryParams, 'end_time', utcTimeEnd);
+        this.$set(
+          this.DetailedContentListQueryParams,
+          "start_time",
+          utcTimeBegin
+        );
+        this.$set(this.DetailedContentListQueryParams, "end_time", utcTimeEnd);
       }
-
     },
     ChannelQueryChange(value) {
-      this.$set(this.DetailedContentListQueryParams, 'chnl_id', value);
-
+      this.$set(this.DetailedContentListQueryParams, "chnl_id", value);
     },
     //搜索按钮
     EmptyQuery() {
       if (!this.ReadyRequest) {
-        this.$message.error('请选择通道或者时间段，再进行查询');
-        return
+        this.$message.error("请选择通道或者时间段，再进行查询");
+        return;
       }
-
-      this.DetailedContentList.splice(0)
-      this.DetailedContentListQueryParams.last_id = null
-      this.expandRowKeys = []
-      this.tableId = Math.random().toString(36).substr(2, 8)
-      this.getList()
+      this.progressShow = true;
+      this.DetailedContentLoading = true;
+      this.expandRowKeys = [];
+      this.tableId = Math.random().toString(36).substr(2, 8);
+      this.getList();
     },
     //重置请求参数
     reset() {
-      this.treeTableData.splice(0)
+      this.treeTableData.splice(0);
       this.timedata = {
         create_time: [], // 开始时间
       };
@@ -247,141 +249,180 @@ export default {
         end_time: null, // 结束时间
         last_id: null, // 上一次查询的id
         pageSize: 10, // 每页显示的条数,
-        total: 1, chnl_id: null
-      }
+        total: 1,
+        chnl_id: null,
+      };
     },
 
     //关闭代付结算弹窗
     CloseProxyChangeDialog() {
-      this.ProxyChangeDialogShow = false
+      this.ProxyChangeDialogShow = false;
     },
     //打开代付结算弹窗
     Settlement(value) {
-
-      this.ProxyChange = value
-      this.ProxyChangeDialogShow = true
+      this.ProxyChange = value;
+      this.ProxyChangeDialogShow = true;
     },
     //批量结算
     BatchSettlement() {
-
-      let selectData = []
+      let selectData = [];
       function filterTreeData(data) {
-        data.forEach(item => {
-          if (item.isSelect && item.payout_settle_status != 1 && item.parentId != 0) {
-            selectData.push(item)
+        data.forEach((item) => {
+          if (
+            item.isSelect &&
+            item.payout_settle_status != 1 &&
+            item.parentId != 0
+          ) {
+            selectData.push(item);
           }
           if (item.children && item.children.length > 0) {
-            filterTreeData(item.children)
+            filterTreeData(item.children);
           }
-        })
+        });
       }
-      filterTreeData(this.treeTableData)
-      console.log(selectData);
+      filterTreeData(this.treeTableData);
 
       if (selectData.length == 0) {
         this.$message({
-          message: '请选择需要结算的订单',
-          type: 'warning'
+          message: "请选择需要结算的订单",
+          type: "warning",
         });
-        return
+        return;
       }
-      this.$prompt('请输入备注信息', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-      }).then(({ value }) => {
+      this.$prompt("请输入备注信息", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+      })
+        .then(({ value }) => {
+          this.$refs.ProgressDialog.isClose = false;
+          this.progressShow = true;
+          let confirmList = [];
+          for (let index = 0; index < selectData.length; index++) {
+            if (selectData[index].payin_success_amount_count != 0) {
+              const mergedObj = {
+                mch_number: selectData[index].mch_number,
+                msg: value,
+                operation: 5,
+                big_amount: selectData[index].payin_success_amount_count,
+                end_time: selectData[index].end_time,
+                payout_settle_status: 1,
+                chnl_id: selectData[index].chnl_id,
+              };
+              mergedObj["big_amount"] = mergedObj["big_amount"] * -1;
+              mergedObj["msg"] +=
+                "（通道：" +
+                selectData[index]["chnl_id"] +
+                "，结算时间：" +
+                this.Formatter.FormatTime(
+                  selectData[index]["start_time"] * 1000,
+                  "YYYY-MM-DD HH:mm:ss"
+                ) +
+                "-" +
+                this.Formatter.FormatTime(
+                  selectData[index]["end_time"] * 1000,
+                  "YYYY-MM-DD HH:mm:ss"
+                ) +
+                "）";
+              confirmList.push(mergedObj);
+            }
+          }
 
-        let confirmList = []
-        for (let index = 0; index < selectData.length; index++) {
-          const mergedObj = {
-            mch_number: selectData[index].mch_number,
-            msg: value,
-            operation: 5,
-            big_amount: selectData[index].payin_success_amount_count,
-            create_time: selectData[index].create_time,
-            payout_settle_status: 1,
-            chnl_id: selectData[index].chnl_id
-          };
-          mergedObj['big_amount'] = mergedObj['big_amount'] * -1
-          mergedObj['msg'] += '（通道：' + selectData[index]['chnl_id'] + '，结算时间：'
-            + this.Formatter.FormatTime(selectData[index]['start_time'] * 1000, 'YYYY-MM-DD HH:mm:ss')
-            + '-' + this.Formatter.FormatTime(selectData[index]['create_time'] * 1000, 'YYYY-MM-DD HH:mm:ss') + '）'
-          confirmList.push(mergedObj)
-        }
-        this.bathProgress = true
-        this.$refs.ProgressDialog.batchRequest(confirmList, updateMchAcc).then(res => {
-          this.$message({
-            type: 'success',
-            message: '批量结算成功'
+          this.$refs.ProgressDialog.batchRequest(
+            confirmList,
+            updateMchAcc
+          ).then((res) => {
+            this.$message({
+              type: "success",
+              message: "批量结算成功",
+            });
+            this.EmptyQuery();
           });
-          this.EmptyQuery()
-        })
 
-        return
-      }).catch(() => {
-        this.$message({
-          type: 'info',
-          message: '取消输入'
+          return;
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "取消输入",
+          });
         });
-      });
     },
     //提交修改信息
     UpdateProxyChangeDialog(value, data) {
-      let index = this.treeTableData.findIndex(item => item.date == data.date)
-      let childrenIndex = this.treeTableData[index].children.findIndex(item => item._id == data._id)
+      let index = this.treeTableData.findIndex(
+        (item) => item.mch_number == data.mch_number
+      );
+      let childrenIndex = this.treeTableData[index].children.findIndex(
+        (item) => item._id == data._id
+      );
       const loading = this.$loading({
         lock: true,
-        text: '正在提交，请稍后...',
+        text: "正在提交，请稍后...",
         // spinner: 'el-icon-loading',
       });
 
-      updateMchAcc(value).then((response) => {
-        this.$modal.msgSuccess("提交成功");
-
-      }).finally(() => {
-        this.ProxyChangeDialogShow = false;
-        this.$set(this.treeTableData[index].children[childrenIndex], 'payout_settle_status', 1);
-        loading.close();
-      })
-        ;
+      updateMchAcc(value)
+        .then((response) => {
+          this.$modal.msgSuccess("提交成功");
+        })
+        .finally(() => {
+          this.ProxyChangeDialogShow = false;
+          this.$set(
+            this.treeTableData[index].children[childrenIndex],
+            "payout_settle_status",
+            1
+          );
+          loading.close();
+        });
     },
     /** 查询商户结算列表 */
-    async getList(mch_number) {
-      let mch = mch_number ? mch_number : this.mch_number
-      // if (mch_number) {
-      //   this.DetailedContentList.splice(0)
-      // }
-      if (this.DetailedContentLoading || this.RepeatedRequests) {
-        this.RepeatedRequests = false
-        return
-      }
+    async getList() {
+      this.$refs.ProgressDialog.isClose = false;
       this.DetailedContentLoading = true;
-      console.log(this.DetailedContentListQueryParams);
 
-      let query = {
-        start_time: this.DetailedContentListQueryParams.start_time, // 开始时间
-        end_time: this.DetailedContentListQueryParams.end_time, // 结束时间
-        last_id: this.DetailedContentListQueryParams.last_id, // 上一次查询的id
-        mch_number: mch,
-        chnl_id: this.DetailedContentListQueryParams.chnl_id,
-      };
+      let confirmList = [];
+      for (
+        let index = 0;
+        index < this.QueryDetailedContentList.length;
+        index++
+      ) {
+        let query = {
+          start_time: this.DetailedContentListQueryParams.start_time, // 开始时间
+          end_time: this.DetailedContentListQueryParams.end_time, // 结束时间
+          last_id: this.DetailedContentListQueryParams.last_id, // 上一次查询的id
+          mch_number: this.QueryDetailedContentList[index],
+          chnl_id: this.DetailedContentListQueryParams.chnl_id,
+        };
+        confirmList.push(query);
+      }
+      this.DetailedContentList.splice(0);
 
-      return await listMchSettlement(query).then(async (response) => {
-        this.DetailedContentListQueryParams.last_id = response["last_id"];
-        // response.results = this.$util.deepFreeze(response.results)
-        this.DetailedContentList = [...this.DetailedContentList, ...response.results];
-        this.treeTableData = await this.processData(this.DetailedContentList)
+      this.$refs.ProgressDialog.batchRequest(
+        confirmList,
+        listMchSettlement,
+        100
+      ).then(async (response) => {
+        const results = response.successList.map((item) => {
+          return item.response.results;
+        });
+        for (let index = 0; index < results.length; index++) {
+          this.DetailedContentList = this.DetailedContentList.concat(
+            results[index]
+          );
+        }
 
+        this.treeTableData = await this.processData(this.DetailedContentList);
         this.DetailedContentListQueryParams.total = this.treeTableData.length;
         this.$nextTick(() => {
           this.DetailedContentLoading = false;
 
-          if (response["last_id"] == '') {
-            this.RepeatedRequests = true;
-          }
-          this.$forceUpdate()
-        })
-
+          this.$forceUpdate();
+        });
       });
+
+      // return await listMchSettlement(query).then(async (response) => {
+
+      // });
     },
     //分页处理
     handleCurrentChange(page) {
@@ -392,9 +433,10 @@ export default {
       // 如果到达最后一页并且没有足够的数据，则加载更多数据
       if (
         this.DetailedContentListQueryParams.currentPage === this.totalPages &&
-        this.DetailedContentList.length < this.DetailedContentListQueryParams.total + 200
+        this.DetailedContentList.length <
+        this.DetailedContentListQueryParams.total + 200
       ) {
-        this.getList()
+        this.getList();
       } else {
         setTimeout(() => {
           this.DetailedContentLoading = false;
@@ -421,82 +463,70 @@ export default {
     },
     // // 处理数据为树形结构
     async processData() {
-      this.SelectValue = null
-      this.SelectOptions.splice(0)
-      let num = 0
+      // console.log(this.DetailedContentList);
+
+      // const groupNotZeroData = this.DetailedContentList.filter(item => {
+
+      //   return item.payin_success_amount_count > 0
+      // }
+
+      // )
       const groupedData = this.DetailedContentList.reduce((acc, item) => {
-        // 将 start_time 和 create_time 转换为 Moment 对象，考虑到传入秒值
-        const startDate = moment.utc(item.start_time * 1000).tz("Asia/Kolkata"); // 确保时区转换
-
-        const groupKey = startDate.format("YYYY-MM-DD");// 按天分组
-        const dayStart = moment(groupKey).tz("Asia/Kolkata").startOf('day');
-        const dayEnd = moment(groupKey).tz("Asia/Kolkata").add(1, 'days').startOf('day');
-
         // // 判断 startDate 是否在 dayStart 之后，并且 createDate 是否在 dayEnd 之前
-        if (startDate.isSameOrAfter(dayStart) && startDate.isSameOrAfter(dayEnd)) {
-          if (!acc[groupKey]) {
-
-            if (num <= 1) {
-              this.SelectOptions.push({
-                value: groupKey,
-                label: 'T' + num,
-              })
-            }
-            num++
-            acc[groupKey] = [];
-          }
-          acc[groupKey].push(item);
+        if (!acc[item.mch_number]) {
+          acc[item.mch_number] = [];
         }
+
+        acc[item.mch_number].push(item);
 
         return acc;
       }, {});
 
-
       // 转换为树形结构
       let q = Object.keys(groupedData).map((date, index) => {
         const children = groupedData[date];
-        const end = Math.max(...children.map((child) => child.end_time))
+        const end = Math.max(...children.map((child) => child.end_time));
         // 汇总父节点数据
         const parentNode = {
           parentId: 0, // 设置父节点的层级为 1
 
           id: `parent-${index}`, // 父节点唯一 ID\
-          date, // 日期作为父节点的名称
-          "chnl_id": this.DetailedContentListQueryParams.chnl_id ? this.DetailedContentListQueryParams.chnl_id : '',
-          "currency": children[0].currency,
-          "mch_name": children[0].mch_name,
-          "mch_number": children[0].mch_number,
-          "pay_in_success_service_charge": children.reduce(
+
+          chnl_id: this.DetailedContentListQueryParams.chnl_id
+            ? this.DetailedContentListQueryParams.chnl_id
+            : "",
+          currency: children[0].currency,
+          mch_name: children[0].mch_name,
+          mch_number: children[0].mch_number,
+          pay_in_success_service_charge: children.reduce(
             (sum, child) => sum + child.pay_in_success_service_charge,
             0
           ),
-          "pay_out_success_amount_count": children.reduce(
+          pay_out_success_amount_count: children.reduce(
             (sum, child) => sum + child.pay_out_success_amount_count,
             0
           ),
-          "pay_out_success_service_charge": children.reduce(
+          pay_out_success_service_charge: children.reduce(
             (sum, child) => sum + child.pay_out_success_service_charge,
             0
           ),
-          "payin_success_amount_count": children.reduce(
+          payin_success_amount_count: children.reduce(
             (sum, child) => sum + child.payin_success_amount_count,
             0
           ),
-          "payout_settle_status": children.reduce(
-            (sum, child) => sum + child.payout_settle_status,
-            0
-          ),
-          "pending_amount_count": children.reduce(
+          payout_settle_status: "",
+          pending_amount_count: children.reduce(
             (sum, child) => sum + child.pending_amount_count,
             0
           ),
           start_time: Math.min(...children.map((child) => child.start_time)),
-          end_time: isNaN(end) ? moment().tz("Asia/Kolkata").add(1, 'days').startOf('day') / 1000 : end,
+          end_time: isNaN(end)
+            ? moment().tz("Asia/Kolkata").add(1, "days").startOf("day") / 1000
+            : end,
 
           children: children.map((child, idx) => ({
             ...child,
 
-            date, // 将日期添加到子节点
             id: `child-${index}-${idx}`, // 子节点唯一 ID
             parentId: `parent-${index}`, // 设置父节点的层级为 1
           })),
@@ -507,114 +537,86 @@ export default {
       });
       //初始化数据
       function initData(data) {
-
         data.forEach((item) => {
-
           item.isSelect = false; //默认为不选中
 
           if (item.children && item.children.length) {
-
             initData(item.children);
           }
         });
       }
       initData(q);
 
-      return q
-
+      return q;
     },
 
     // 复选框点击事件
     selectFun(selection, row) {
       this.setRowIsSelect(row);
-
     },
     // 复选框点击事件
     setRowIsSelect(row) {
       //当点击父级点复选框时，当前的状态可能为未知状态，所以当前行状态设为false并选中，即可实现子级点全选效果
 
       if (row.isSelect === "") {
-        if (row.payout_settle_status != 1) {
+        if (
+          row.payout_settle_status != 1 &&
+          row.payin_success_amount_count != 0
+        ) {
           row.isSelect = false;
           this.$refs.multipleTable.toggleRowSelection(row, true);
         }
-
-
       }
       row.isSelect = !row.isSelect;
 
       let that = this;
 
       function selectAllChildrens(data) {
-
-
         data.forEach((item) => {
-          if (item.payout_settle_status != 1) {
+          if (
+            item.payout_settle_status != 1 &&
+            item.payin_success_amount_count != 0
+          ) {
             item.isSelect = row.isSelect;
 
             that.$refs.multipleTable.toggleRowSelection(item, row.isSelect);
           }
 
-
           if (item.children && item.children.length) {
-
             selectAllChildrens(item.children);
-
           }
-
         });
-
       }
       function getSelectStatus(selectStatuaArr, data) {
-
         data.forEach((childrenItem) => {
-
           selectStatuaArr.push(childrenItem.isSelect);
 
           if (childrenItem.children && childrenItem.children.length) {
-
             getSelectStatus(selectStatuaArr, childrenItem.children);
-
           }
-
         });
 
         return selectStatuaArr;
-
       }
 
       function getLevelStatus(row) {
-
         //如果当前节点的parantId =0 并且有子节点，则为1
 
         //如果当前节点的parantId !=0 并且子节点没有子节点 则为3
 
         if (row.parentId == 0) {
-
           if (row.children && row.children.length) {
-
             return 1;
-
           } else {
-
             return 4;
-
           }
-
         } else {
-
           if (!row.children || !row.children.length) {
-
             return 3;
-
           } else {
-
             return 2;
-
           }
-
         }
-
       }
 
       let result = {};
@@ -622,29 +624,20 @@ export default {
       //获取明确的节点
 
       function getExplicitNode(data, parentId) {
-
         data.forEach((item) => {
-
           if (item.id == parentId) {
-
             result = item;
-
           }
 
           if (item.children && item.children.length) {
-
             getExplicitNode(item.children, parentId);
-
           }
-
-        })
+        });
 
         return result;
-
       }
 
       function operateLastLeve(row) {
-
         //操作的是子节点  1、获取父节点  2、判断子节点选中个数，如果全部选中则父节点设为选中状态，如果都不选中，则为不选中状态，如果部分选择，则设为不明确状态
 
         let selectStatuaArr = [];
@@ -654,47 +647,30 @@ export default {
         selectStatuaArr = item.children;
 
         if (
-
           selectStatuaArr.every((selectItem) => {
-
             return true == selectItem;
-
           })
-
         ) {
-
           item.isSelect = true;
 
           that.$refs.multipleTable.toggleRowSelection(item, true);
-
         } else if (
-
           selectStatuaArr.every((selectItem) => {
-
             return false == selectItem;
-
           })
-
         ) {
-
           item.isSelect = false;
 
           that.$refs.multipleTable.toggleRowSelection(item, false);
-
         } else {
-
           item.isSelect = "";
-
         }
 
         //则还有父级
 
         if (item.parentId != 0) {
-
-          operateLastLeve(item)
-
+          operateLastLeve(item);
         }
-
       }
 
       //判断操作的是子级点复选框还是父级点复选框，如果是父级点，则控制子级点的全选和不全选
@@ -704,21 +680,14 @@ export default {
       let levelSataus = getLevelStatus(row);
 
       if (levelSataus == 1) {
-
         selectAllChildrens(row.children);
-
       } else if (levelSataus == 2) {
-
         selectAllChildrens(row.children);
 
         operateLastLeve(row);
-
       } else if (levelSataus == 3) {
-
         operateLastLeve(row);
-
       }
-
     },
     // 检测表格数据是否全选
     checkIsAllSelect() {
@@ -738,36 +707,33 @@ export default {
       let isAllSelect = this.checkIsAllSelect();
 
       this.treeTableData.forEach((item) => {
-        if (item.payout_settle_status != 1) {
+        if (
+          item.payout_settle_status != 1 &&
+          item.payin_success_amount_count != 0
+        ) {
           item.isSelect = isAllSelect;
           this.$refs.multipleTable.toggleRowSelection(item, !isAllSelect);
         }
 
-
         this.selectFun(selection, item);
-
       });
-
     },
     handleSelectChange(value) {
-
       this.SelectValue = value;
     },
     // 表格行样式 当当前行的状态为不明确状态时，添加样式，使其复选框为不明确状态样式
     rowClassNameFun({ row }) {
-
       if (row.isSelect === "") {
         return "indeterminate";
       }
 
-      // if (row.date == this.SelectValue) {
-      //   return "SelectRow";
-      // }
       const startDate = moment.utc(row.start_time * 1000).tz("Asia/Kolkata"); // 确保时区转换
 
       if (startDate.isSame(moment().tz("Asia/Kolkata"), "day")) {
         return "todayRow";
-      } else if (startDate.isSame(moment().subtract(1, 'day').tz("Asia/Kolkata"), "day")) {
+      } else if (
+        startDate.isSame(moment().subtract(1, "day").tz("Asia/Kolkata"), "day")
+      ) {
         return "secondRow"; // 昨天日期
       }
     },
@@ -784,29 +750,32 @@ export default {
       }
 
       return "";
-
     },
     readyselectable(row, index) {
       if (row.parentId === 0) {
         const allSelect = row.children.every((selectStatusItem) => {
-
-          return selectStatusItem.payout_settle_status == 1;
-
-        })
+          return (
+            selectStatusItem.payout_settle_status == 1 ||
+            selectStatusItem.payin_success_amount_count == 0
+          );
+        });
         return !allSelect;
       } else {
-        if (row.payout_settle_status) {
-          return false
+        if (row.payout_settle_status || row.payin_success_amount_count == 0) {
+          return false;
         } else {
-          return true
+          return true;
         }
       }
-
-    }
+    },
   },
   components: {
-    dynamicTableVue, TimeFrameVue, ProxyChangeDialogVue, ChannelQuery, ProgressDialog
-  }
+    dynamicTableVue,
+    TimeFrameVue,
+    ProxyChangeDialogVue,
+    ChannelQuery,
+    ProgressDialog,
+  },
 };
 </script>
 <style lang="scss" scoped>
@@ -827,7 +796,7 @@ export default {
 }
 
 .disabledFont {
-  color: #C0C4CC;
+  color: #c0c4cc;
   cursor: not-allowed;
   font-size: 12px;
   font-weight: 500;
@@ -841,7 +810,7 @@ export default {
 ::v-deep .el-table__row--level-1,
 ::v-deep .el-table__row--level-1.hover-row>td.el-table__cell,
 ::v-deep .el-table__row--level-1.hover-row {
-  background: #F5F7FA !important;
+  background: #f5f7fa !important;
 }
 
 ::v-deep .indeterminate .el-checkbox__input .el-checkbox__inner {
@@ -875,7 +844,7 @@ export default {
 }
 
 ::v-deep .indeterminate .el-checkbox__input .el-checkbox__inner::after {
-  content: "";
+  // content: "";
   position: absolute;
   display: block;
   background-color: #fff;
@@ -892,14 +861,12 @@ export default {
 }
 
 ::v-deep .todayRow {
-  background-color: #BAE7FF !important;
+  background-color: #bae7ff !important;
 }
 
 ::v-deep .secondRow {
   background-color: #e9f5ff !important;
 }
-
-
 
 ::v-deep .thirdRow {
   background-color: #f2f9ff !important;
