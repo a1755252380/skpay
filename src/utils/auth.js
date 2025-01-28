@@ -4,8 +4,6 @@ const TokenKey = "Admin-Token";
 const ExpiresInKey = "Admin-Expires-In";
 
 export function getToken() {
-  console.log(Cookies.get("totp"));
-  console.log(Cookies.get("passBase32"));
   return Cookies.get(TokenKey);
 }
 

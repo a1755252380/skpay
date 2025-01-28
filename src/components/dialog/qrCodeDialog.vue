@@ -1,12 +1,13 @@
 <template>
-  <el-dialog :visible="dialogShow" title="绑定二维码" width="350px" :before-close="handleClose" center :show-close="false"
+  <el-dialog :visible="dialogShow" title="绑定二维码" width="400px" :before-close="handleClose" center :show-close="false"
     :close-on-click-modal="false">
     <div style="text-align: center">
       <span>请下载<a class="download" href="https://www.microsoft.com/en-us/security/mobile-authenticator-app"
           target="_blank">Microsoft
-          Authenticator</a>扫码</span>
-      <div @click="getQrCode" class="qrCode" style="width: 300px; height: 300px; margin: 0 auto;cursor: pointer;">
-        <el-image :src="qrCode" :fit="'fill'" @click="getQrCode" style="width: 300px; height: 300px;"></el-image>
+          Authenticator</a>(点击可下载)扫码</span>
+      <div @click="getQrCode" class="qrCode" style="width: 300px; height: 300px; margin: 12px auto ;cursor: pointer;"
+        v-loading="loading">
+        <el-image :src="qrCode" :fit="'fill'" style="width: 280px; height: 288px;"></el-image>
       </div>
       <!-- <div style="padding-bottom: 6px;">密文：{{ passwordBase32 }} <i class="el-icon-document-copy"
           style="cursor: pointer;" title="复制密文" @click="$util.copyToClipboard(passwordBase32)"></i></div> -->
@@ -31,13 +32,12 @@ export default {
     return {
       qrCode: '',
       captcha_input: '',
+      loading: false,
+      num: 0
     };
   },
 
   mounted() {
-
-
-
   },
   computed: {
     dialogShow: {
@@ -61,9 +61,10 @@ export default {
     dialogShow: {
       handler(newVal) {
         if (newVal) {
-          console.log(newVal);
-
           this.getQrCode()
+        } else {
+          this.num = 0
+          this.captcha_input = ''
         }
       },
       immediate: true
@@ -72,6 +73,7 @@ export default {
 
   methods: {
     close() {
+
       if (Cookies.get("totp") == 0) {
         this.dialogShow = false
         return
@@ -81,8 +83,10 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$store.dispatch("LogOut")
-        Cookies.remove("totp")
+        this.$store.dispatch("LogOut").then(() => {
+          Cookies.remove("totp")
+          this.$router.push({ path: this.redirect || "/" });
+        })
       }).catch(() => {
         this.$message({
           type: 'info',
@@ -111,11 +115,10 @@ export default {
       this.dialogShow = false
     },
     getQrCode() {
-
+      this.loading = true
       // Base32 编码
       const serviceName = "2-buddy";
       const accountName = "www.2-buddy.in";
-      console.log(this.passwordBase32);
       const otpauthUrl = `otpauth://totp/${encodeURIComponent(
         serviceName
       )}:${encodeURIComponent(
@@ -125,6 +128,10 @@ export default {
       QRCode.toDataURL(otpauthUrl)
         .then(url => {
           this.qrCode = url;
+          setTimeout(() => {
+            this.loading = false
+
+          }, 500);
         })
         .catch(err => {
           console.error('QR Code generation failed:', err);

@@ -2,31 +2,24 @@
   <div class="app-container fulltable_div">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="商户号" prop="mch_num" v-if="checkRole(['admin'])">
-
         <MchNumSelect v-model="queryParams.mch_num" @change="handleQuery" :configName="'setting'"></MchNumSelect>
         <!-- <el-input v-model="queryParams.mch_num" placeholder="请输入商户号" clearable @keyup.enter.native="handleQuery" /> -->
       </el-form-item>
       <el-form-item label="商户名称" prop="mch_name">
         <mchNameVue v-model="queryParams.mch_name" @change="handleQuery"></mchNameVue>
-        <!-- <el-input  placeholder="请输入商户名称" clearable @keyup.enter.native="handleQuery" /> -->
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
         <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :search="false"></right-toolbar>
       </el-form-item>
-
     </el-form>
-
     <el-row :gutter="10" class="mb8" ref="function">
       <el-col :span="1.5">
         <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
           v-hasPermi="['excellent:MchSetting:add']">新增商户</el-button>
       </el-col>
-
-
     </el-row>
-
     <dynamicTableVue :loading="loading" :tableData="MchSettingList" @cellDblclick="(row, column, cell, event) => {
       this.$util.copyToClipboard(cell.innerText);
     }" :cellClassName="'HoverTooltipCopy'">
@@ -42,34 +35,27 @@
           <span v-else-if="scope.row.mch_type === 4">金融投资</span>
         </template>
       </el-table-column>
-      <!-- <el-table-column label="密码" align="center" prop="password" /> -->
-      <!-- v-if="hasPermiVisible('excellent:mchSetting:edit')" -->
       <el-table-column label="状态" align="center" prop="state" v-if="hasPermiVisible(['excellent:MchSetting:edit'])">
         <template slot-scope="scope">
           <el-switch v-model="scope.row.state" active-color="#409EFF" inactive-color="#DCDFE6" :active-value="0"
             :inactive-value="1" @change="ChangeState($event, scope.row)">
           </el-switch>
-          <!-- <span v-if="scope.row.state === 0">启用</span>
-          <span v-else-if="scope.row.state === 1">禁用</span> -->
         </template>
       </el-table-column>
-
-
-      <el-table-column label="代理人" align="center" prop="agent_name" />
+      <!-- <el-table-column label="密码" align="center" prop="password" /> -->
+      <!-- v-if="hasPermiVisible('excellent:mchSetting:edit')" -->
+      <el-table-column label="验证状态" align="center" prop="state" v-if="hasPermiVisible(['excellent:MchSetting:edit'])">
+        <template slot-scope="scope">
+          <el-switch :value="scope.row.totp_status" active-color="#409EFF" inactive-color="#DCDFE6" :active-value="0"
+            :inactive-value="1" @change="ChangeVerifyStatus($event, scope.row)">
+          </el-switch>
+        </template>
+      </el-table-column>
       <el-table-column label="支付密钥" align="center" prop="apikey">
-
         <template slot-scope="scope">
           {{ $util.hideMiddle(scope.row.apikey) }}
         </template>
-
       </el-table-column>
-
-
-
-      <!--      <el-table-column label="代收回调地址" align="center" prop="payin_callback_url" />-->
-      <!--      <el-table-column label="代付回调地址" align="center" prop="payout_callback_url" />-->
-      <!--      <el-table-column label="ip白名单" align="center" prop="createTime" />-->
-
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width"
         v-if="hasPermiVisible(['excellent:MchSetting:edit'])">
         <template slot-scope="scope">
@@ -84,10 +70,9 @@
 
     <pagination ref="pagination" v-show="total > 0" :total="total" :page.sync="queryParams.page"
       :limit.sync="queryParams.limit" @pagination="getList" />
-
     <!-- 添加或修改商户对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="60%" append-to-body>
-      <div>
+    <el-dialog :title="title" :visible.sync="open" width="60%" append-to-body :close-on-click-modal="false">
+      <div v-loading="DetailLoading">
         <el-form ref="form" :model="form" :rules="rules" label-width="80px" class="Breakdown-el-form"
           label-position="top">
           <el-form-item label="商户号" prop="mch_num">
@@ -96,10 +81,9 @@
           <el-form-item label="商户名称" prop="mch_name">
             <el-input v-model="form.mch_name" placeholder="请输入商户名称" />
           </el-form-item>
-
-          <el-form-item label="代理人" prop="agent_name">
+          <!-- <el-form-item label="代理人" prop="agent_name">
             <el-input v-model="form.agent_name" placeholder="请输入代理人" />
-          </el-form-item>
+          </el-form-item> -->
           <el-form-item label="支付密钥" prop="apikey">
             <div class="FlexCenter">
               <el-input v-model="form.apikey" placeholder="请输入支付密钥" :disabled="mchNumChange" />
@@ -130,7 +114,7 @@
             </div>
 
           </el-form-item>
-          <el-form-item label="白名单列表">
+          <el-form-item label="白名单列表" style="grid-column: span 2;">
             <div class="ipWhiteList_add_list">
               <template v-for="(item, index) in ip_white_list">
                 <el-tooltip :key="index" content="单击可进行修改" :open-delay="2000" style="cursor: pointer;">
@@ -179,6 +163,7 @@ export default {
       mchNumChange: false,
       // 遮罩层
       loading: true,
+      DetailLoading: false,
       // 选中数组
       ids: [],
       // 非单个禁用
@@ -234,6 +219,26 @@ export default {
     this.getList();
   },
   methods: {
+    //改变验证状态
+    ChangeVerifyStatus(ChangeData, data) {
+
+
+      let index = this.MchSettingList.findIndex(res => {
+        return res.id === data.id;
+      })
+      const form = JSON.parse(JSON.stringify(data))
+      form.totp_status = ChangeData
+
+
+
+      const submitForm = this.$util.DiffItems(this.MchSettingList[index], ['mch_num'], form)
+
+
+      updateMchSetting(submitForm).then(response => {
+        this.$modal.msgSuccess("修改成功");
+        this.$set(this.MchSettingList[index], 'totp_status', ChangeData);
+      });
+    },
     //白名单ip添加
     addIpWhiteList() {
       if (this.ipWhite == '') {
@@ -243,15 +248,25 @@ export default {
       let WhiteList = this.ipWhite.replace(/\s+/g, '');
       if (WhiteList.includes(',') || WhiteList.includes('，')) {
         let list = WhiteList.split(/[,，]/)
+        let mess = ''
         for (let index = 0; index < list.length; index++) {
+          if (this.ip_white_list.includes(list[index])) {
+            mess += (list[index] + '\r\n')
+            continue
+          }
           this.ip_white_list.push(list[index])
         }
-        this.ipWhite = ''
+        if (mess != '') {
+          this.$notify.warning('地址『' + mess + '』已存在')
 
+        }
+        this.ipWhite = ''
       } else {
+        if (this.ip_white_list.includes(this.ipWhite)) {
+          return this.$message.warning('该地址已存在')
+        }
         this.ip_white_list.push(this.ipWhite)
         this.ipWhite = ''
-
       }
 
     },
@@ -365,20 +380,23 @@ export default {
       this.reset();
       this.mchNumChange = false
       this.open = true;
+      this.DetailLoading= false
       this.title = "添加商户";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
+      this.DetailLoading = true
+      this.open = true;
+      this.title = "修改商户";
+
       this.reset();
       const id = row.mch_num || this.ids
       this.mchNumChange = true
       getMchSetting(id).then(response => {
         this.form = response.rows[0];
         // form['mch_num']=$util.hideMiddle(form['mch_num'])
-
+        this.DetailLoading = false
         this.ip_white_list = response.rows[0].ip_white_list ? (response.rows[0].ip_white_list.includes(',') ? response.rows[0].ip_white_list.toString().split(",") : [response.rows[0].ip_white_list]) : []
-        this.open = true;
-        this.title = "修改商户";
       });
     },
     /** 提交按钮 */
@@ -429,7 +447,6 @@ export default {
     },
     //状态修改按钮
     ChangeState(ChangeData, data) {
-      console.log(ChangeData, data);
       let index = this.MchSettingList.findIndex(res => {
         return res.id === data.id;
       })

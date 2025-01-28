@@ -142,7 +142,7 @@ serviceOrder.interceptors.response.use(
       return Promise.reject(new Error(msg));
     } else if (code === 500) {
       Message({ message: msg, type: "error" });
-      return Promise.reject(new Error(msg));
+      return Promise.reject(msg);
     } else if (code === 601) {
       Message({ message: msg, type: "warning" });
       return Promise.reject("error");

@@ -329,7 +329,7 @@ export default {
 
           this.$refs.ProgressDialog.batchRequest(
             confirmList,
-            updateMchAcc
+            updateMchAcc, 100
           ).then((res) => {
             this.$message({
               type: "success",

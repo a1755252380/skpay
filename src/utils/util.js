@@ -189,6 +189,62 @@ export const getUtcTime = (inputTime) => {
 
   return utcTimeInMillis;
 };
+/**
+ *
+ * @param {对比的源数据} obj1
+ * @param {需要保留的字段} keysToKeep
+ * @param {修改过的数据} obj2
+ * @returns
+ */
+export function DiffItems(obj1, keysToKeep, obj2) {
+  const result = {};
+
+  // 如果没有对比对象，则只返回保留的键值对，去除 undefined 和 null
+  if (!obj2) {
+    keysToKeep.forEach((key) => {
+      if (key in obj1 && obj1[key] !== undefined && obj1[key] !== null) {
+        result[key] = obj1[key];
+      }
+    });
+  } else {
+    // 对比 obj1 和 obj2，返回新的值，去除 undefined 和 null
+    for (const key in obj1) {
+      if (obj2[key] !== obj1[key]) {
+        // 保留 keysToKeep 中的键
+        if (
+          keysToKeep.includes(key) &&
+          obj1[key] !== undefined &&
+          obj1[key] !== null
+        ) {
+          result[key] = obj1[key]; // 保留 obj1 的值
+        } else if (obj2[key] !== undefined && obj2[key] !== null) {
+          result[key] = obj2[key]; // 使用 obj2 的新值
+        }
+      }
+    }
+
+    // 处理 obj2 中有但 obj1 中没有的键，保留有效值且不在 keysToKeep 中
+    for (const key in obj2) {
+      if (
+        !(key in obj1) &&
+        !keysToKeep.includes(key) &&
+        obj2[key] !== undefined &&
+        obj2[key] !== null
+      ) {
+        result[key] = obj2[key];
+      }
+    }
+
+    // 确保 keysToKeep 中的键始终保留，即使它们在 obj2 中没有变化
+    keysToKeep.forEach((key) => {
+      if (key in obj1 && obj1[key] !== undefined && obj1[key] !== null) {
+        result[key] = obj1[key];
+      }
+    });
+  }
+
+  return result;
+}
 //隐藏中间部分
 export const hideMiddle = (context) => {
   if (!context) {

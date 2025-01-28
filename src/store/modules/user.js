@@ -66,13 +66,13 @@ const user = {
             //1是未激活需绑定
             commit("SET_passwordBase32", Base32Encode(password));
             Cookies.set("passBase32", Base32Encode(password));
-            if (res.totp == 1) {
-              Cookies.set("totp", res.totp);
 
+            if (res.totp == 1) {
               setTimeout(() => {
                 commit("SET_isShowBindQrCode", true);
               }, 1000);
             }
+            Cookies.set("totp", res.totp);
             let data = res.user_info;
             // setToken(data.access_token);
             // commit("SET_TOKEN", data.access_token);

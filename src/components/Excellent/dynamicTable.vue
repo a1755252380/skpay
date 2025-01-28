@@ -171,7 +171,8 @@ export default {
       this.$refs["DynamicTable" + this.tableId].clearSelection();
     },
     cellDblclick(row, column, cell, event) {
-      if (column.type == "selection" || column.label == "操作" || column.label == "历史") {
+      if (column.type == "selection" || column.label == "操作" || column.label == "历史" ||
+        column.label == "状态" || column.label == "验证状态" || column.label == "账户状态" || column.label == "代收开关" || column.label == "代付开关") {
         return
       }
       this.$emit("cellDblclick", row, column, cell, event);
@@ -182,7 +183,8 @@ export default {
     },
     cellClassNameFunction({ row, column, rowIndex, columnIndex }) {
       // console.log(row, column, rowIndex, columnIndex);
-      if (column.type == "selection" || column.label == "操作" || column.label == "历史") {
+      if (column.type == "selection" || column.label == "操作" || column.label == "历史" ||
+        column.label == "状态" || column.label == "验证状态" || column.label == "账户状态" || column.label == "代收开关" || column.label == "代付开关") {
         return 'DynamicTable_cell'
       } else {
         if (typeof this.cellClassName == "string") {

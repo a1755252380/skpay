@@ -188,10 +188,16 @@ export default {
         this.$router.push({ path: this.redirect || "/" });
 
       }).catch((res) => {
+        if (res == '用户名或密码错误') {
+          return
+        }
         this.codeNeed = false;
+
+      }).finally(() => {
         this.loading = false;
 
-      });
+      })
+        ;
       // this.$refs.loginForm.validate(valid => {
       //   if (valid) {
 

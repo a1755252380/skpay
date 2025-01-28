@@ -6,8 +6,8 @@
         <el-form-item label="设备号" prop="device_number">
           <el-input v-model="addBlackForm.device_number" placeholder="请输入设备号"></el-input>
         </el-form-item>
-        <el-form-item label="ip地址段" prop="ip_segment">
-          <el-input v-model="addBlackForm.ip_segment" placeholder="请输入ip地址段"></el-input>
+        <el-form-item label="ip地址" prop="ip">
+          <el-input v-model="addBlackForm.ip" placeholder="请输入ip地址"></el-input>
         </el-form-item>
         <el-form-item label="银行账户acc" prop="user_bank_acct">
           <el-input v-model="addBlackForm.user_bank_acct" placeholder="请输入银行账户acc"></el-input>
@@ -79,7 +79,7 @@ export default {
       //单个添加黑名单
       addBlackForm: {
         device_number: null,
-        ip_segment: null,
+        ip: null,
         user_bank_acct: null,
         upi_id: null,
       },
@@ -113,7 +113,7 @@ export default {
     CloseAddBlack() {
       this.addBlackForm = {
         device_number: null,
-        ip_segment: null,
+        ip: null,
         user_bank_acct: null,
         upi_id: null,
       }
