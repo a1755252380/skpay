@@ -15,7 +15,7 @@
       </div>
     </div>
     <template #footer v-if="isFinish && isClose">
-      <!-- <el-button type="danger" size="small" @click="startTasks">复制失败的订单号</el-button> -->
+      <slot></slot>
       <el-button type="primary" size="small" @click="() => {
         reset()
         centerDialogVisible = false
@@ -119,6 +119,9 @@ export default {
     },
 
     async batchRequest(submitList, requestFn, delayTime = 200) {
+      let isPageVisible = true;  // 页面是否可见
+
+
       if (!Array.isArray(submitList) || typeof requestFn !== "function") {
         throw new Error(
           "Invalid arguments: submitList should be an array and requestFn should be a function"

@@ -255,26 +255,7 @@ export default {
         this.AdjustmentsToFundsShow = true;
       });
     },
-    /** 提交按钮 */
-    submitForm() {
-      this.$refs["form"].validate((valid) => {
-        if (valid) {
-          if (this.form.id != null) {
-            updateMchAcc(this.form).then((response) => {
-              this.$modal.msgSuccess("修改成功");
-              this.open = false;
-              this.getList();
-            });
-          } else {
-            addMchAcc(this.form).then((response) => {
-              this.$modal.msgSuccess("新增成功");
-              this.open = false;
-              this.getList();
-            });
-          }
-        }
-      });
-    },
+
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
@@ -311,6 +292,12 @@ export default {
       });
       this.AdjustmentsToFundsShow = false;
       updateMchAcc(value).then((response) => {
+        if (response.code < 0) {
+
+          this.$modal.msgError(response.errors[0].error);
+          loading.close();
+          return
+        }
         this.$modal.msgSuccess("修改成功");
         this.getList();
         loading.close();

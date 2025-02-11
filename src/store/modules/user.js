@@ -57,7 +57,6 @@ const user = {
       const username = userInfo.username.trim();
       const password = userInfo.password;
       const captcha_input = userInfo.captcha_input;
-      console.log("登录");
 
       return new Promise((resolve, reject) => {
         login(username, password, captcha_input)

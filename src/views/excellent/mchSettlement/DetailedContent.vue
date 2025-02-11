@@ -39,6 +39,7 @@
         <el-table-column label="操作" align="center" width="100" fixed="right">
           <template slot-scope="scope">
             <div v-if="scope.row.parentId != 0">
+              <!-- <el-button type="text" size="small" @click="Settlement(scope.row)" icon="el-icon-refresh">代付结算</el-button> -->
               <el-button type="text" size="small" @click="Settlement(scope.row)" icon="el-icon-refresh" v-if="
                 scope.row.payout_settle_status == 0 &&
                 scope.row.payin_success_amount_count != 0
@@ -55,6 +56,8 @@
     </ProxyChangeDialogVue>
     <!-- 进度条 -->
     <ProgressDialog ref="ProgressDialog" v-model="progressShow"></ProgressDialog>
+    <!-- 展示批量结果 -->
+    <ShowResult :Result="errorList" :dialogVisible="showResult" @updateDialogVisible="updateDialogVisible"></ShowResult>
   </el-dialog>
 </template>
 
@@ -67,6 +70,7 @@ import { updateMchAcc } from "@/api/excellent/mchAcc";
 import ChannelQuery from "@/components/Excellent/Channel/ChannelQuery.vue";
 import ProgressDialog from "@/components/dialog/ProgressDialog.vue";
 import moment from "moment-timezone";
+import ShowResult from "./DetailedContent/ShowResult.vue";
 export default {
   name: "WorkspaceJsonDetailedContent",
   props: ["DetailedContentShow", "ChooseRows"],
@@ -174,6 +178,10 @@ export default {
       //高亮选项
       SelectValue: null,
       SelectOptions: [],
+
+      //批量结算失败的列表
+      showResult: false,
+      errorList: [],
     };
   },
   computed: {
@@ -208,6 +216,7 @@ export default {
 
   mounted() {
     this.reset();
+
   },
 
   methods: {
@@ -293,9 +302,13 @@ export default {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
       })
-        .then(({ value }) => {
-          this.$refs.ProgressDialog.isClose = false;
-          this.progressShow = true;
+        .then(async ({ value }) => {
+          const loading = this.$loading({
+            lock: true,
+            text: "正在结算中，请稍后...",
+            spinner: "el-icon-loading",
+            background: "rgba(0, 0, 0, 0.7)",
+          })
           let confirmList = [];
           for (let index = 0; index < selectData.length; index++) {
             if (selectData[index].payin_success_amount_count != 0) {
@@ -326,19 +339,43 @@ export default {
               confirmList.push(mergedObj);
             }
           }
+          updateMchAcc(confirmList).then((res) => {
+            console.log(res);
+            loading.close();
+            console.log(res.code);
 
-          this.$refs.ProgressDialog.batchRequest(
-            confirmList,
-            updateMchAcc, 100
-          ).then((res) => {
-            this.$message({
-              type: "success",
-              message: "批量结算成功",
-            });
-            this.EmptyQuery();
-          });
+            if (res.code < 0) {
+              console.log(res.errors);
 
+              this.showResult = true;
+              this.errorList = res.errors
+            } else {
+              this.$message({
+                type: "success",
+                message: "批量结算成功",
+              });
+              this.EmptyQuery();
+            }
+
+            // this.EmptyQuery();
+            return;
+          }).catch((err) => {
+            loading.close();
+
+          })
           return;
+          // const { successList, errorList } = await this.$refs.ProgressDialog.batchRequest(
+          //   confirmList,
+          //   updateMchAcc, 100
+          // )
+          // this.$message({
+          //   type: "success",
+          //   message: "批量结算成功",
+          // });
+          // this.EmptyQuery();
+          // console.log(successList, errorList);
+
+          // return;
         })
         .catch(() => {
           this.$message({
@@ -346,6 +383,7 @@ export default {
             message: "取消输入",
           });
         });
+
     },
     //提交修改信息
     UpdateProxyChangeDialog(value, data) {
@@ -363,15 +401,23 @@ export default {
 
       updateMchAcc(value)
         .then((response) => {
+          if (response.code == -1) {
+            this.$message({
+              type: "error",
+              message: "结算失败",
+            });
+            return;
+          }
           this.$modal.msgSuccess("提交成功");
-        })
-        .finally(() => {
-          this.ProxyChangeDialogShow = false;
           this.$set(
             this.treeTableData[index].children[childrenIndex],
             "payout_settle_status",
             1
           );
+        })
+        .finally(() => {
+          this.ProxyChangeDialogShow = false;
+
           loading.close();
         });
     },
@@ -752,11 +798,11 @@ export default {
       return "";
     },
     readyselectable(row, index) {
+      //
       if (row.parentId === 0) {
         const allSelect = row.children.every((selectStatusItem) => {
           return (
-            selectStatusItem.payout_settle_status == 1 ||
-            selectStatusItem.payin_success_amount_count == 0
+            selectStatusItem.payout_settle_status == 1 || selectStatusItem.payin_success_amount_count == 0
           );
         });
         return !allSelect;
@@ -768,13 +814,17 @@ export default {
         }
       }
     },
+    updateDialogVisible(value) {
+      this.showResult = false
+      this.EmptyQuery();
+    }
   },
   components: {
     dynamicTableVue,
     TimeFrameVue,
     ProxyChangeDialogVue,
     ChannelQuery,
-    ProgressDialog,
+    ProgressDialog, ShowResult
   },
 };
 </script>

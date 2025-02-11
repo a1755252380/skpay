@@ -24,7 +24,6 @@
           <div class="sole"></div>
         </div>
       </div>
-
       <div class="login-box" id="login_div">
         <div class="hand left"></div>
         <div class="hand right"></div>
@@ -76,7 +75,7 @@
 </template>
 
 <script>
-import { getCodeImg, getCodeImgID } from "@/api/login";
+import { getCodeImg, getCodeImgID, verifyArea } from "@/api/login";
 import Cookies from "js-cookie";
 import { encrypt, decrypt } from '@/utils/jsencrypt'
 
@@ -113,12 +112,14 @@ export default {
         ],
         // captcha_input: [{ required: true, trigger: "change", message: "请输入验证码" }]
       },
+
       loading: false,
       // 验证码开关
       captchaEnabled: true,
       // 注册开关
       register: false,
-      redirect: undefined
+      redirect: undefined,
+
     };
   },
   watch: {
@@ -129,7 +130,10 @@ export default {
       immediate: true
     }
   },
+
+
   created() {
+
     this.getCookie();
   },
   mounted() {
@@ -164,13 +168,10 @@ export default {
         rememberMe: rememberMe === undefined ? false : Boolean(rememberMe),
       };
     },
+
     handleLogin() {
       this.loading = true;
-
       this.$store.dispatch("Login", this.loginForm).then((res) => {
-        console.log(res);
-
-
         this.$message.success("登录成功");
         if (process.env.VUE_APP_ENV === 'production') {
           this.$util.startAnimation()
@@ -203,6 +204,20 @@ export default {
 
       //   }
       // });
+    },
+    //验证地区
+    checkArea() {
+      // 使用 geoip2.js 库获取地理位置信息
+      geoip2.city(
+        function (response) {
+          // 获取 country.names.en 并更新 data 中的 country
+          this.checkAreaName = response.country.names.en || '未知国家';
+
+        }.bind(this),
+        function (error) {
+          console.error('Error fetching GeoIP2 data:', error);
+        }
+      );
     }
   }
 };

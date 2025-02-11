@@ -80,3 +80,13 @@ export function verifyTotp(data) {
     data: data,
   });
 }
+//验证地区
+export function verifyArea() {
+  return request({
+    url: "/user/ip/check",
+    headers: {
+      isToken: false,
+    },
+    method: "get",
+  });
+}

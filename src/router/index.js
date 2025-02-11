@@ -57,6 +57,11 @@ export const constantRoutes = [
     hidden: true,
   },
   {
+    path: "/4040",
+    component: () => import("@/views/error/4040"),
+    hidden: true,
+  },
+  {
     path: "/401",
     component: () => import("@/views/error/401"),
     hidden: true,
@@ -73,11 +78,6 @@ export const constantRoutes = [
         name: "Index",
         meta: { title: "首页", icon: "dashboard", affix: true },
       },
-      {
-        path: "text",
-        component: () => import("@/text.vue"),
-        hidden: true,
-      }, //测试
     ],
   },
   {

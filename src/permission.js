@@ -6,8 +6,10 @@ import "nprogress/nprogress.css";
 import { getToken } from "@/utils/auth";
 import { isRelogin } from "@/utils/requestGo";
 NProgress.configure({ showSpinner: false });
+import { verifyArea } from "@/api/login";
 
-const whiteList = ["/login", "/register", "/404", "/401"];
+const whiteList = ["/login", "/register", "/404", "/401", "/4040"];
+const verifyList = ["/login", "/register"];
 router.beforeEach((to, from, next) => {
   NProgress.start();
 
@@ -44,14 +46,31 @@ router.beforeEach((to, from, next) => {
       }
     }
   } else {
+    if (process.env.NODE_ENV === "production") {
+      if (verifyList.indexOf(to.path) !== -1) {
+        verifyArea()
+          .then((res) => {
+            next();
+          })
+          .catch(() => {
+            next("/4040");
+            return;
+          })
+          .finally(() => {
+            NProgress.done();
+          });
+        return;
+      }
+    }
+
     // 没有token
     if (whiteList.indexOf(to.path) !== -1) {
       // 在免登录白名单，直接进入
       next();
     } else {
-      // ?redirect=${encodeURIComponent(to.fullPath)}
+      // 在页面加载时读取sessionStorage里的状态信息
       next(`/login?redirect=${encodeURIComponent(to.fullPath)}`); // 否则全部重定向到登录页
-      NProgress.done();
+      // ?redirect=${encodeURIComponent(to.fullPath)}
     }
   }
 });

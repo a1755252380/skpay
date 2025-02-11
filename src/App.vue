@@ -10,7 +10,7 @@
 <script>
 import ThemePicker from "@/components/ThemePicker";
 import qrCodeDialogVue from './components/dialog/qrCodeDialog.vue';
-
+import { verifyArea } from "@/api/login";
 export default {
   name: "App",
   components: {
@@ -22,6 +22,9 @@ export default {
     }
   },
   beforeCreate() {
+  },
+  created() {
+    // this.verify()
   },
   metaInfo() {
     return {
@@ -48,6 +51,17 @@ export default {
 
 
     })
+  },
+  methods: {
+    verify() {
+      // 在页面加载时读取sessionStorage里的状态信息
+      verifyArea().then((res) => {
+      }).catch(() => {
+        this.$router.push({ path: "/4040" });
+
+        return
+      })
+    }
   }
 };
 </script>
