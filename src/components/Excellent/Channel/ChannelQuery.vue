@@ -68,11 +68,9 @@ export default {
         state: null,
       }
       listChnlSetting(query).then(response => {
-        this.ChannelQueryList = response.rows;
-        setTimeout(() => {
-          this.Loading = false;
+        this.ChannelQueryList = response.rows.sort((a, b) => a.id - b.id);
+        this.Loading = false;
 
-        }, 500);
       });
 
     }

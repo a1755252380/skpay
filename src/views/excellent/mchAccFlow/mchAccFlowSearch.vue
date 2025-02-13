@@ -9,7 +9,7 @@
 
       <el-form-item v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" label="支付通道" prop="chnl_id">
         <el-select v-model="queryParams.chnl_id" placeholder="请选择支付通道" clearable class="w100_input">
-          <el-option v-for="dict in PaymentChannel" :key="dict.id" :label="dict.chnl_name" :value="dict.id" />
+          <el-option v-for="dict in PaymentChannel" :key="dict.id" :label="dict.chnl_id" :value="dict.id" />
         </el-select>
       </el-form-item>
 
@@ -35,7 +35,6 @@
         <el-select v-model="queryParams.operation" placeholder="请选择操作类型" class="w100_input" @change="DealOperationList">
           <template v-for="dict in operationList">
             <el-option :key="dict.value" :label="dict.name" :value="dict.value" />
-
           </template>
 
         </el-select>

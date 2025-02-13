@@ -153,7 +153,7 @@ export default {
       queryParams: {
         page: 1,
         limit: 20,
-        chnl_name: null,
+        chnl_id: null,
         terraceSymbol: null,
         state: null,
       },

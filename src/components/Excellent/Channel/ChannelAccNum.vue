@@ -48,11 +48,8 @@ export default {
         state: null,
       }
       listChnlAccConfig(query).then(response => {
-        this.ChannelAccNumList = response.rows;
-        setTimeout(() => {
-          this.Loading = false;
-
-        }, 500);
+        this.ChannelAccNumList = response.rows.sort((a, b) => b.id - a.id);
+        this.Loading = false;
       });
 
     }

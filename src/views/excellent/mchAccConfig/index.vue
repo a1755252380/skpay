@@ -692,7 +692,7 @@ export default {
           payout_chnl_id: null,
           payin_chnl_id: null,
         }).then((response) => {
-          this.PassageList = response.rows;
+          this.PassageList = response.rows.sort((a, b) => a.id - b.id);
 
           resolve(response);
         });
