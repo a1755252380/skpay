@@ -25,9 +25,15 @@
             <span>{{ NumFormat(scope.row.settle_amount, scope.row.msg) }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="资金变动原因" align="center" prop="msg" show-overflow-tooltip width="120" />
-        <el-table-column label="资金变动类型" align="center" prop="operation" :formatter="typeFormatter" width="120"
-          show-overflow-tooltip />
+        <el-table-column label="资金变动原因" align="center" prop="msg" show-overflow-tooltip min-width="150" />
+        <el-table-column label="资金变动类型" align="center" prop="operation" :formatter="Formatter.typeFormatter"
+          width="250">
+          <template slot-scope="scope">
+            <el-tag :type="Formatter.statusColorFormatter(0, 0, scope.row.operation)">{{ Formatter.typeFormatter(0, 0,
+              scope.row.operation) }}</el-tag>
+          </template>
+
+        </el-table-column>
         <el-table-column label="相关订单号" align="center" prop="merchant_order_id" width="210" show-overflow-tooltip />
         <el-table-column label="流水更新时间" align="center" prop="update_time" :formatter="Formatter.TableTimeSecond"
           width="180" />
@@ -150,16 +156,7 @@ export default {
       this.$util.copyToClipboard(cell.innerText);
     },
 
-    // 格式化操作类型
-    typeFormatter(row) {
-      const types = {
-        "1": "账户待结算余额变动",
-        "2": "账户代付可用余额变动",
-        "3": "账户可用余额变动",
-        "0": "订单流水记录"
-      };
-      return types[row.operation] || "未知操作类型";
-    },
+
 
     // 格式化余额变动信息
     BalanceChangeInformation(row) {

@@ -25,7 +25,7 @@
     </el-form>
     <div class="CalculationFormula">
 
-      <strong>（本模块依据订单创建时间）</strong>
+      <strong>（本模块依据订单更新时间）</strong>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :search="false"
         v-if="!checkRole(['admin'])"></right-toolbar>
     </div>
@@ -71,6 +71,7 @@
 <script>
 
 import { listMchSettlementList, getMchSettlementDay, delMchSettlement, addMchSettlement, updateMchSettlement } from "@/api/excellent/mchSettlement";
+
 import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
 import DetailedContentVue from "./DetailedContent.vue";

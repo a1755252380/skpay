@@ -27,7 +27,7 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <dynamicTableVue :loading="loading" :tableData="chnlSettingList">
+    <dynamicTableVue :loading="loading" :tableData="chnlSettingList" :defaultSort="{ prop: 'id', order: 'ascending' }">
       <!-- <el-table-column type="selection" width="30" align="center" /> -->
       <el-table-column label="通道ID" align="center" prop="id" />
       <!-- <el-table-column label="通道名称" align="center" prop="id" v-if="hasPermiVisible(['excellent:chnlSetting:edit'])" /> -->

@@ -77,6 +77,10 @@ export default {
       {
         label: '商户订单号',
         value: 3
+      },
+      {
+        label: 'UPI_ID',
+        value: 4
       }],//选择类型
       BlackType: null,//选择类型
       batchInput: '',
@@ -166,21 +170,32 @@ export default {
               ConfirmList.push({
                 user_bank_acct: '',
                 device_number: item,
-                ip: ''
+                ip: '',
+                upi_id: ''
               });
             }
             if (this.BlackType === 1) {
               ConfirmList.push({
                 user_bank_acct: '',
                 device_number: '',
-                ip: item
+                ip: item,
+                upi_id: ''
               });
             }
             if (this.BlackType === 2) {
               ConfirmList.push({
                 user_bank_acct: item,
                 device_number: '',
-                ip: ''
+                ip: '',
+                upi_id: ''
+              });
+            }
+            if (this.BlackType === 4) {
+              ConfirmList.push({
+                user_bank_acct: '',
+                device_number: '',
+                ip: '',
+                upi_id: item
               });
             }
           });

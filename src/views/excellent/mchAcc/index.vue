@@ -19,7 +19,7 @@
       </el-form-item>
     </el-form>
     <div class="CalculationFormula" v-if="hasPermiVisible(['excellent:mchAcc:edit'])">
-      <strong>账户余额=待结算金额+账户可用余额+代付余额</strong>
+      <strong>账户余额=待结算金额+账户可用余额+代付余额+账户冻结金额（扣除的是账户可用余额）</strong>
       <strong>代付余额=代付可用余额+代付冻结金额</strong>
       <strong>商户下发使用可用余额调整</strong>
     </div>
@@ -35,6 +35,7 @@
         :formatter="Formatter.TableAmount" />
       <el-table-column label="账户可用余额" align="center" prop="account_available_balance"
         :formatter="Formatter.TableAmount" />
+      <el-table-column label="账户冻结金额" align="center" prop="account_freeze_balance" :formatter="Formatter.TableAmount" />
       <el-table-column label="代付余额" align="center" prop="account_payout_balance" :formatter="Formatter.TableAmount" />
       <el-table-column label="代付可用余额" align="center" prop="account_payout_available_balance"
         :formatter="Formatter.TableAmount" />

@@ -20,7 +20,13 @@
         <el-table-column label="商户最后余额 " align="center" prop="mch_final_balance" :formatter="Formatter.TableAmount" />
         <el-table-column label="资金变动金额 " align="center" prop="settle_amount" :formatter="Formatter.TableAmount" />
         <el-table-column label="资金变动原因" align="center" prop="msg" :show-overflow-tooltip="true" />
-        <el-table-column label="交易类型" align="center" prop="operation" :formatter="typeFormatter" width="250" />
+        <el-table-column label="交易类型" align="center" prop="operation" width="250">
+          <template slot-scope="scope">
+            <el-tag :type="Formatter.statusColorFormatter(0, 0, scope.row.operation)">{{ Formatter.typeFormatter(0, 0,
+              scope.row.operation) }}</el-tag>
+          </template>
+
+        </el-table-column>
         <el-table-column label="创建者" align="center" prop="operator" />
         <!-- <el-table-column label="流水更新时间" align="center" prop="update_time" :formatter="Formatter.TableTimeSecond" width="160"/> -->
         <el-table-column label="创建时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond"
@@ -100,16 +106,7 @@ export default {
       }
     },
 
-    // 格式化交易类型
-    typeFormatter(row) {
-      const types = {
-        "1": "账户待结算余额调整记录",
-        "2": "账户代付可用余额调整记录",
-        "3": "账户可用余额变动",
-        "0": "订单流水记录"
-      };
-      return types[row.operation] || "";
-    },
+
 
     // 计算合计行
     getSummaries(param) {

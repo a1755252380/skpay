@@ -30,6 +30,8 @@
           :formatter="Formatter.TableAmount" />
         <el-table-column label="账户可用余额" align="center" prop="account_available_balance"
           :formatter="Formatter.TableAmount" />
+        <el-table-column label="账户冻结金额" align="center" prop="account_freeze_balance"
+          :formatter="Formatter.TableAmount" />
         <el-table-column label="代付余额" align="center" prop="account_payout_balance" :formatter="Formatter.TableAmount" />
         <el-table-column label="代付可用余额" align="center" prop="account_payout_available_balance"
           :formatter="Formatter.TableAmount" />

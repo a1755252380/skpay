@@ -64,3 +64,24 @@ export function FormatAmount(value) {
     return "0.00";
   }
 }
+// 格式化交易类型
+export function typeFormatter(row, column, cellValue, index) {
+  const types = {
+    1: "账户待结算余额调整记录",
+    2: "账户代付可用余额调整记录",
+    3: "账户可用余额变动",
+    0: "订单流水记录",
+    6: "账户冻结金额变动",
+  };
+  return types[cellValue] || "";
+}
+export function statusColorFormatter(row, column, cellValue, index) {
+  const types = {
+    1: "success",
+    2: "success",
+    3: "warning",
+    0: "info",
+    6: "",
+  };
+  return types[cellValue] || "";
+}

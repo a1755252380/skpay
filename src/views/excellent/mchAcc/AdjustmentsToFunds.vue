@@ -117,7 +117,11 @@ export default {
           operation: 5,
           fund_state: 'ProxyPaymentSettlement'
         },
-
+        {
+          name: '冻结金额调整',
+          operation: 6,
+          fund_state: 'PositiveAdjustment'
+        },
         //     {
         //     name: '资金调整',
         //     fund_state:0
