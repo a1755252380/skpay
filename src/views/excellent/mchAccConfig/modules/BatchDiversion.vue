@@ -38,6 +38,7 @@
 <script>
 import ChannelQuery from '@/components/Excellent/Channel/ChannelQuery.vue';
 import { listChnlSetting } from "@/api/excellent/chnlSetting"
+import { mapState } from 'vuex';
 export default {
   name: 'WorkspaceJsonBatchChangeChannels',
 
@@ -68,7 +69,10 @@ export default {
     },
     ChangeListData() {
       return this.ChangeList
-    }
+    },
+    ...mapState({
+      ChnlOptions: state => state.Cache.channelList,
+    }),
   },
   data() {
     return {
@@ -118,11 +122,12 @@ export default {
         payin_over_chnl_id: null,
         payout_over_chnl_id: null,
       },
-      ChnlOptions: [],
+      // ChnlOptions: [],
     };
   },
   created() {
-    this.SeekChnlOptions()
+    this.$store.dispatch('fetchOptions');
+    // this.SeekChnlOptions()
   },
   mounted() {
 
@@ -162,7 +167,7 @@ export default {
               item.payin_over_chnl_name = this.ChnlOptions[payinIndex].chnl_name
               return item
             })
-            message = message + '代收分流金额为 ' + this.form.payin_over_amount + ' 代收分流通道切换为 ' + this.ChnlOptions[payinIndex].id
+            message = message + '代收分流金额为 ' + this.form.payin_over_amount + ' 代收分流通道切换为 ' + this.ChnlOptions[payinIndex].chnl_name[0] + this.ChnlOptions[payinIndex].id
           }
 
           //代付分流金额不为0，需要选择代付分流通道
@@ -173,10 +178,9 @@ export default {
               item.payout_over_chnl_name = this.ChnlOptions[payoutIndex].chnl_name
               return item
             })
-            message = message + '代付分流金额为 ' + this.form.payout_over_amount + ' 代付分流通道切换为 ' + this.ChnlOptions[payoutIndex].id
+            message = message + '代付分流金额为 ' + this.form.payout_over_amount + ' 代付分流通道切换为 ' + this.ChnlOptions[payoutIndex].chnl_name[0] + this.ChnlOptions[payoutIndex].id
 
           }
-          console.log(confirmList);
 
           this.$confirm(
             '确认批量将商户' + message + ' 吗？', '提示',

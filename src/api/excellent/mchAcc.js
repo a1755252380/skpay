@@ -34,15 +34,17 @@ export function addMchAcc(data) {
 }
 
 // 修改商户账户总金额
+
 export function updateMchAcc(data) {
+  let SubmitData = data;
   if (!Array.isArray(data)) {
-    data=[data]
+    SubmitData = [data];
   }
   return request({
     url: "/balance/operation",
     method: "post",
     data: {
-      data,
+      data: SubmitData,
     },
   });
 }

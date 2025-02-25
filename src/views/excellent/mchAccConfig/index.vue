@@ -12,22 +12,17 @@
             <el-input v-model="queryParams.currency" placeholder="请输入货币代号" clearable
               @keyup.enter.native="handleQuery" />
           </el-form-item>
-          <el-form-item label="代付通道" prop="payout_chnl_id">
-            <ChannelQueryVue v-model="queryParams.payout_chnl_id"></ChannelQueryVue>
-            <!-- <el-select v-model="queryParams.payout_chnl_id" placeholder="请选择代付通道" @change="handleQuery">
-              <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
-                :key="index"></el-option>
-            </el-select> -->
-
-          </el-form-item>
           <el-form-item label="代收通道" prop="payin_chnl_id">
             <ChannelQueryVue v-model="queryParams.payin_chnl_id"></ChannelQueryVue>
-            <!-- <el-select v-model="queryParams.payin_chnl_id" placeholder="请选择代付通道" @change="handleQuery">
-              <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
-                :key="index"></el-option>
-            </el-select> -->
+
 
           </el-form-item>
+          <el-form-item label="代付通道" prop="payout_chnl_id">
+            <ChannelQueryVue v-model="queryParams.payout_chnl_id"></ChannelQueryVue>
+
+
+          </el-form-item>
+
           <el-form-item>
             <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
             <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -100,10 +95,12 @@
           <el-table-column label="代付费率" align="center" prop="payout_rate" />
           <el-table-column label="代收分流金额" align="center" prop="payin_over_amount" width="120"
             :formatter="Formatter.TableAmount2" />
-          <el-table-column label="代收分流通道" align="center" prop="payin_over_chnl_id" width="120" />
+          <el-table-column label="代收分流通道" align="center" prop="payin_over_chnl_id" width="120"
+            :formatter="Formatter.MerchantChannelOverInNameFormatter" />
           <el-table-column label="代付分流金额" align="center" prop="payout_over_amount" width="120"
             :formatter="Formatter.TableAmount2" />
-          <el-table-column label="代付分流通道" align="center" prop="payout_over_chnl_id" width="120" />
+          <el-table-column label="代付分流通道" align="center" prop="payout_over_chnl_id" width="120"
+            :formatter="Formatter.MerchantChannelOverOutNameFormatter" />
           <el-table-column label="单笔代收最高限额" align="center" prop="payin_max_limit" width="140"
             :formatter="Formatter.TableAmount2" />
           <el-table-column label="单笔代收最低限额" align="center" prop="payin_min_limit" width="140"
@@ -153,10 +150,7 @@
             <el-card class="form_card" :header="'代收设置'">
               <el-form-item label="代收通道" prop="payin_chnl_id">
                 <ChannelQueryVue v-model="form.payin_chnl_id"></ChannelQueryVue>
-                <!-- <el-select v-model="form.payin_chnl_id" placeholder="请选择代收通道" class="w100_input">
-                  <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
-                    :key="index"></el-option>
-                </el-select> -->
+
               </el-form-item><br>
 
 
@@ -182,20 +176,14 @@
               </el-form-item>
               <el-form-item label="代收分流通道" prop="payin_over_chnl_id" v-if="form.payin_over_amount > 0">
                 <ChannelQueryVue v-model="form.payin_over_chnl_id"></ChannelQueryVue>
-                <!-- <el-select v-model="form.payin_over_chnl_id" placeholder="请选择代收分流通道" class="w100_input">
-                  <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
-                    :key="index"></el-option>
-                </el-select> -->
+
               </el-form-item>
 
             </el-card>
             <el-card class="form_card" :header="'代付设置'">
               <el-form-item label="代付通道" prop="payout_chnl_id">
                 <ChannelQueryVue v-model="form.payout_chnl_id"></ChannelQueryVue>
-                <!-- <el-select v-model="form.payout_chnl_id" placeholder="请选择代付通道" class="w100_input">
-                  <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
-                    :key="index"></el-option>
-                </el-select> -->
+
               </el-form-item><br>
 
 
@@ -234,10 +222,7 @@
               </el-form-item>
               <el-form-item label="代付分流通道" prop="payout_over_chnl_id" v-if="form.payout_over_amount > 0">
                 <ChannelQueryVue v-model="form.payout_over_chnl_id"></ChannelQueryVue>
-                <!-- <el-select v-model="form.payout_over_chnl_id" placeholder="请选择代付分流通道" class="w100_input">
-                  <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
-                    :key="index"></el-option>
-                </el-select> -->
+
               </el-form-item>
 
             </el-card>
@@ -281,13 +266,17 @@ import BatchChangeChannels from "./modules/BatchChangeChannels.vue";
 import BatchDiversionVue from './modules/BatchDiversion.vue';
 import ProgressDialog from "@/components/dialog/ProgressDialog.vue";
 import ChannelQueryVue from '@/components/Excellent/Channel/ChannelQuery.vue';
-
+import { mapState } from 'vuex';
 export default {
   name: "MchAccConfig",
   computed: {
     ChangeList() {
       return this.ids.map((item) => item.mch_num)
-    }
+    },
+    ...mapState({
+      PassageList: state => state.Cache.channelList,
+    }),
+
   },
   data() {
     const validateNumber = function (rule, value, callback) {
@@ -412,7 +401,7 @@ export default {
         ]
       },
       //通道列表
-      PassageList: [],
+      // PassageList: [],
       //客户搜索列表
       ClientSearchList: [],
       ClientSearchLoading: false,
@@ -689,21 +678,22 @@ export default {
     },
     //获取通道信息
     SeekTunelApi() {
-      this.loading = true;
-      return new Promise((resolve) => {
-        listChnlSetting({
-          page: null,
-          limit: null,
-          mch_num: null,
-          currency: null,
-          payout_chnl_id: null,
-          payin_chnl_id: null,
-        }).then((response) => {
-          this.PassageList = response.rows.sort((a, b) => a.id - b.id);
+      this.$store.dispatch('fetchOptions');
+      // this.loading = true;
+      // return new Promise((resolve) => {
+      //   listChnlSetting({
+      //     page: null,
+      //     limit: null,
+      //     mch_num: null,
+      //     currency: null,
+      //     payout_chnl_id: null,
+      //     payin_chnl_id: null,
+      //   }).then((response) => {
+      //     this.PassageList = response.rows.sort((a, b) => a.id - b.id);
 
-          resolve(response);
-        });
-      });
+      //     resolve(response);
+      //   });
+      // });
     },
     //状态修改按钮
     ChangeState(ChangeData, data, type) {

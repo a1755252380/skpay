@@ -32,6 +32,7 @@
 <script>
 import ChannelQuery from '@/components/Excellent/Channel/ChannelQuery.vue';
 import { listChnlSetting } from "@/api/excellent/chnlSetting"
+import { mapState } from 'vuex';
 export default {
   name: 'WorkspaceJsonBatchChangeChannels',
 
@@ -60,6 +61,13 @@ export default {
     },
     ChangeListData() {
       return this.ChangeList
+    },
+
+    ChnlOptions() {
+      return [{
+        id: '默认',
+        chnl_name: '默认'
+      }].concat(this.$store.state.Cache.channelList)
     }
   },
   data() {
@@ -68,11 +76,11 @@ export default {
         payin_chnl_id: '默认',
         payout_chnl_id: '默认',
       },
-      ChnlOptions: [],
+      // ChnlOptions: [],
     };
   },
   created() {
-    this.SeekChnlOptions()
+    this.$store.dispatch('fetchOptions');
   },
   mounted() {
 
@@ -117,7 +125,7 @@ export default {
           item.payin_chnl_name = this.ChnlOptions[index].chnl_name
           return item
         })
-        message = message + '代收通道切换为 ' + this.ChnlOptions[index].id
+        message = message + '代收通道切换为 ' + this.ChnlOptions[index].chnl_name[0] + this.ChnlOptions[index].id
       }
 
       //选择了代付通道
@@ -128,7 +136,7 @@ export default {
           item.payout_chnl_name = this.ChnlOptions[index].chnl_name
           return item
         })
-        message = message + '，代付通道切换为 ' + this.ChnlOptions[index].id
+        message = message + '，代付通道切换为 ' + this.ChnlOptions[index].chnl_name[0] + this.ChnlOptions[index].id
 
       }
       const h = this.$createElement;

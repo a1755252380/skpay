@@ -75,16 +75,43 @@ export function statusColorFormatter(row, column, cellValue, index) {
 }
 // 格式化通道名称显示
 export function ChannelNameFormatter(row, column, cellValue, index) {
-  return row.chnl_name[0] + row.chnl_id;
+  return (row.chnl_name ? row.chnl_name[0] : "") + row.chnl_id;
 }
 //通道管理页面的名称格式化
 export function SettingChannelNameFormatter(row, column, cellValue, index) {
-  return row.chnl_name[0] + row.id;
+  return (row.chnl_name ? row.chnl_name[0] : "") + row.id;
 }
 //商户配置页面通道名称格式化
 export function MerchantChannelInNameFormatter(row, column, cellValue, index) {
-  return row.payin_chnl_name[0] + row.payin_chnl_id;
+  return (
+    (row.payin_chnl_name ? row.payin_chnl_name[0] : "") + row.payin_chnl_id
+  );
 }
 export function MerchantChannelOutNameFormatter(row, column, cellValue, index) {
-  return row.payout_chnl_name[0] + row.payout_chnl_id;
+  return (
+    (row.payout_chnl_name ? row.payout_chnl_name[0] : "") + row.payout_chnl_id
+  );
+}
+//分流通道
+export function MerchantChannelOverInNameFormatter(
+  row,
+  column,
+  cellValue,
+  index
+) {
+  return (
+    (row.payin_over_chnl_name ? row.payin_over_chnl_name[0] : "") +
+    (row.payin_over_chnl_id ? row.payin_over_chnl_id : "")
+  );
+}
+export function MerchantChannelOverOutNameFormatter(
+  row,
+  column,
+  cellValue,
+  index
+) {
+  return (
+    (row.payout_over_chnl_name ? row.payout_over_chnl_name[0] : "") +
+    (row.payout_over_chnl_id ? row.payout_over_chnl_id : "")
+  );
 }
