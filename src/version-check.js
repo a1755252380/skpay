@@ -71,7 +71,7 @@ function autoRefresh() {
             confirmButtonText: "立即刷新",
             cancelButtonText: "稍后手动刷新",
             type: "warning",
-            showCancelButton: false,
+            showCancelButton: true,
           }
         )
           .then(() => {

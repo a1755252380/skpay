@@ -8,6 +8,7 @@
 
 <script>
 import { listChnlSetting } from "@/api/excellent/chnlSetting"
+import { mapState } from 'vuex';
 export default {
   name: 'ChannelQuery',
   // 自定义 v-model 的 prop 和事件
@@ -28,20 +29,29 @@ export default {
   data() {
     return {
       SelectData: '',
-      Loading: false,
-      ChannelQueryList: []
+      // Loading: false,
+      // ChannelQueryList: []
     };
   },
-
+  computed: {
+    ...mapState({
+      ChannelQueryList: state => state.Cache.channelList,
+      Loading: state => state.Cache.loading, // 获取加载状态
+    }),
+  },
 
   mounted() {
 
   },
   created() {
-    if (this.ChannelQueryList.length == 0) {
-      this.ChannelQuerySearch()
+    // 请求数据，若已有数据或正在加载中，则不会重复请求
+    this.$store.dispatch('fetchOptions');
+    console.log(this.$store);
 
-    }
+    // if (this.ChannelQueryList.length == 0) {
+    //   this.ChannelQuerySearch()
+
+    // }
   },
 
   methods: {
@@ -58,23 +68,23 @@ export default {
 
     //查询通道列表
     ChannelQuerySearch(value) {
-      if (this.Loading) {
-        return
-      }
+      // if (this.Loading) {
+      //   return
+      // }
 
-      this.Loading = true
-      let query = {
-        pageNum: null,
-        pageSize: null,
-        channelName: value,
-        terraceSymbol: null,
-        state: null,
-      }
-      listChnlSetting(query).then(response => {
-        this.ChannelQueryList = response.rows.sort((a, b) => a.id - b.id);
-        this.Loading = false;
+      // this.Loading = true
+      // let query = {
+      //   pageNum: null,
+      //   pageSize: null,
+      //   channelName: value,
+      //   terraceSymbol: null,
+      //   state: null,
+      // }
+      // listChnlSetting(query).then(response => {
+      //   this.ChannelQueryList = response.rows.sort((a, b) => a.id - b.id);
+      //   this.Loading = false;
 
-      });
+      // });
 
     }
   },

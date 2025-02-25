@@ -88,3 +88,20 @@ export function MerchantChannelInNameFormatter(row, column, cellValue, index) {
 export function MerchantChannelOutNameFormatter(row, column, cellValue, index) {
   return row.payout_chnl_name[0] + row.payout_chnl_id;
 }
+//分流通道
+export function MerchantChannelOverInNameFormatter(
+  row,
+  column,
+  cellValue,
+  index
+) {
+  return row.payin_over_chnl_name[0] + row.payin_over_chnl_id;
+}
+export function MerchantChannelOverOutNameFormatter(
+  row,
+  column,
+  cellValue,
+  index
+) {
+  return row.payout_over_chnl_name[0] + row.payout_over_chnl_id;
+}
