@@ -1,6 +1,6 @@
 <template>
   <el-dialog :title="'历史数据'" :visible.sync="DetailedContentShowData" width="90%" :close-on-click-modal="false">
-    <div class="fulltable_div" style="height: 650px">
+    <div class="fulltable_div" style="height: 650px;margin-bottom: 26px;">
       <el-form ref="DetailedContentSearch" :inline="true" label-width="80px" size="small">
         <el-form-item label="查询时间" prop="create_time">
           <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'"
@@ -25,7 +25,7 @@
         row-key="id" :key="tableId" :empty-text="!ReadyRequest ? '请先选择通道以及时间段再进行查询' : '暂无数据'
           " :highlight-current-row="false" ref="multipleTable" :row-class-name="rowClassNameFun" @select="selectFun"
         @select-all="selectAllFun" :header-row-class-name="headerRowClassName"
-        :tree-props="{ hasChildren: 'hasChildren', children: 'children' }" :height="350" border>
+        :tree-props="{ hasChildren: 'hasChildren', children: 'children' }" :height="350">
         <el-table-column type="selection" width="55" align="center" :selectable="readyselectable" />
         <el-table-column label="商户号 " align="center" prop="mch_number" width="150" />
         <el-table-column label="通道ID" align="center" prop="chnl_id" width="80" />
@@ -57,10 +57,11 @@
               <!-- <el-button type="text" size="small" @click="Settlement(scope.row)" icon="el-icon-refresh">代付结算</el-button> -->
               <el-button type="text" size="small" @click="Settlement(scope.row)" icon="el-icon-refresh" v-if="
                 scope.row.payout_settle_status == 0 &&
-                scope.row.payin_success_amount_count != 0
+                scope.row.payin_success_amount_count > 0
               ">代付结算</el-button>
 
-              <span v-else-if="scope.row.payout_settle_status == -1" class="disabledFont">无法结算</span>
+              <span v-else-if="scope.row.payout_settle_status == -1" class="disabledFont"
+                style="color: #f56c6c;">无法结算</span>
               <span class="disabledFont" v-else-if="scope.row.payin_success_amount_count == 0">无数据结算</span>
               <span class="disabledFont" v-else>代付已结算</span>
             </div>
@@ -97,7 +98,7 @@ import moment from "moment-timezone";
 import ShowResult from "./DetailedContent/ShowResult.vue";
 export default {
   name: "WorkspaceJsonDetailedContent",
-  props: ["DetailedContentShow", "ChooseRows"],
+  props: ["DetailedContentShow", "ChooseRows", "MchTotal"],
 
   data() {
     return {
@@ -236,7 +237,10 @@ export default {
         return row.mch_number;
       });
     },
-
+    //商户总金额查询
+    MchLimit() {
+      return this.MchTotal
+    }
   },
 
   mounted() {
@@ -466,12 +470,7 @@ export default {
           chnl_id: this.DetailedContentListQueryParams.chnl_id,
         };
         confirmList.push(query);
-        listMchAccList.push({
-          page: 1,
-          limit: 1,
-          mch_num: this.QueryDetailedContentList[index],
-          currency: null,
-        })
+
       }
       this.DetailedContentList.splice(0);
       this.$refs.ProgressDialog.MoveBatchRequest(
@@ -482,39 +481,41 @@ export default {
           },
           "listMchAcc": {
             requestFn: listMchAcc,
-            requestList: listMchAccList,
+            requestList: [{
+              page: 1,
+              limit: this.MchLimit,
+            }],
           },
         },
-
-
         100
-      ).then(async (response) => {
-        console.log(response);
+      )
+        .then(async (response) => {
+          console.log(response);
 
-        const results = response['listMchSettlement'].successList.map((item) => {
-          return item.response.results;
+          const results = response['listMchSettlement'].successList.map((item) => {
+            return item.response.results;
+          });
+          for (let index = 0; index < results.length; index++) {
+            this.DetailedContentList = this.DetailedContentList.concat(
+              results[index]
+            );
+          }
+          this.DetailedContentListQueryParams.total = this.treeTableData.length;
+
+          //查询商户总余额结果
+          let ListMchResults = {}
+          response['listMchAcc'].successList[0].response.rows.map((item) => {
+            ListMchResults[item.mch_num] = item
+            return;
+          });
+          this.treeTableData = await this.processData(ListMchResults);
+
+          this.$nextTick(() => {
+            this.DetailedContentLoading = false;
+
+            this.$forceUpdate();
+          });
         });
-        for (let index = 0; index < results.length; index++) {
-          this.DetailedContentList = this.DetailedContentList.concat(
-            results[index]
-          );
-        }
-        this.DetailedContentListQueryParams.total = this.treeTableData.length;
-
-        //查询商户总余额结果
-        let ListMchResults = {}
-        response['listMchAcc'].successList.map((item) => {
-          ListMchResults[item.item.mch_num] = item.response.rows[0]
-          return;
-        });
-        this.treeTableData = await this.processData(ListMchResults);
-
-        this.$nextTick(() => {
-          this.DetailedContentLoading = false;
-
-          this.$forceUpdate();
-        });
-      });
 
       // this.$refs.ProgressDialog.batchRequest(
       //   confirmList,
@@ -594,6 +595,12 @@ export default {
       let q = Object.keys(groupedData).map((date, index) => {
         const children = groupedData[date];
         const end = Math.max(...children.map((child) => child.end_time));
+
+
+        const payout_settle_status = ListMchResults[children[0].mch_number].account_available_balance - children.reduce(
+          (sum, child) => sum + (child.payout_settle_status == 0 ? child.payin_success_amount_count : 0),
+          0
+        ) < 0 ? -1 : 0
         // 汇总父节点数据
         const parentNode = {
           parentId: 0, // 设置父节点的层级为 1
@@ -619,13 +626,10 @@ export default {
             0
           ),
           payin_success_amount_count: children.reduce(
-            (sum, child) => sum + child.payin_success_amount_count,
+            (sum, child) => sum + (child.payout_settle_status == 0 ? child.payin_success_amount_count : 0),
             0
           ),
-          payout_settle_status: ListMchResults[children[0].mch_number].account_available_balance - children.reduce(
-            (sum, child) => sum + child.payin_success_amount_count,
-            0
-          ) <= 0 ? -1 : "",
+          payout_settle_status: payout_settle_status,
           pending_amount_count: children.reduce(
             (sum, child) => sum + child.pending_amount_count,
             0
@@ -637,16 +641,14 @@ export default {
 
           children: children.map((child, idx) => ({
             ...child,
-            payout_settle_status: ListMchResults[children[0].mch_number].account_available_balance - children.reduce(
-              (sum, child) => sum + child.payin_success_amount_count,
-              0
-            ) <= 0 ? -1 : child.payout_settle_status,
+            payout_settle_status: payout_settle_status == -1 ? payout_settle_status : child.payout_settle_status,
             account_available_balance: "/",
             id: `child-${index}-${idx}`, // 子节点唯一 ID
             parentId: `parent-${index}`, // 设置父节点的层级为 1
           })),
           hasChildren: children.length <= 0, // 标记为有子节点
         };
+        console.log(parentNode);
 
         return parentNode;
       });
@@ -675,8 +677,8 @@ export default {
 
       if (row.isSelect === "") {
         if (
-          row.payout_settle_status != 1 &&
-          row.payin_success_amount_count != 0 && item.payin_success_amount_count != -1
+          row.payout_settle_status == 0 &&
+          row.payin_success_amount_count > 0
         ) {
           row.isSelect = false;
           this.$refs.multipleTable.toggleRowSelection(row, true);
@@ -689,8 +691,8 @@ export default {
       function selectAllChildrens(data) {
         data.forEach((item) => {
           if (
-            item.payout_settle_status != 1 &&
-            item.payin_success_amount_count != 0 && item.payin_success_amount_count != -1
+            item.payout_settle_status == 0 &&
+            item.payin_success_amount_count > 0
           ) {
             item.isSelect = row.isSelect;
 
@@ -823,8 +825,8 @@ export default {
 
       this.treeTableData.forEach((item) => {
         if (
-          item.payout_settle_status != 1 &&
-          item.payin_success_amount_count != 0 && item.payin_success_amount_count != -1
+          item.payout_settle_status == 0 &&
+          item.payin_success_amount_count > 0
         ) {
           item.isSelect = isAllSelect;
           this.$refs.multipleTable.toggleRowSelection(item, !isAllSelect);
@@ -869,14 +871,22 @@ export default {
     readyselectable(row, index) {
       //
       if (row.parentId === 0) {
+        if (row.payout_settle_status != 0) {
+          return false;
+        }
+        const allZero = row.children.every((selectStatusItem) => {
+          return selectStatusItem.payin_success_amount_count > 0
+        })
+        if (!allZero) {
+          return false
+        }
         const allSelect = row.children.every((selectStatusItem) => {
-          return (
-            selectStatusItem.payout_settle_status == 1 || selectStatusItem.payin_success_amount_count == 0 || row.payin_success_amount_count == -1
-          );
+          return selectStatusItem.payout_settle_status == 1
         });
         return !allSelect;
       } else {
-        if (row.payout_settle_status || row.payin_success_amount_count == 0 || row.payin_success_amount_count == -1) {
+        //未结算状态 以及且父级为未结算状态 结算金额小于0 则返回false  不给选择
+        if (row.payout_settle_status != 0 || row.payin_success_amount_count <= 0) {
           return false;
         } else {
           return true;

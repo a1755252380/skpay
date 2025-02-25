@@ -8,9 +8,7 @@
       </el-form-item>
 
       <el-form-item v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" label="支付通道" prop="chnl_id">
-        <el-select v-model="queryParams.chnl_id" placeholder="请选择支付通道" clearable class="w100_input">
-          <el-option v-for="dict in PaymentChannel" :key="dict.id" :label="dict.chnl_id" :value="dict.id" />
-        </el-select>
+        <ChannelQuery v-model="queryParams.chnl_id"></ChannelQuery>
       </el-form-item>
 
       <el-form-item :label="'商户订单号'" prop="merchant_order_id">
@@ -69,7 +67,7 @@
       <span class="CalculationFormula">
 
         <strong>（本模块依据<span class="redcolor">代收订单更新时间</span>和<span class="redcolor">代付订单更新时间</span>）</strong>
-        <strong>账户余额=待结算金额+账户可用余额+代付余额</strong>
+        <strong>账户余额=待结算金额+账户可用余额+代付余额+账户冻结金额（扣除的是账户可用余额）</strong>
         <strong>代付余额=代付可用余额+代付冻结金额</strong>
 
 
@@ -81,6 +79,7 @@
 <script>
 import { listChnlSetting } from "@/api/excellent/chnlSetting";
 import { listMchSetting } from "@/api/excellent/MchSetting";
+import ChannelQuery from "@/components/Excellent/Channel/ChannelQuery.vue";
 import OrderAndSteam from "@/components/Excellent/SearchLayout/OrderAndSteam.vue";
 import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
 
@@ -164,12 +163,12 @@ export default {
 
   created() {
     if (this.hasPermiVisible(['excellent:OrderRecords:platform'])) {
-      Promise.all([this.getChnl(), this.getMainAccount()]);
+      Promise.all([this.getMainAccount()]);
     }
   },
 
   components: {
-    OrderAndSteam, TimeFrameVue
+    OrderAndSteam, TimeFrameVue, ChannelQuery
   },
 
   methods: {

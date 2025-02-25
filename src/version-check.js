@@ -52,7 +52,6 @@ function autoRefresh() {
     // 判断是否离线
     if (window.navigator.onLine) {
       const willUpdate = await needUpdate();
-      console.log(willUpdate);
 
       if (willUpdate) {
         // 60000*5
@@ -72,6 +71,7 @@ function autoRefresh() {
             confirmButtonText: "立即刷新",
             cancelButtonText: "稍后手动刷新",
             type: "warning",
+            showCancelButton: false,
           }
         )
           .then(() => {

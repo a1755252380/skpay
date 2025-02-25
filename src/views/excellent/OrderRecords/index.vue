@@ -29,7 +29,6 @@
         <el-table-column type="selection" width="55" align="center"
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
         </el-table-column>
-        <!-- <el-table-column label="订单id" align="center" prop="id" /> -->
         <el-table-column label="商户号" align="center" prop="mch_number" width="100" fixed="left"
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
 
@@ -62,7 +61,7 @@
           <template slot-scope="scope">
             <el-tag :type="formatStatus(scope.row.status).type">{{
               formatStatus(scope.row.status).name
-            }}</el-tag>
+              }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="回调状态" align="center" prop="callback_status" width="100" class-name="NoTooltip">
@@ -72,7 +71,7 @@
               }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="通道ID" align="center" prop="chnl_id"
+        <el-table-column label="通道ID" align="center" prop="chnl_id" :formatter="Formatter.ChannelNameFormatter"
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" />
         <el-table-column label="UTR" align="center" prop="utr" width="160">
 

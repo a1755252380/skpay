@@ -8,6 +8,7 @@ import permission from "./modules/permission";
 import settings from "./modules/settings";
 import getters from "./getters";
 import IndexData from "./modules/IndexData";
+import Cache from "./modules/Cache";
 Vue.use(Vuex);
 
 const store = new Vuex.Store({
@@ -19,6 +20,7 @@ const store = new Vuex.Store({
     permission,
     settings,
     IndexData,
+    Cache,
   },
   getters,
 });

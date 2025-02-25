@@ -1,13 +1,7 @@
 import moment from "moment";
 //表格金额格式化
 export function TableAmount(row, column, cellValue, index) {
-  // console.log("------------------------------------");
-  // console.log(row.mch_num);
-
-  // console.log(column.label, ":", cellValue);
   let value = Math.floor(cellValue) / 100;
-  // console.log(column.label, ":", value.toFixed(2));
-  // console.log("------------------------------------");
   if (value) {
     return value.toFixed(2);
   } else {
@@ -15,13 +9,7 @@ export function TableAmount(row, column, cellValue, index) {
   }
 }
 export function TableAmount2(row, column, cellValue, index) {
-  // console.log("------------------------------------");
-  // console.log(row.mch_num);
-
-  // console.log(column.label, ":", cellValue);
   let value = Math.floor(cellValue);
-  // console.log(column.label, ":", value.toFixed(2));
-  // console.log("------------------------------------");
   if (value) {
     return value.toFixed(2);
   } else {
@@ -84,4 +72,19 @@ export function statusColorFormatter(row, column, cellValue, index) {
     6: "",
   };
   return types[cellValue] || "";
+}
+// 格式化通道名称显示
+export function ChannelNameFormatter(row, column, cellValue, index) {
+  return row.chnl_name[0] + row.chnl_id;
+}
+//通道管理页面的名称格式化
+export function SettingChannelNameFormatter(row, column, cellValue, index) {
+  return row.chnl_name[0] + row.id;
+}
+//商户配置页面通道名称格式化
+export function MerchantChannelInNameFormatter(row, column, cellValue, index) {
+  return row.payin_chnl_name[0] + row.payin_chnl_id;
+}
+export function MerchantChannelOutNameFormatter(row, column, cellValue, index) {
+  return row.payout_chnl_name[0] + row.payout_chnl_id;
 }

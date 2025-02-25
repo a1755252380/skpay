@@ -1,7 +1,8 @@
 <template>
   <el-date-picker v-model="internalValue" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss" range-separator="-"
-    :picker-options="pickerOptions" start-placeholder="开始时间" end-placeholder="结束时间" class="w100_input"
-    @change="TimeChange"></el-date-picker>
+    :picker-options="{
+      shortcuts: shortcuts
+    }" start-placeholder="开始时间" end-placeholder="结束时间" class="w100_input" @change="TimeChange"></el-date-picker>
 </template>
 
 <script>
@@ -24,7 +25,7 @@ export default {
     shortcuts: {
       type: Array,
       default:
-        [
+        () => [
           {
             text: '今天一天',
             onClick(picker) {

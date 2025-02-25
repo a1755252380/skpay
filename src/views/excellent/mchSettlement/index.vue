@@ -62,7 +62,7 @@
     <!-- 详细弹窗 -->
 
     <DetailedContentVue :DetailedContentShow="DetailedContentShow" ref="DetailedContentVue" :ChooseRows="ChooseRows"
-      @ReturnDetailedContentShow="ReturnDetailedContentShow">
+      @ReturnDetailedContentShow="ReturnDetailedContentShow" :MchTotal="pageData.total">
     </DetailedContentVue>
 
   </div>

@@ -13,20 +13,20 @@
               @keyup.enter.native="handleQuery" />
           </el-form-item>
           <el-form-item label="代付通道" prop="payout_chnl_id">
-            <el-select v-model="queryParams.payout_chnl_id" placeholder="请选择代付通道" @change="handleQuery">
+            <ChannelQueryVue v-model="queryParams.payout_chnl_id"></ChannelQueryVue>
+            <!-- <el-select v-model="queryParams.payout_chnl_id" placeholder="请选择代付通道" @change="handleQuery">
               <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
                 :key="index"></el-option>
-            </el-select>
-            <!-- <el-input v-model="queryParams.payout_chnl_id" placeholder="请输入代付产品" clearable
-          @keyup.enter.native="handleQuery" /> -->
+            </el-select> -->
+
           </el-form-item>
           <el-form-item label="代收通道" prop="payin_chnl_id">
-            <el-select v-model="queryParams.payin_chnl_id" placeholder="请选择代付通道" @change="handleQuery">
+            <ChannelQueryVue v-model="queryParams.payin_chnl_id"></ChannelQueryVue>
+            <!-- <el-select v-model="queryParams.payin_chnl_id" placeholder="请选择代付通道" @change="handleQuery">
               <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
                 :key="index"></el-option>
-            </el-select>
-            <!-- <el-input v-model="queryParams.payin_chnl_id" placeholder="请输入代收产品" clearable
-          @keyup.enter.native="handleQuery" /> -->
+            </el-select> -->
+
           </el-form-item>
           <el-form-item>
             <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -61,9 +61,11 @@
           <!--      <el-table-column label="商户id" align="center" prop="mchId" />-->
           <el-table-column label="商户号 " align="center" prop="mch_num" fixed />
           <el-table-column label="货币代号" align="center" prop="currency" />
-          <el-table-column label="代收通道" align="center" prop="payin_chnl_id" width="100" />
+          <el-table-column label="代收通道" align="center" prop="payin_chnl_id" width="100"
+            :formatter="Formatter.MerchantChannelInNameFormatter" />
 
-          <el-table-column label="代付通道" align="center" prop="payout_chnl_id" width="100" />
+          <el-table-column label="代付通道" align="center" prop="payout_chnl_id" width="100"
+            :formatter="Formatter.MerchantChannelOutNameFormatter" />
           <el-table-column label="结算模式" align="center" prop="settle_mode">
             <template slot-scope="scope">
               <span v-if="scope.row.settle_mode === 0">实时结算</span>
@@ -150,10 +152,11 @@
           <div style="display: flex;align-items: flex-start;width: 100%;">
             <el-card class="form_card" :header="'代收设置'">
               <el-form-item label="代收通道" prop="payin_chnl_id">
-                <el-select v-model="form.payin_chnl_id" placeholder="请选择代收通道" class="w100_input">
+                <ChannelQueryVue v-model="form.payin_chnl_id"></ChannelQueryVue>
+                <!-- <el-select v-model="form.payin_chnl_id" placeholder="请选择代收通道" class="w100_input">
                   <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
                     :key="index"></el-option>
-                </el-select>
+                </el-select> -->
               </el-form-item><br>
 
 
@@ -178,19 +181,21 @@
                   :precision="0" />
               </el-form-item>
               <el-form-item label="代收分流通道" prop="payin_over_chnl_id" v-if="form.payin_over_amount > 0">
-                <el-select v-model="form.payin_over_chnl_id" placeholder="请选择代收分流通道" class="w100_input">
+                <ChannelQueryVue v-model="form.payin_over_chnl_id"></ChannelQueryVue>
+                <!-- <el-select v-model="form.payin_over_chnl_id" placeholder="请选择代收分流通道" class="w100_input">
                   <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
                     :key="index"></el-option>
-                </el-select>
+                </el-select> -->
               </el-form-item>
 
             </el-card>
             <el-card class="form_card" :header="'代付设置'">
               <el-form-item label="代付通道" prop="payout_chnl_id">
-                <el-select v-model="form.payout_chnl_id" placeholder="请选择代付通道" class="w100_input">
+                <ChannelQueryVue v-model="form.payout_chnl_id"></ChannelQueryVue>
+                <!-- <el-select v-model="form.payout_chnl_id" placeholder="请选择代付通道" class="w100_input">
                   <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
                     :key="index"></el-option>
-                </el-select>
+                </el-select> -->
               </el-form-item><br>
 
 
@@ -228,10 +233,11 @@
                   class="w100_input" />
               </el-form-item>
               <el-form-item label="代付分流通道" prop="payout_over_chnl_id" v-if="form.payout_over_amount > 0">
-                <el-select v-model="form.payout_over_chnl_id" placeholder="请选择代付分流通道" class="w100_input">
+                <ChannelQueryVue v-model="form.payout_over_chnl_id"></ChannelQueryVue>
+                <!-- <el-select v-model="form.payout_over_chnl_id" placeholder="请选择代付分流通道" class="w100_input">
                   <el-option :label="item.id" :value="item.id" v-for="(item, index) in PassageList"
                     :key="index"></el-option>
-                </el-select>
+                </el-select> -->
               </el-form-item>
 
             </el-card>
@@ -274,6 +280,7 @@ import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
 import BatchChangeChannels from "./modules/BatchChangeChannels.vue";
 import BatchDiversionVue from './modules/BatchDiversion.vue';
 import ProgressDialog from "@/components/dialog/ProgressDialog.vue";
+import ChannelQueryVue from '@/components/Excellent/Channel/ChannelQuery.vue';
 
 export default {
   name: "MchAccConfig",
@@ -727,7 +734,7 @@ export default {
 
   },
 
-  components: { dynamicTableVue, MchNumSelect, BatchChangeChannels, BatchDiversionVue, ProgressDialog },
+  components: { dynamicTableVue, MchNumSelect, BatchChangeChannels, BatchDiversionVue, ProgressDialog, ChannelQueryVue },
 };
 </script>
 

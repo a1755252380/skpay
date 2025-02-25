@@ -6,14 +6,16 @@
       </el-form-item>
       <el-form-item label="代收通道">
         <el-select v-model="form.payin_chnl_id" placeholder="请选择代收通道" class="w100_input">
-          <el-option v-for="item in ChnlOptions" :key="'payin_' + item.id" :label="item.id"
+          <el-option v-for="item in ChnlOptions" :key="'payin_' + item.id"
+            :label="(item.chnl_name == '默认' ? '' : (item.chnl_name == '' ? '' : item.chnl_name[0])) + item.id"
             :value="item.id"></el-option>
         </el-select>
 
       </el-form-item>
       <el-form-item label="代付通道">
         <el-select v-model="form.payout_chnl_id" placeholder="请选择代付通道" class="w100_input">
-          <el-option v-for="item in ChnlOptions" :key="'payin_' + item.id" :label="item.id"
+          <el-option v-for="item in ChnlOptions" :key="'payin_' + item.id"
+            :label="(item.chnl_name == '默认' ? '' : (item.chnl_name == '' ? '' : item.chnl_name[0])) + item.id"
             :value="item.id"></el-option>
         </el-select>
       </el-form-item>
@@ -85,7 +87,7 @@ export default {
         this.ChnlOptions = [{
           id: '默认',
           chnl_name: '默认'
-        }].concat(res.rows)
+        }].concat(res.rows.sort((a, b) => a.id - b.id))
       })
 
     },
@@ -100,7 +102,6 @@ export default {
         this.visible = false
         return
       }
-      console.log(this.form.payin_chnl_id, this.form.payout_chnl_id);
 
       let confirmList = this.ChangeList.map(item => {
         return {

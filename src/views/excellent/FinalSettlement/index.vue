@@ -17,7 +17,7 @@
 
 
     <div class="CalculationFormula">
-      <strong>账户余额=待结算金额+账户可用余额+代付余额</strong>
+      <strong>账户余额=待结算金额+账户可用余额+代付余额+账户冻结金额（扣除的是账户可用余额）</strong>
       <strong>代付余额=代付可用余额+代付冻结金额</strong>
       <strong>商户下发使用可用余额调整</strong>
       <!-- <strong>（本模块依据<span class="redcolor">代收订单更新时间</span>和<span class="redcolor">代付订单创更新时间</span>）</strong> -->

@@ -7,7 +7,7 @@
         <el-progress type="circle" :percentage="percentage" :width="200" :stroke-width="18" :color="customColors"
           :status="status"></el-progress>
         <div class="ResultNum" v-if="!isFinish" style="margin-bottom: 20px;">已完成 <span class="blue">{{ requestCount
-        }}</span> / {{
+            }}</span> / {{
               totalCount }}</div>
         <div class="ResultNum" v-else>总共:<span class="blue"> {{ totalCount }} </span> 成功:<span class="success">
             {{
@@ -193,7 +193,6 @@ export default {
       if (typeof requests !== "object" || Object.keys(requests).length === 0) {
         throw new Error("Invalid arguments: requests should be a non-empty object.");
       }
-      console.log(requests);
 
       this.centerDialogVisible = true;
       this.isFinish = false;
@@ -207,6 +206,7 @@ export default {
 
       // 创建请求任务数组，每个请求列表按索引延时
       const tasks = Object.entries(requests).map(([requestName, { requestFn, requestList }]) => {
+
         return requestList.map((item, index) =>
           (async () => {
             try {
@@ -235,12 +235,14 @@ export default {
       const allResults = await Promise.all(tasks.flat());
 
       // 分类整理每个请求名称的成功和失败结果
+      let beginIndex = 0;
       Object.keys(requests).forEach((requestName, index) => {
-        const taskResults = allResults.slice(index * requests[requestName].requestList.length, (index + 1) * requests[requestName].requestList.length);
+        const taskResults = allResults.slice(beginIndex, beginIndex + requests[requestName].requestList.length);
         results[requestName] = {
           successList: taskResults.filter(result => result.success),
           errorList: taskResults.filter(result => !result.success)
         };
+        beginIndex = requests[requestName].requestList.length
       });
 
       this.isFinish = true;
