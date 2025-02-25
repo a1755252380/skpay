@@ -24,8 +24,8 @@
       <el-table v-if="!DetailedContentLoading" :data="treeTableData" :class="!ReadyRequest ? 'SettlementForm' : ''"
         row-key="id" :key="tableId" :empty-text="!ReadyRequest ? '请先选择通道以及时间段再进行查询' : '暂无数据'
           " :highlight-current-row="false" ref="multipleTable" :row-class-name="rowClassNameFun" @select="selectFun"
-        @select-all="selectAllFun" :header-row-class-name="headerRowClassName"
-        :tree-props="{ hasChildren: 'hasChildren', children: 'children' }" :height="350">
+        @select-all="selectAllFun" :header-row-class-name="headerRowClassName" :tree-props="{ children: 'children' }"
+        :height="350">
         <el-table-column type="selection" width="55" align="center" :selectable="readyselectable" />
         <el-table-column label="商户号 " align="center" prop="mch_number" width="150" />
         <el-table-column label="通道ID" align="center" prop="chnl_id" width="80" />
@@ -37,7 +37,7 @@
           </template>
 
         </el-table-column>
-        <el-table-column label="已结算代收金额" align="center" prop="payin_success_amount_count" min-width="130"
+        <el-table-column label="未结算代收金额" align="center" prop="PendingSettlementAmount" min-width="130"
           :formatter="Formatter.TableAmount" />
         <el-table-column label="结算后金额" align="center" prop="SettlementAmount" min-width="130"
           :formatter="Formatter.TableAmount">
@@ -46,6 +46,8 @@
           </template>
 
         </el-table-column>
+        <el-table-column label="已结算代收金额" align="center" prop="payin_success_amount_count" min-width="130"
+          :formatter="Formatter.TableAmount" />
         <el-table-column label="开始时间" align="center" prop="start_time" :formatter="Formatter.TableTimeSecond"
           width="200">
         </el-table-column>
@@ -596,20 +598,31 @@ export default {
         const children = groupedData[date];
         const end = Math.max(...children.map((child) => child.end_time));
 
-
+        //是否是无法结算的状态
         const payout_settle_status = ListMchResults[children[0].mch_number].account_available_balance - children.reduce(
           (sum, child) => sum + (child.payout_settle_status == 0 ? child.payin_success_amount_count : 0),
           0
         ) < 0 ? -1 : 0
+        //等待结算的金额
+        const PendingSettlementAmount = children.reduce(
+          (sum, child) => sum + (child.payout_settle_status == 0 ? child.payin_success_amount_count : 0),
+          0
+        )
+        //已经结算的金额
+        const TheSettledAmount = children.reduce(
+          (sum, child) => sum + (child.payout_settle_status == 1 ? child.payin_success_amount_count : 0),
+          0
+        )
         // 汇总父节点数据
         const parentNode = {
           parentId: 0, // 设置父节点的层级为 1
-
+          isSelect: "",
           id: `parent-${index}`, // 父节点唯一 ID\
           account_available_balance: ListMchResults[children[0].mch_number].account_available_balance,
           chnl_id: this.DetailedContentListQueryParams.chnl_id
             ? this.DetailedContentListQueryParams.chnl_id
             : "",
+
           currency: children[0].currency,
           mch_name: children[0].mch_name,
           mch_number: children[0].mch_number,
@@ -625,10 +638,8 @@ export default {
             (sum, child) => sum + child.pay_out_success_service_charge,
             0
           ),
-          payin_success_amount_count: children.reduce(
-            (sum, child) => sum + (child.payout_settle_status == 0 ? child.payin_success_amount_count : 0),
-            0
-          ),
+          payin_success_amount_count: TheSettledAmount,
+          PendingSettlementAmount: PendingSettlementAmount, //待结算金额
           payout_settle_status: payout_settle_status,
           pending_amount_count: children.reduce(
             (sum, child) => sum + child.pending_amount_count,
@@ -642,19 +653,20 @@ export default {
           children: children.map((child, idx) => ({
             ...child,
             payout_settle_status: payout_settle_status == -1 ? payout_settle_status : child.payout_settle_status,
+            PendingSettlementAmount: child.payout_settle_status == 0 ? child.payin_success_amount_count : 0, //待结算金额
             account_available_balance: "/",
             id: `child-${index}-${idx}`, // 子节点唯一 ID
             parentId: `parent-${index}`, // 设置父节点的层级为 1
           })),
           hasChildren: children.length <= 0, // 标记为有子节点
         };
-        console.log(parentNode);
 
         return parentNode;
       });
       //初始化数据
       function initData(data) {
         data.forEach((item) => {
+
           item.isSelect = false; //默认为不选中
 
           if (item.children && item.children.length) {
@@ -663,6 +675,7 @@ export default {
         });
       }
       initData(q);
+      console.log(q);
 
       return q;
     },
@@ -870,21 +883,32 @@ export default {
     },
     readyselectable(row, index) {
       //
-      if (row.parentId === 0) {
+
+      if (row.parentId == 0) {
+        console.log("row", row);
+
         if (row.payout_settle_status != 0) {
           return false;
         }
+        //所有金额大于0
         const allZero = row.children.every((selectStatusItem) => {
-          return selectStatusItem.payin_success_amount_count > 0
+          return selectStatusItem.payin_success_amount_count <= 0
         })
-        if (!allZero) {
+        // if (!allZero) {
+        //   return false
+        // }
+        //所有都是结算过的状态
+        const allSelect = row.children.every((selectStatusItem) => {
+          return (selectStatusItem.payin_success_amount_count == 0 || selectStatusItem.payout_settle_status == 0)
+        });
+
+        if (allSelect && allZero) {
           return false
         }
-        const allSelect = row.children.every((selectStatusItem) => {
-          return selectStatusItem.payout_settle_status == 1
-        });
-        return !allSelect;
+
+        return allSelect;
       } else {
+
         //未结算状态 以及且父级为未结算状态 结算金额小于0 则返回false  不给选择
         if (row.payout_settle_status != 0 || row.payin_success_amount_count <= 0) {
           return false;
@@ -903,7 +927,9 @@ export default {
       if (data.account_available_balance == "/") {
         return "/";
       }
-      return ((data.account_available_balance - data.payin_success_amount_count) / 100).toFixed(2);
+      console.log(data);
+
+      return ((data.account_available_balance - data.PendingSettlementAmount) / 100).toFixed(2);
     },
     Amount(data) {
       if (data == "/") {
