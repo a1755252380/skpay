@@ -15,6 +15,14 @@ export function listMchSettlementList(query) {
     params: query,
   });
 }
+//查询通道结算金额列表
+export function QueryChannelSettlementAmount(query) {
+  return request({
+    url: "/settlement/count/chnl",
+    method: "get",
+    params: query,
+  });
+}
 // 查询商户结算详细
 export function getMchSettlement(id) {
   return;

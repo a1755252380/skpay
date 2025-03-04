@@ -1,6 +1,6 @@
 <template>
-  <el-select :value="modelValue" clearable ref="ChannelQuery" placeholder="请选择通道" :loading="Loading"
-    @change="handleChange" class="w100_input">
+  <el-select :value="modelValue" clearable ref="ChannelQuery" :loading="Loading" v-bind="$attrs" v-on="$listeners"
+    @change="handleChange" class="w100_input" :placeholder="$attrs.placeholder || '请选择通道'">
     <el-option v-for="item in ChannelQueryList" :key="item.id"
       :label="(item.chnl_name == '' ? '' : item.chnl_name[0]) + item.id" :value="item[emitKey]"></el-option>
   </el-select>
@@ -10,6 +10,7 @@
 import { listChnlSetting } from "@/api/excellent/chnlSetting"
 import { mapState } from 'vuex';
 export default {
+  inheritAttrs: false, // 禁止自动绑定父组件的属性到根元素
   name: 'ChannelQuery',
   // 自定义 v-model 的 prop 和事件
   model: {
@@ -46,7 +47,6 @@ export default {
   created() {
     // 请求数据，若已有数据或正在加载中，则不会重复请求
     this.$store.dispatch('fetchOptions');
-    console.log(this.$store);
 
     // if (this.ChannelQueryList.length == 0) {
     //   this.ChannelQuerySearch()

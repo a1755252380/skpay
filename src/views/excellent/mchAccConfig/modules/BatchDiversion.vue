@@ -8,8 +8,9 @@
         <el-input-number v-model="form.payin_over_amount" :min="0" :step="1" class="w100_input"></el-input-number>
 
       </el-form-item>
-      <el-form-item label="代收分流通道" v-if="form.payin_over_amount > 0" prop="payin_over_chnl_id">
-        <el-select v-model="form.payin_over_chnl_id" placeholder="请选择代收通道" class="w100_input">
+      <el-form-item label="代收分流通道" prop="payin_over_chnl_id">
+        <el-select v-model="form.payin_over_chnl_id" :placeholder="form.payin_over_amount <= 0 ? '请先输入代收分流金额' : '请选择代收通道'"
+          class="w100_input" :disabled="form.payin_over_amount <= 0">
           <el-option v-for="item in ChnlOptions" :key="'payin_' + item.id"
             :label="(item.chnl_name == '' ? '' : item.chnl_name[0]) + item.id" :value="item.id"></el-option>
         </el-select>
@@ -18,8 +19,10 @@
       <el-form-item label="代付分流金额" prop="payout_over_amount">
         <el-input-number v-model="form.payout_over_amount" :min="0" :step="1" class="w100_input"></el-input-number>
       </el-form-item>
-      <el-form-item label="代付分流通道" v-if="form.payout_over_amount > 0" prop="payout_over_chnl_id">
-        <el-select v-model="form.payout_over_chnl_id" placeholder="请选择代付分流通道" class="w100_input">
+      <el-form-item label="代付分流通道" prop="payout_over_chnl_id">
+        <el-select v-model="form.payout_over_chnl_id"
+          :placeholder="form.payout_over_amount <= 0 ? '请先输入代付分流金额' : '请选择代付分流通道'" class="w100_input"
+          :disabled="form.payout_over_amount <= 0">
           <el-option v-for="item in ChnlOptions" :key="'payin_' + item.id"
             :label="(item.chnl_name == '' ? '' : item.chnl_name[0]) + item.id" :value="item.id"></el-option>
         </el-select>

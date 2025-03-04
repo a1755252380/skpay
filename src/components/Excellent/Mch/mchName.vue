@@ -9,6 +9,7 @@
 
 <script>
 import { listMchSetting } from "@/api/excellent/MchSetting";
+import { mapState } from 'vuex';
 export default {
   name: 'ClientSearchList',
   // 自定义 v-model 的 prop 和事件
@@ -26,8 +27,8 @@ export default {
     return {
       //客户搜索列表
       mch_num: '',
-      ClientSearchList: [],
-      ClientSearchLoading: false,
+      // ClientSearchList: [],
+      // ClientSearchLoading: false,
       FirstSearched: true,
     };
   },
@@ -38,7 +39,12 @@ export default {
   created() {
     this.mchNumSearch()
   },
-
+  computed: {
+    ...mapState({
+      ClientSearchList: state => state.Cache.MchNameList,
+      ClientSearchLoading: state => state.Cache.MchNameLoading,
+    })
+  },
   methods: {
     //抛出选择内容
     mchNumChange(value) {
@@ -56,7 +62,8 @@ export default {
     },
     //搜索商户号
     mchNumSearch(value) {
-
+      this.$store.dispatch('fetchMchNameList')
+      return
       if (this.ClientSearchLoading) {
         return;
       }

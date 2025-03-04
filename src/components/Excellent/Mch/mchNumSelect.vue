@@ -1,15 +1,13 @@
 <template>
-  <el-select :value="modelValue" clearable filterable :filter-method="mchNumSearch" ref="ClientSearch"
-    :loading="ClientSearchLoading" :remote-method="mchNumSearch" @change="handleChange" placeholder="请选择商户号"
-    @clear="handleClear">
+  <el-select :value="modelValue" clearable ref="ClientSearch" :loading="ClientSearchLoading"
+    :remote-method="mchNumSearch" @change="handleChange" placeholder="请选择商户号" @clear="handleClear">
     <el-option v-for="item in ClientSearchList" :key="item.id" :label="item.mch_num" loading
       :value="item.mch_num"></el-option>
   </el-select>
 </template>
 
 <script>
-import { listMchAccConfig } from "@/api/excellent/mchAccConfig";
-import { listMchSetting } from "@/api/excellent/MchSetting";
+import { mapState } from 'vuex';
 export default {
   name: 'ClientSearchList',
   // 自定义 v-model 的 prop 和事件
@@ -31,17 +29,36 @@ export default {
     return {
       //客户搜索列表
       mch_num: '',
-      ClientSearchList: [],
-      ClientSearchLoading: false,
+      // ClientSearchList: [],
+      // ClientSearchLoading: false,
       FirstSearched: true,
     };
   },
-
+  computed: {
+    ClientSearchList() {
+      if (this.configName == 'setting') {
+        return this.$store.state.Cache.MchList;
+      } else {
+        return this.$store.state.Cache.MchNameList
+      }
+    },
+    ClientSearchLoading() {
+      if (this.configName == 'setting') {
+        return this.$store.state.Cache.MchListLoading;
+      } else {
+        return this.$store.state.Cache.MchNameLoading
+      }
+    },
+    ...mapState({
+      // ClientSearchList: state => state.Cache.MchList,
+      PassageList: state => state.Cache.channelList,
+      // ClientSearchLoading: state => state.Cache.MchListLoading,
+    })
+  },
   mounted() {
 
   },
   created() {
-
     this.mchNumSearch()
   },
 
@@ -57,19 +74,19 @@ export default {
       this.$emit('change', value);
     },
     handleClear() {
-      this.FirstSearched = true
       this.mchNumSearch()
     },
     mchSearchType(query) {
       if (this.configName == 'setting') {
-        return listMchSetting(query)
+        return this.$store.dispatch('fetchMchList');
       } else {
-        return listMchAccConfig(query)
+        return this.$store.dispatch('fetchMchNameList')
       }
     },
     //搜索商户号
     mchNumSearch(value) {
-
+      this.mchSearchType()
+      return
       if (this.ClientSearchLoading) {
         return;
       }

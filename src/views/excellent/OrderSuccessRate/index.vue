@@ -243,25 +243,4 @@ export default {
   },
 };
 </script>
-<style lang="scss">
-.rate_show {
-  background: rgb(186, 231, 255);
-  color: #000;
-  font-size: 16px;
-  font-weight: 600;
-  // border-bottom: 1px solid #000 !important;
-  // border-right: 1px solid #000 !important;
-  // border-top: 1px solid #000 !important;
-  // border-left: 1px solid #000 !important;
-}
-
-.el-table .el-table__body tr:hover .rate_show {
-  background: rgb(186, 231, 255) !important;
-  color: #000;
-}
-
-.hover-row .rate_show {
-  background: rgb(186, 231, 255) !important;
-  color: #000;
-}
-</style>
+<style lang="scss"></style>

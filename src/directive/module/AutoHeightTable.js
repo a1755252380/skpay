@@ -10,8 +10,12 @@ const doResize = (el, binding, vnode) => {
   let childrenList = [];
   var children = el && el.parentNode.children; //获取父级的所有子节点
   const parent = el && el.parentNode;
-  const parentPaddingT = parseInt(parent.style.paddingTop);
-  const parentPaddingB = parseInt(parent.style.paddingBottom);
+  const parentPaddingT = isNaN(parseInt(parent.style.paddingTop))
+    ? 0
+    : parseInt(parent.style.paddingTop);
+  const parentPaddingB = isNaN(parseInt(parent.style.paddingBottom))
+    ? 0
+    : parseInt(parent.style.paddingBottom);
   for (var i = 0; i < children.length; i++) {
     //循环
     if (children[i].nodeType == 1 && children[i] != el) {
@@ -24,10 +28,10 @@ const doResize = (el, binding, vnode) => {
     exitH += el.getBoundingClientRect().height;
   });
   // 获取调用传递过来的数据
-  const { Height } = binding;
-  // 获取距底部距离（用于展示页码等信息，51为页码盒子高度）
-  const customHeight = Height || 12;
+  const { Height } = binding.value;
 
+  // 获取距底部距离（用于展示页码等信息，51为页码盒子高度）
+  const customHeight = Height || 51;
   // 计算列表高度
   const height =
     document.getElementById("app-main").offsetHeight -

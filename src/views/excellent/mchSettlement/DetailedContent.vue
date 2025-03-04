@@ -2,13 +2,10 @@
   <el-dialog :title="'历史数据'" :visible.sync="DetailedContentShowData" width="90%" :close-on-click-modal="false">
     <div class="fulltable_div" style="height: 650px;margin-bottom: 26px;">
       <el-form ref="DetailedContentSearch" :inline="true" label-width="80px" size="small">
-        <el-form-item label="查询时间" prop="create_time">
-          <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'"
-            :shortcuts="shortcuts">
-          </TimeFrameVue>
-        </el-form-item>
+
         <el-form-item label="通道ID" prop="chnl_id">
           <ChannelQuery v-model="DetailedContentListQueryParams.chnl_id" @change="ChannelQueryChange"></ChannelQuery>
+
         </el-form-item>
 
         <el-form-item>
@@ -22,13 +19,14 @@
         （<span class="todayText">蓝色部分</span>表示今日数据，<span class="secondText">浅蓝色部分</span>表示昨日数据）
       </div>
       <el-table v-if="!DetailedContentLoading" :data="treeTableData" :class="!ReadyRequest ? 'SettlementForm' : ''"
-        row-key="id" :key="tableId" :empty-text="!ReadyRequest ? '请先选择通道以及时间段再进行查询' : '暂无数据'
+        row-key="id" :key="tableId" :empty-text="!ReadyRequest ? '请先选择通道再进行查询' : '暂无数据'
           " :highlight-current-row="false" ref="multipleTable" :row-class-name="rowClassNameFun" @select="selectFun"
         @select-all="selectAllFun" :header-row-class-name="headerRowClassName" :tree-props="{ children: 'children' }"
-        :height="350">
+        :default-sort="{ prop: 'PendingSettlementAmount', order: 'descending' }" :height="350">
         <el-table-column type="selection" width="55" align="center" :selectable="readyselectable" />
         <el-table-column label="商户号 " align="center" prop="mch_number" width="150" />
-        <el-table-column label="通道ID" align="center" prop="chnl_id" width="80" />
+        <el-table-column label="通道ID" align="center" prop="chnl_id" width="80"
+          :formatter="Formatter.ChannelNameFormatter" />
 
         <el-table-column label="账户可用余额" align="center" prop="account_available_balance" min-width="130"
           :formatter="Formatter.TableAmount">
@@ -85,13 +83,12 @@
 </template>
 
 <script>
-import { listMchSettlement } from "@/api/excellent/mchSettlement";
+import { listMchSettlement, QueryChannelSettlementAmount } from "@/api/excellent/mchSettlement";
 import {
   listMchAcc
 
 } from "@/api/excellent/mchAcc";
 import dynamicTableVue from "@/components/Excellent/dynamicTable.vue";
-import TimeFrameVue from "@/components/Excellent/SearchOption/TimeFrame.vue";
 import ProxyChangeDialogVue from "./DetailedContent/ProxyChangeDialog.vue";
 import { updateMchAcc } from "@/api/excellent/mchAcc";
 import ChannelQuery from "@/components/Excellent/Channel/ChannelQuery.vue";
@@ -100,83 +97,11 @@ import moment from "moment-timezone";
 import ShowResult from "./DetailedContent/ShowResult.vue";
 export default {
   name: "WorkspaceJsonDetailedContent",
-  props: ["DetailedContentShow", "ChooseRows", "MchTotal"],
+  props: ["DetailedContentShow", "ChooseRows", "MchTotal", "queryParams"],
 
   data() {
     return {
-      shortcuts: [
-        {
-          text: "今天一天",
-          onClick(picker) {
-            const start = moment()
-              .tz("Asia/Kolkata")
-              .startOf("day")
-              .format("YYYY-MM-DD HH:mm:ss");
-            const end = moment()
-              .tz("Asia/Kolkata")
-              .add(1, "days")
-              .startOf("day")
-              .format("YYYY-MM-DD HH:mm:ss");
-            picker.$emit("pick", [start, end]);
-          },
-        },
-        {
-          text: "昨天一天",
-          onClick(picker) {
-            const start = moment()
-              .tz("Asia/Kolkata")
-              .subtract(1, "days")
-              .startOf("day")
-              .format("YYYY-MM-DD HH:mm:ss");
-            const end = moment()
-              .tz("Asia/Kolkata")
-              .startOf("day")
-              .format("YYYY-MM-DD HH:mm:ss");
-            picker.$emit("pick", [start, end]);
-          },
-        },
-        {
-          text: "前天一天",
-          onClick(picker) {
-            const start = moment()
-              .tz("Asia/Kolkata")
-              .subtract(2, "days")
-              .startOf("day")
-              .format("YYYY-MM-DD HH:mm:ss");
-            const end = moment()
-              .tz("Asia/Kolkata")
-              .subtract(1, "days")
-              .startOf("day")
-              .format("YYYY-MM-DD HH:mm:ss");
-            picker.$emit("pick", [start, end]);
-          },
-        },
 
-        {
-          text:
-            moment()
-              .tz("Asia/Kolkata")
-              .subtract(3, "days")
-              .startOf("day")
-              .date() +
-            "日" +
-            "-" +
-            moment().tz("Asia/Kolkata").startOf("day").date() +
-            "日",
-          onClick(picker) {
-            const end = moment()
-              .tz("Asia/Kolkata")
-              .startOf("day")
-              .format("YYYY-MM-DD HH:mm:ss");
-            const start = moment()
-              .tz("Asia/Kolkata")
-              .subtract(3, "days")
-              .startOf("day")
-              .format("YYYY-MM-DD HH:mm:ss");
-            picker.$emit("pick", [start, end]);
-          },
-        },
-      ],
       tableId: "one",
       selectedRows: [], // 用于保存选中的行
       DetailedContentList: [], //原有数据
@@ -191,9 +116,7 @@ export default {
         chnl_id: null,
         currentPage: 1,
       },
-      timedata: {
-        create_time: [],
-      },
+
       DetailedContentLoading: false,
       RepeatedRequests: false,
       //代付结算弹窗数据
@@ -225,9 +148,7 @@ export default {
     //是否可以进行请求查询
     ReadyRequest() {
       if (
-        this.DetailedContentListQueryParams.chnl_id &&
-        this.DetailedContentListQueryParams.start_time &&
-        this.DetailedContentListQueryParams.end_time
+        this.DetailedContentListQueryParams.chnl_id
       ) {
         return true;
       }
@@ -239,10 +160,7 @@ export default {
         return row.mch_number;
       });
     },
-    //商户总金额查询
-    MchLimit() {
-      return this.MchTotal
-    }
+
   },
 
   mounted() {
@@ -251,25 +169,14 @@ export default {
   },
 
   methods: {
-    parseTime(value, index) {
-      let utcTimeBegin = value[0];
-      let utcTimeEnd = value[1];
-      if (index == "create_time") {
-        this.$set(
-          this.DetailedContentListQueryParams,
-          "start_time",
-          utcTimeBegin
-        );
-        this.$set(this.DetailedContentListQueryParams, "end_time", utcTimeEnd);
-      }
-    },
+
     ChannelQueryChange(value) {
       this.$set(this.DetailedContentListQueryParams, "chnl_id", value);
     },
     //搜索按钮
     EmptyQuery() {
       if (!this.ReadyRequest) {
-        this.$message.error("请选择通道或者时间段，再进行查询");
+        this.$message.error("请选择通道，再进行查询");
         return;
       }
       this.progressShow = true;
@@ -459,15 +366,17 @@ export default {
 
       let confirmList = [];
       let listMchAccList = [];
+      console.log(this.QueryDetailedContentList);
+
       for (
         let index = 0;
         index < this.QueryDetailedContentList.length;
         index++
       ) {
         let query = {
-          start_time: this.DetailedContentListQueryParams.start_time, // 开始时间
-          end_time: this.DetailedContentListQueryParams.end_time, // 结束时间
-          last_id: this.DetailedContentListQueryParams.last_id, // 上一次查询的id
+          start_time: this.queryParams.start_time, // 开始时间
+          end_time: this.queryParams.end_time, // 结束时间
+          last_id: null, // 上一次查询的id
           mch_number: this.QueryDetailedContentList[index],
           chnl_id: this.DetailedContentListQueryParams.chnl_id,
         };
@@ -485,7 +394,7 @@ export default {
             requestFn: listMchAcc,
             requestList: [{
               page: 1,
-              limit: this.MchLimit,
+              limit: 500,
             }],
           },
         },
@@ -613,6 +522,9 @@ export default {
           (sum, child) => sum + (child.payout_settle_status == 1 ? child.payin_success_amount_count : 0),
           0
         )
+        console.log(ListMchResults[children[0].mch_number].account_available_balance);
+        console.log(children[0].mch_number);
+
         // 汇总父节点数据
         const parentNode = {
           parentId: 0, // 设置父节点的层级为 1
@@ -622,7 +534,7 @@ export default {
           chnl_id: this.DetailedContentListQueryParams.chnl_id
             ? this.DetailedContentListQueryParams.chnl_id
             : "",
-
+          chnl_name: children[0].chnl_name,
           currency: children[0].currency,
           mch_name: children[0].mch_name,
           mch_number: children[0].mch_number,
@@ -940,7 +852,6 @@ export default {
   },
   components: {
     dynamicTableVue,
-    TimeFrameVue,
     ProxyChangeDialogVue,
     ChannelQuery,
     ProgressDialog, ShowResult
