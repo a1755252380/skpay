@@ -71,7 +71,11 @@ function autoRefresh() {
             confirmButtonText: "立即刷新",
             cancelButtonText: "稍后手动刷新",
             type: "warning",
-            showCancelButton: true,
+            showCancelButton: false,
+            showClose: false,
+            closeOnClickModal: false,
+            closeOnPressEscape: false,
+            closeOnHashChange: false,
           }
         )
           .then(() => {

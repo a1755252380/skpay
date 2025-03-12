@@ -119,7 +119,6 @@ export default {
       // 注册开关
       register: false,
       redirect: undefined,
-
     };
   },
   watch: {
