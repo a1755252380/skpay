@@ -3,6 +3,7 @@ import {
   removeResizeListener,
 } from "element-ui/src/utils/resize-event";
 import { throttle } from "@/utils/util.js";
+let mainHight = 0;
 // 设置表格高度
 const doResize = (el, binding, vnode) => {
   if (!el || !el.parentNode) return; // 检查 el 和 parent 是否有效
@@ -31,27 +32,37 @@ const doResize = (el, binding, vnode) => {
   const { Height } = binding.value;
 
   // 获取距底部距离（用于展示页码等信息，51为页码盒子高度）
-  const customHeight = Height || 51;
+  const customHeight = Height || 61;
+  if (!mainHight) {
+    mainHight = document.getElementById("app-main").offsetHeight;
+  }
+  console.log(mainHight);
+  console.log(parentPaddingT);
+  console.log(exitH);
   // 计算列表高度
   const height =
-    document.getElementById("app-main").offsetHeight -
-    customHeight -
-    exitH -
-    parentPaddingT -
-    parentPaddingB;
+    mainHight - customHeight - exitH - parentPaddingT - parentPaddingB;
   // 设置高度
-
-  el.style.height = height + "px";
-  el.style.minHeight = height + "px";
-  el.style.maxHeight = height + "px";
+  // **避免无意义的重复赋值，减少 Vue 重新渲染的机会**
+  if (
+    el.style.height !== height + "px" ||
+    el.style.minHeight !== height + "px" ||
+    el.style.maxHeight !== height + "px"
+  ) {
+    el.style.height = height + "px";
+    el.style.minHeight = height + "px";
+    el.style.maxHeight = height + "px";
+  }
 
   if (el.getElementsByClassName("el-table__empty-block").length > 0) {
     el.getElementsByClassName("el-table__empty-block")[0].style.height =
       height - 100 + "px";
   }
 
-  // 解决拖动列宽行不对齐问题--渲染表格
-  vnode.context.$refs[bindRef].doLayout();
+  // **只有当表格真的需要重新布局时才调用 `doLayout`**
+  if (vnode.context.$refs[bindRef].$el.offsetHeight !== height) {
+    vnode.context.$refs[bindRef].doLayout();
+  }
 };
 
 export default {
@@ -65,20 +76,20 @@ export default {
     //   }, 150)
     // );
     // 设置resize监听方法
-
     let resizeTimer = null; // 定时器
     el.resizeListener = throttle(() => {
       if (resizeTimer) {
         cancelAnimationFrame(resizeTimer);
       }
       resizeTimer = requestAnimationFrame(() => {
+        mainHight = 0;
         // 赋值计算后的高度
-        el.style.height = "";
-        el.style.minHeight = "";
-        el.style.maxHeight = "";
+        el.style.height = "200px";
+        el.style.minHeight = "200px";
+        el.style.maxHeight = "200px";
         doResize(el, binding, vnode);
       });
-    }, 30);
+    }, 50);
     // 绑定监听方法到addResizeListener
     addResizeListener(window.document.body, el.resizeListener);
   },

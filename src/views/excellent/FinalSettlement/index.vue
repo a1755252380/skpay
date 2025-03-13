@@ -17,7 +17,7 @@
 
 
     <div class="CalculationFormula">
-      <strong>账户余额=待结算金额+账户可用余额+账户冻结金额（扣除的是账户可用余额）</strong>
+      <strong>账户余额=账户可用余额+账户冻结金额（扣除的是账户可用余额）+待结算金额</strong>
       <!-- <strong>代付余额=代付可用余额+代付冻结金额</strong> -->
       <strong>商户下发使用可用余额调整</strong>
       <!-- <strong>（本模块依据<span class="redcolor">代收订单更新时间</span>和<span class="redcolor">代付订单创更新时间</span>）</strong> -->
@@ -27,10 +27,12 @@
 
     </div>
 
-    <dynamicTableVue :tableData="mchSettlementList" @handleSelectionChange="handleSelectionChange" :loading="loading"
-      ref="myTable" @cellDblclick="(row, column, cell, event) => {
+    <el-table v-AutoHeight="{
+      Ref: 'mchSettlementListTable', Height: 100
+    }" :data="mchSettlementList" @selection-change="handleSelectionChange" v-loading="loading"
+      ref="mchSettlementListTable" @cell-dblclick="(row, column, cell, event) => {
         this.$util.copyToClipboard(cell.innerText);
-      }" :cellClassName="'HoverTooltipCopy'">
+      }" :highlight-selection-row="true" border :cell-class-name="'HoverTooltipCopy'" :height="200" row-key="mch_num">
 
       <el-table-column label="商户号" align="center" prop="mch_num" fixed="left" />
       <!-- <el-table-column label="商户名称" align="center" prop="mch_name" /> -->
@@ -43,12 +45,11 @@
         </template>
       </el-table-column>
       <el-table-column label="账户冻结金额" align="center" prop="account_freeze_balance" :formatter="Formatter.TableAmount" />
-
+      <el-table-column label="待结算金额" align="center" prop="account_pending_settlement_balance"
+        :formatter="Formatter.TableAmount" />
       <el-table-column label="代收结算金额" align="center" prop="payin_success_settle_amount"
         :formatter="Formatter.TableAmount" />
       <el-table-column label="代付结算金额" align="center" prop="payout_success_settle_amount"
-        :formatter="Formatter.TableAmount" />
-      <el-table-column label="待结算金额" align="center" prop="account_pending_settlement_balance"
         :formatter="Formatter.TableAmount" />
       <el-table-column label="资金调整金额" align="center" prop="funds_adjustment_amount"
         :formatter="Formatter.TableAmount" />
@@ -74,7 +75,7 @@
       </el-table-column>
 
 
-    </dynamicTableVue>
+    </el-table>
 
     <!-- <pagination ref="pagination" v-show="pageData.total > 0" :total="pageData.total" :page.sync="queryParams.page"
       :limit.sync="queryParams.limit" @pagination="getList" /> -->
@@ -97,7 +98,7 @@ import DetailedContentVue from "./DetailedContent.vue";
 
 
 export default {
-  name: "MchSettlement",
+  name: "FinalSettlement",
   filters: {
 
   },

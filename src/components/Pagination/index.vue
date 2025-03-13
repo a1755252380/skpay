@@ -33,7 +33,7 @@ export default {
     // 移动端页码按钮的数量端默认值5
     pagerCount: {
       type: Number,
-      default: document.body.clientWidth < 992 ? 5 : 7
+      default: 5
     },
     layout: {
       type: String,
@@ -57,6 +57,7 @@ export default {
     };
   },
   computed: {
+
     currentPage: {
       get() {
         return this.page

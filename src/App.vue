@@ -76,10 +76,3 @@ export default {
   position: relative;
 }
 </style>
-<style lang="scss">
-// @font-face {
-//   font-family: 'Noto Sans SC';
-//   src: url('assets/fonts/NotoSansCJKsc-Regular.otf') format('truetype');
-//   font-weight: normal;
-//   font-style: normal;
-// }</style>

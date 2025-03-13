@@ -279,6 +279,9 @@ export const hideMiddle = (context) => {
 export const startAnimation = () => {
   const div = document.getElementById("loader-wrapper");
 
+  if (div === null) {
+    return;
+  }
   // 显示并执行动画
   div.classList.remove("remove");
   div.classList.add("show");

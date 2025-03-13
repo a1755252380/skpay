@@ -32,15 +32,15 @@
         </el-table-column>
         <el-table-column label="账户冻结金额" align="center" prop="account_freeze_balance"
           :formatter="Formatter.TableAmount" />
-
+        <el-table-column label="待结算金额" align="center" prop="account_pending_settlement_balance"
+          :formatter="Formatter.TableAmount" />
         <el-table-column label="代收结算金额" align="center" prop="payin_success_settle_amount"
           :formatter="Formatter.TableAmount" />
         <el-table-column label="代付结算金额" align="center" prop="payout_success_settle_amount"
           :formatter="Formatter.TableAmount" />
 
 
-        <el-table-column label="待结算金额" align="center" prop="account_pending_settlement_balance"
-          :formatter="Formatter.TableAmount" />
+
         <el-table-column label="资金调整金额" align="center" prop="funds_adjustment_amount"
           :formatter="Formatter.TableAmount" />
         <!-- <el-table-column label="商户名称" align="center" prop="mch_name" /> -->
