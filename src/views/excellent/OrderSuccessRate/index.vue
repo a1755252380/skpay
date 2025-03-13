@@ -18,12 +18,12 @@
 
     <dynamicTableVue :loading="loading" :tableData="OrderSuccessRateListSort" :cellClassName="'HoverTooltipCopy'"
       @cellDblclick="cellDblclick">
-      <el-table-column prop="mch_number" label="商户号" align="center" fixed="left" v-if="routeFlag == 'order'">
+      <el-table-column prop="mch_number" label="商户号" align="center" width="80" fixed="left" v-if="routeFlag == 'order'">
       </el-table-column>
       <el-table-column prop="chnl_id" label="通道ID" align="center" fixed="left" v-else
-        :formatter="Formatter.ChannelNameFormatter">
+        :formatter="Formatter.ChannelNameFormatter" width="80">
       </el-table-column>
-      <el-table-column prop="payin_success_rate" label="代收成功率" align="center" class-name="rate_show"
+      <el-table-column prop="payin_success_rate" label="代收成功率" align="center" width="100" class-name="rate_show"
         :formatter="Formatter.TableRate">
 
       </el-table-column>
@@ -42,13 +42,14 @@
 
       </el-table-column>
 
-      <el-table-column prop="payin_total_amount" label="代收总金额" align="center" :formatter="Formatter.TableAmount">
+      <el-table-column prop="payin_total_amount" label="代收总金额" align="center" width="100"
+        :formatter="Formatter.TableAmount">
 
       </el-table-column>
 
 
 
-      <el-table-column prop="payout_success_rate" label="代付成功率" align="center" class-name="rate_show"
+      <el-table-column prop="payout_success_rate" label="代付成功率" align="center" class-name="rate_show" width="100"
         :formatter="Formatter.TableRate">
 
       </el-table-column>
@@ -66,7 +67,8 @@
       <el-table-column prop="payout_total_count" label="代付订单总数" align="center">
 
       </el-table-column>
-      <el-table-column prop="payout_total_amount" label="代付总金额" align="center" :formatter="Formatter.TableAmount">
+      <el-table-column prop="payout_total_amount" label="代付总金额" width="100" align="center"
+        :formatter="Formatter.TableAmount">
 
       </el-table-column>
       <el-table-column prop="payout_pending_amount" label="代付在途金额

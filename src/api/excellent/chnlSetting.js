@@ -62,3 +62,12 @@ export function delChnlSetting(id) {
     method: "delete",
   });
 }
+//动态查询通道指定日期的成功金额
+
+export function DynamicQueryChannel(params) {
+  return request({
+    url: "/chnl/count/amount",
+    method: "get",
+    params: params,
+  });
+}

@@ -217,11 +217,15 @@ export default {
       let selectData = [];
       function filterTreeData(data) {
         data.forEach((item) => {
-          if (
-            item.isSelect &&
-            item.payout_settle_status != 1 &&
-            item.parentId != 0
-          ) {
+          console.table(item);
+
+          if (item.isSelect) {
+            console.log(item.parentId != 0);
+          }
+
+          if (item.isSelect && item.parentId != 0) {
+            console.log(item);
+
             selectData.push(item);
           }
           if (item.children && item.children.length > 0) {
@@ -238,6 +242,8 @@ export default {
         });
         return;
       }
+      console.log(selectData);
+      return
       this.$prompt("请输入备注信息", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
@@ -280,12 +286,9 @@ export default {
             }
           }
           updateMchAcc(confirmList).then((res) => {
-            console.log(res);
             loading.close();
-            console.log(res.code);
 
             if (res.code < 0) {
-              console.log(res.errors);
 
               this.showResult = true;
               this.errorList = res.errors
@@ -357,7 +360,6 @@ export default {
 
       let confirmList = [];
       let listMchAccList = [];
-      console.log(this.QueryDetailedContentList);
 
       for (
         let index = 0;
@@ -392,7 +394,6 @@ export default {
         100
       )
         .then(async (response) => {
-          console.log(response);
 
           const results = response['listMchSettlement'].successList.map((item) => {
             return item.response.results;
@@ -487,8 +488,6 @@ export default {
           (sum, child) => sum + (child.payout_settle_status == 1 ? child.payin_success_amount_count : 0),
           0
         )
-        console.log(ListMchResults[children[0].mch_number].account_available_balance);
-        console.log(children[0].mch_number);
 
         // 汇总父节点数据
         const parentNode = {
@@ -552,7 +551,6 @@ export default {
         });
       }
       initData(q);
-      console.log(q);
       this.treeTableDataClone = JSON.parse(JSON.stringify(q))
 
       const clearChildren = q.map((item) => {
@@ -569,6 +567,11 @@ export default {
     },
     // 复选框点击事件
     setRowIsSelect(row) {
+      console.log("-----------------");
+
+      console.log(row);
+      console.log(row.isSelect);
+
       //当点击父级点复选框时，当前的状态可能为未知状态，所以当前行状态设为false并选中，即可实现子级点全选效果
 
       if (row.isSelect === "") {
@@ -584,7 +587,7 @@ export default {
 
       let that = this;
 
-      function selectAllChildrens(data) {
+      function selectAllChildren(data) {
         data.forEach((item) => {
           if (
             item.payout_settle_status == 0 &&
@@ -703,7 +706,11 @@ export default {
           })
           Data = that.treeTableDataClone[ParentIndex].children[DataIndex];
         }
+        return Data;
 
+      }
+      function selectFunction(row) {
+        const Data = FindCloneIndex(row);
         const levelSate = getLevelStatus(Data);
         if (levelSate == 1) {
           selectAllChildren(Data.children);
@@ -711,6 +718,7 @@ export default {
           selectAllChildren(Data.children);
           operateLastLeve(Data);
         }
+        Data.isSelected = !Data.isSelect;
       }
       //判断操作的是子级点复选框还是父级点复选框，如果是父级点，则控制子级点的全选和不全选
 
@@ -720,11 +728,11 @@ export default {
 
       if (levelSate == 1) {
         selectAllChildren(row.children);
-        FindCloneIndex(row);
+        selectFunction(row);
       } else if (levelSate == 2) {
         selectAllChildren(row.children);
         operateLastLeve(row);
-        FindCloneIndex(row);
+        selectFunction(row);
       }
     },
     // 检测表格数据是否全选
@@ -791,7 +799,7 @@ export default {
     },
     readyselectable(row, index) {
       //
-
+      return true
       if (row.parentId == 0) {
         const parentIndex = this.treeTableDataClone.findIndex((item) => {
           return row.id === item.id;
@@ -840,7 +848,6 @@ export default {
       if (data.account_available_balance == "/") {
         return "/";
       }
-      console.log(data);
 
       return ((data.account_available_balance - data.PendingSettlementAmount) / 100).toFixed(2);
     },
@@ -868,12 +875,13 @@ export default {
             if (num < that.treeTableDataClone[index].children.length) {
               // 渲染一条数据到列表
               row.children.push(that.treeTableDataClone[index].children[num]);
-              num++
               console.log(that.treeTableDataClone[index].children[num].isSelect);
 
               if (that.treeTableDataClone[index].children[num].isSelect) {
                 that.$refs.multipleTable.toggleRowSelection(that.treeTableDataClone[index].children[num], true); // 选中当前行
               }
+              num++
+
               requestAnimationFrame(renderChunk);  // 继续渲染下一条
             }
           }

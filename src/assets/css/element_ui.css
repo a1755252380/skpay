@@ -76,3 +76,8 @@
 .click{
   cursor: pointer;
 }
+.SettlementForm .el-table__empty-text {
+  color: red !important;
+  font-size: 16px;
+  font-weight: 600;
+}

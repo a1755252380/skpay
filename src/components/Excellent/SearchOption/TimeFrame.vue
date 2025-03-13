@@ -1,8 +1,7 @@
 <template>
   <el-date-picker v-model="internalValue" type="datetimerange" value-format="yyyy-MM-dd HH:mm:ss" range-separator="-"
-    :picker-options="{
-      shortcuts: shortcuts
-    }" start-placeholder="开始时间" end-placeholder="结束时间" class="w100_input" @change="TimeChange"></el-date-picker>
+    v-bind="$attrs" v-on="$listeners" :picker-options="computedPickerOptions" start-placeholder="开始时间"
+    end-placeholder="结束时间" class="w100_input" @change="TimeChange"></el-date-picker>
 </template>
 
 <script>
@@ -16,7 +15,7 @@ export default {
   props: {
     modelValue: {
       type: [Array, null],  // 可以是 String, Number 或 null
-      default: []
+      default: () => []
     },
     ParameterIndex: {
       type: String,
@@ -60,6 +59,14 @@ export default {
           }
 
         ]
+    }
+  },
+  computed: {
+    computedPickerOptions() {
+      return {
+        ...this.shortcuts, // 先使用默认配置
+        ...this.$attrs["picker-options"] // 再覆盖传入的 picker-options
+      };
     }
   },
   data() {

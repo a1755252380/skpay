@@ -84,7 +84,7 @@ import { listMchSettlementList, getMchSettlementDay, delMchSettlement, addMchSet
 
 import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
-import DetailedContentVue from "./DetailedContent3.vue";
+import DetailedContentVue from "./DetailedContent.vue";
 import TimeFrameVue from "@/components/Excellent/SearchOption/TimeFrame.vue";
 import moment from "moment";
 import dynamicTable2Vue from '@/components/Excellent/dynamicTable2.vue';
