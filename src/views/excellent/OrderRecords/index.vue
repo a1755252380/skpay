@@ -61,14 +61,14 @@
           <template slot-scope="scope">
             <el-tag :type="formatStatus(scope.row.status).type">{{
               formatStatus(scope.row.status).name
-              }}</el-tag>
+            }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="回调状态" align="center" prop="callback_status" width="100" class-name="NoTooltip">
           <template slot-scope="scope">
             <el-tag :type="formatCallbackStatus(scope.row.callback_status).type">{{
               formatCallbackStatus(scope.row.callback_status).name
-              }}</el-tag>
+            }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="通道ID" align="center" prop="chnl_id" :formatter="Formatter.ChannelNameFormatter"
@@ -219,6 +219,7 @@ export default {
         last_id: null,
         time_type: "now",
       },
+      lastQueryParams: null, // 记录上一次的搜索参数
       pageData: {
         currentPage: 1, // 当前页码
         pageSize: 10, // 每页显示的条数
@@ -413,7 +414,7 @@ export default {
         },
       ],
       height: 0,
-      RepeatedRequests: false,
+
       //批量修改
       BatchModificationShow: false,
       BatchModificationList: [],
@@ -471,7 +472,7 @@ export default {
           message: "批量修改成功",
           type: "success",
         });
-        this.RepeatedRequests = false
+
         this.$refs.search.handleQuery();//重新搜索一次
 
       })
@@ -486,7 +487,6 @@ export default {
       //     message: "批量修改成功",
       //     type: "success",
       //   });
-      //   this.RepeatedRequests = false
       //   this.$refs.search.handleQuery();//重新搜索一次
 
       // }).catch(err => {
@@ -569,7 +569,7 @@ export default {
             this.$message.success("批量回调成功");
             this.$refs.myTable.clearSelection();
             this.BatchModificationList.splice(0);
-            this.RepeatedRequests = false
+
             this.$refs.search.handleQuery();//重新搜索一次
 
           })
@@ -583,35 +583,37 @@ export default {
     },
     //返回搜索条件
     ReturnSearch(Params) {
-      this.loading = true;
+
       this.resetSearch();
-      this.RepeatedRequests = false
       this.getList(Params);
+
     },
     RequestingDataAgain(Params) {
-      this.loading = true;
+
 
       this.getList(Params);
+
     },
     /** 查询订单列表 */
 
     getList(queryParams) {
-      if (this.RepeatedRequests) {
-        this.loading = false;
-        return;
+      function isObjectsEqual(obj1, obj2) {
+        return JSON.stringify(obj1) === JSON.stringify(obj2);
       }
+
       // this.loading = true;
       let query = { ...queryParams, ...this.queryPage };
-
+      if (this.lastQueryParams && isObjectsEqual(query, this.lastQueryParams) && this.loading) {
+        this.$message.error('请勿重复搜索！');
+        return;
+      }
+      this.loading = true
+      this.lastQueryParams = query; // 记录当前搜索参数
       listOrderRecords(query).then((response) => {
         this.queryPage["last_id"] = response["last_id"];
-
         this.OrderRecordsList = [...this.OrderRecordsList, ...response.results];
         this.pageData.total = this.OrderRecordsList.length;
         this.loading = false;
-        if (response["last_id"] == '') {
-          this.RepeatedRequests = true;
-        }
       });
     },
 
@@ -781,7 +783,6 @@ export default {
     },
     //重置
     resetSearch() {
-      console.log("重置");
 
       this.OrderRecordsList.splice(0)
       this.queryPage.last_id = null
@@ -792,7 +793,6 @@ export default {
       }
       this.$refs.myTable.clearSelection();
       this.BatchModificationList.splice(0);
-      console.log("重置...");
 
     },
 

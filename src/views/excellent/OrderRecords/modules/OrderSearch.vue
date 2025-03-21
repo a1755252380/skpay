@@ -232,8 +232,6 @@ export default {
     },
     /** 搜索按钮操作 */
     handleQuery() {
-      console.log("数据请求");
-
       this.$emit('ReturnSearch', this.queryParams);
     },
     RequestingDataAgain() {

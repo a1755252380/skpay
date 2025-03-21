@@ -1,12 +1,20 @@
 // import request from '@/utils/requestGo'
 import request from "@/utils/requestGo";
 import { Notification, MessageBox, Message, Loading } from "element-ui";
+let cancelTokenSource = null; // 存储上一个请求的 cancelToken
 // 查询订单列表
 export function listOrderRecords(query) {
+  // 取消上一个请求
+  if (cancelTokenSource) {
+    cancelTokenSource.cancel("取消上一个重复的请求");
+  }
+  // 创建新的 cancelToken
+  cancelTokenSource = axios.CancelToken.source();
   return request({
     url: "/order",
     method: "get",
     params: query,
+    cancelToken: cancelTokenSource.token, // 绑定 cancelToken
   });
 }
 
