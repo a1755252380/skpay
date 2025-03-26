@@ -95,3 +95,32 @@ export function DownloadXlsx(
     return res;
   });
 }
+export function DownloadOrderXlsx(
+  CommitUrl,
+  query,
+  name,
+  downloadUrl = "/console/download/pull"
+) {
+  downloadLoadingInstance = Loading.service({
+    text: "正在下载数据，请稍候",
+    spinner: "el-icon-loading",
+    background: "rgba(0, 0, 0, 0.7)",
+  });
+  for (const key in query) {
+    if (query[key] === null) {
+      delete query[key];
+    }
+  }
+  return request({
+    url: CommitUrl,
+    method: "post",
+    data: query,
+  }).then((res) => {
+    let filename = name ? name : res.file_name;
+    RequestNum = 30;
+    // 启动请求的入口
+    fetchAndDownload(downloadUrl + "?file_name=" + res.file_name, filename);
+
+    return res;
+  });
+}

@@ -82,7 +82,7 @@ export default {
         if (valid) {
           const mergedObj = { ...this.form };
           mergedObj['big_amount'] = mergedObj['big_amount'] * -1
-          mergedObj['msg'] += '（通道：' + this.Change['chnl_id'] + ',' + '，结算时间：' + this.Formatter.FormatTime(
+          mergedObj['msg'] += '（通道：' + this.Change["chnl_name"][0] + this.Change['chnl_id'] + ',' + '，结算时间：' + this.Formatter.FormatTime(
             this.Change['start_time'] * 1000, 'YYYY-MM-DD HH:mm:ss') + '-' + this.Formatter.FormatTime(this.Change['end_time'] * 1000, 'YYYY-MM-DD HH:mm:ss') + '）'
 
           this.resetForm()

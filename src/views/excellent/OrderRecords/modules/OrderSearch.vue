@@ -73,7 +73,10 @@
       <template #search_btn>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-        <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport">导出</el-button>
+        <el-button type="warning" plain icon="el-icon-download" size="mini"
+          @click="handleExport(queryParams)">导出</el-button>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="BatchSearchOrdersShow = true"
+          v-hasPermi="['excellent:OrderRecords:edit']" slot="btn">批量查单</el-button>
         <slot name="btn"></slot>
 
       </template>
@@ -87,6 +90,9 @@
 
       </div>
     </el-form> -->
+    <!-- 输入订单号的方式进行查单 -->
+    <BatchSearchOrders v-model="BatchSearchOrdersShow" @ConfirmBatchSearch="ConfirmBatchSearch"
+      @ConfirmBatchExport="ConfirmBatchExport"></BatchSearchOrders>
 
   </div>
 </template>
@@ -97,6 +103,7 @@ import { listMchSetting } from "@/api/excellent/MchSetting"
 import ChannelQuery from "@/components/Excellent/Channel/ChannelQuery.vue";
 import OrderAndSteam from "@/components/Excellent/SearchLayout/OrderAndSteam.vue";
 import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
+import BatchSearchOrders from './BatchSearchOrders.vue';
 
 export default {
   name: 'WorkspaceJsonOrderSearch',
@@ -111,13 +118,11 @@ export default {
 
 
     },
-
-
-
-
   },
   data() {
     return {
+      //批量添加补单
+      BatchSearchOrdersShow: false,
       queryParams: {
         utr: null, //交易流水号
         mch_number: null,
@@ -208,7 +213,6 @@ export default {
   methods: {
     // 时间格式化
     parseTime(value, index) {
-      // console.log(value, index);
       let utcTime, utcEndTime = null;
       if (value) {
         utcTime = value[0];
@@ -225,18 +229,16 @@ export default {
         this.$set(this.queryParams, 'update_end_time', utcEndTime ? utcEndTime : null);
       }
 
-      // let utcTime = this.$util.getUtcTime(value) / 1000;
 
-      // this.$set(this.timedata, index, value);
-      // this.$set(this.queryParams, index, utcTime ? utcTime : null);
     },
     /** 搜索按钮操作 */
     handleQuery() {
-      this.$emit('ReturnSearch', this.queryParams);
+
+      this.$emit('ReturnSearch', this.RearrangeParams());
     },
     RequestingDataAgain() {
 
-      this.$emit('RequestingDataAgain', this.queryParams);
+      this.$emit('RequestingDataAgain', this.RearrangeParams());
     },
     /** 重置按钮操作 */
     resetQuery() {
@@ -265,13 +267,35 @@ export default {
 
       this.handleQuery();
     },
-
+    //批量查单
+    ConfirmBatchSearch(list) {
+      this.BatchSearchOrdersShow = false
+      this.loading = true
+      this.queryParams.merchant_order_id = null
+      this.$emit('ReturnSearch', this.RearrangeParams(list));
+    },
+    ConfirmBatchExport(list) {
+      this.BatchSearchOrdersShow = false
+      this.loading = true
+      this.queryParams.merchant_order_id = null
+      this.download.DownloadOrderXlsx('/order/download/commit', {
+        merchant_order_id_list: list,
+        time_type: this.TabsChangeStatus,
+        type: this.$route.query.type
+      }, ('批量导出' + (this.$route.query.type == 1 ? '代付' : '代收') + '订单记录'));
+    },
+    //参数进行重新分配整理
+    RearrangeParams(merchant_order_id_list) {
+      const { merchant_order_id, ...newObj } = this.queryParams; // 通过解构剔除 b
+      if (merchant_order_id_list) {
+        return { ...newObj, merchant_order_id_list: merchant_order_id_list }
+      }
+      return { ...newObj, merchant_order_id_list: merchant_order_id ? (typeof merchant_order_id === 'string' ? [merchant_order_id] : merchant_order_id) : null }
+    },
     //导出功能
-    handleExport() {
+    handleExport(query) {
       if ((this.queryParams.create_end_time && this.queryParams.create_time) || (this.queryParams.update_time && this.queryParams.update_end_time)) {
-        let params = {
-          ...this.queryParams,
-        }
+        let params = { ...query }
         params['time_type'] = this.TabsChangeStatus
         params['type'] = this.$route.query.type
         let TimeFrame = ''
@@ -284,7 +308,7 @@ export default {
         if (this.queryParams.update_time && this.queryParams.update_end_time) {
           TimeFrame += this.Formatter.FormatTime(this.queryParams.update_time * 1000, 'YYYY-MM-DD') + '-' + this.Formatter.FormatTime(this.queryParams.update_end_time * 1000, 'YYYY-MM-DD') + "_"
         }
-        this.download.DownloadXlsx('/order/download/commit', params, (TimeFrame + (this.$route.query.type == 1 ? '代付' : '代收') + '订单记录'));
+        this.download.DownloadOrderXlsx('/order/download/commit', params, (TimeFrame + (this.$route.query.type == 1 ? '代付' : '代收') + '订单记录'));
 
       } else {
         this.$message({
@@ -319,7 +343,7 @@ export default {
   components: {
     TimeFrameVue,
     OrderAndSteam,
-    ChannelQuery
+    ChannelQuery, BatchSearchOrders
   }
 };
 </script>

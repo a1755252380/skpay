@@ -6,15 +6,15 @@
       <div style="text-align: center;">
         <el-progress type="circle" :percentage="percentage" :width="200" :stroke-width="18" :color="customColors"
           :status="status"></el-progress>
-        <div class="ResultNum" v-if="!isFinish" style="margin-bottom: 20px;">已完成 <span class="blue">{{ requestCount
-            }}</span> / {{
+        <div class="ResultNum" style="margin-bottom: 20px;">已完成 <span class="blue">{{ requestCount
+        }}</span> / {{
               totalCount }}</div>
-        <div class="ResultNum" v-else>总共:<span class="blue"> {{ totalCount }} </span> 成功:<span class="success">
+        <!-- <div class="ResultNum" v-else>总共:<span class="blue"> {{ totalCount }} </span> 成功:<span class="success">
             {{
-              successCount }} </span> 失败:<span class="error"> {{ errorCount }} </span> </div>
+              successCount }} </span> 失败:<span class="error"> {{ errorCount }} </span> </div> -->
       </div>
     </div>
-    <template #footer v-if="isFinish && isClose">
+    <template #footer v-if="isFinish && !isClose">
       <slot></slot>
       <el-button type="primary" size="small" @click="() => {
         reset()
@@ -167,7 +167,7 @@ export default {
         this.isFinish = true
         this.dialogTitle = '提交结果'
       }
-      if (!this.isClose) {
+      if (this.isClose) {
         setTimeout(() => {
           this.centerDialogVisible = false
           this.isClose = true
@@ -196,6 +196,7 @@ export default {
 
       this.centerDialogVisible = true;
       this.isFinish = false;
+      this.isClose = true;
       this.totalCount = Object.values(requests).reduce((total, { requestList }) => total + requestList.length, 0);
       this.successCount = 0;
       this.errorCount = 0;
@@ -248,7 +249,7 @@ export default {
       this.isFinish = true;
       this.dialogTitle = '提交结果';
 
-      if (!this.isClose) {
+      if (this.isClose) {
         setTimeout(() => {
           this.centerDialogVisible = false;
           this.isClose = true;

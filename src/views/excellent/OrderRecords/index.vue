@@ -16,7 +16,8 @@
         <el-button type="primary" icon="el-icon-refresh-left" size="mini" @click="OpenBatchCallBack"
           v-hasPermi="['excellent:OrderRecords:edit']" slot="btn"
           v-if="queryPage.time_type == 'history'">批量回调</el-button>
-        <!-- <el-button type="primary" icon="el-icon-refresh-left" size="mini" @click="BatchAdditionShow = true"
+
+        <!-- <el-button type="primary" icon="el-icon-refresh-left" size="mini" @click="BatchSearchOrdersShow = true"
           v-if="queryPage.time_type == 'history'" slot="btn">批量补单</el-button> -->
         <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
       </OrderSearch>
@@ -106,8 +107,7 @@
     <!-- 内容详情弹窗 -->
     <DetailedContent :show="detailShow" @updateShow="updateShow" :detail="form" :detailkey="detailKeyList">
     </DetailedContent>
-    <!-- 输入订单号的方式进行补单 -->
-    <BatchReplenishmentOfOrdersVue v-model="BatchAdditionShow"></BatchReplenishmentOfOrdersVue>
+
     <ProgressDialog v-model="progressShow" ref="ProgressDialog"></ProgressDialog>
   </div>
 </template>
@@ -119,7 +119,7 @@ import {
   delOrderRecords,
   addOrderRecords,
   updateOrderRecords,
-  ModifyOrderStatus,
+  ModifyOrderStatus, BatchListOrderRecords
 } from "@/api/excellent/OrderRecords";
 import AdjustOrderStatus from "./modules/AdjustOrderStatus.vue";
 import OrderSearch from "./modules/OrderSearch.vue";
@@ -127,7 +127,6 @@ import DetailedContent from "@/components/Excellent/DetailedContent.vue";
 import dynamicTableVue from "@/components/Excellent/dynamicTable.vue";
 import moment from "moment-timezone";
 import BatchModification from "./modules/BatchModification.vue";
-import BatchReplenishmentOfOrdersVue from './modules/BatchReplenishmentOfOrders.vue';
 import ProgressDialog from "@/components/dialog/ProgressDialog.vue";
 
 export default {
@@ -178,7 +177,7 @@ export default {
     AdjustOrderStatus,
     DetailedContent,
     dynamicTableVue,
-    BatchModification, BatchReplenishmentOfOrdersVue, ProgressDialog
+    BatchModification, ProgressDialog
   },
   computed: {
     // 计算当前页显示的数据
@@ -418,8 +417,7 @@ export default {
       //批量修改
       BatchModificationShow: false,
       BatchModificationList: [],
-      //批量添加补单
-      BatchAdditionShow: false,
+
       //进度条显示
       progressShow: false,
     };
@@ -476,23 +474,7 @@ export default {
         this.$refs.search.handleQuery();//重新搜索一次
 
       })
-      // this.$util.batchRequest(promise, ModifyOrderStatus).then(res => {
 
-      //   this.$refs.myTable.clearSelection();
-      //   this.BatchModificationList.splice(0);
-      //   this.BatchModificationShow = false;
-
-      //   loading.close();
-      //   this.$message({
-      //     message: "批量修改成功",
-      //     type: "success",
-      //   });
-      //   this.$refs.search.handleQuery();//重新搜索一次
-
-      // }).catch(err => {
-      //   loading.close();
-      //   this.$message.error("批量回调失败");
-      // })
 
 
     },
@@ -583,16 +565,11 @@ export default {
     },
     //返回搜索条件
     ReturnSearch(Params) {
-
       this.resetSearch();
       this.getList(Params);
-
     },
     RequestingDataAgain(Params) {
-
-
       this.getList(Params);
-
     },
     /** 查询订单列表 */
 
@@ -603,6 +580,7 @@ export default {
 
       // this.loading = true;
       let query = { ...queryParams, ...this.queryPage };
+
       if (this.lastQueryParams && isObjectsEqual(query, this.lastQueryParams) && this.loading) {
         this.$message.error('请勿重复搜索！');
         return;
@@ -613,8 +591,11 @@ export default {
         this.queryPage["last_id"] = response["last_id"];
         this.OrderRecordsList = [...this.OrderRecordsList, ...response.results];
         this.pageData.total = this.OrderRecordsList.length;
+
+      }).finally(() => {
         this.loading = false;
-      });
+      })
+        ;
     },
 
     //分页处理

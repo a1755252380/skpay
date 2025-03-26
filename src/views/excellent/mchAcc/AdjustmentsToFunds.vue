@@ -1,44 +1,51 @@
 <template>
-  <el-dialog
-    :title="fundStateData == 'PositiveAdjustment' ? '金额调整' : (fundStateData == 'CollectionAndSettlement' ? '代收结算' : '代付结算')"
-    :visible.sync="showData" width="400px" append-to-body :before-close="() => {
-      showData = false
-    }">
-    <el-form ref="form" :model="form" label-width="90px" class="Breakdown-el-form" :rules="rules">
-      <!--        <el-form-item label="商户id" prop="mchId">-->
-      <!--          <el-input v-model="form.mchId" placeholder="请输入商户id" />-->
-      <!--        </el-form-item>-->
-      <el-form-item label="商户号" prop="mch_number">
-        <el-input v-model="form.mch_number" placeholder="请输入商户号" disabled />
-      </el-form-item>
-      <el-form-item :label="fundStateData == 'CollectionAndSettlement' ? '待结算余额' : '可用余额'"
-        v-if="fundStateData == 'CollectionAndSettlement' || fundStateData == 'ProxyPaymentSettlement'">
-        <el-input :value="showMsg.Balance" placeholder="请输入金额" class="w100_input " disabled />
-      </el-form-item>
-      <el-form-item label="调整金额" prop="big_amount">
-        <el-input-number v-model="form.big_amount" placeholder="请输入金额" class="w100_input " :precision="2"
-          @change="bigAmountChange" />
-      </el-form-item>
-      <el-form-item label="调整方式" prop="operation">
-        <el-select v-model="form.operation" placeholder="请选择调整方式" class="w100_input">
-          <template v-for="item in selectList">
-            <el-option :key="item.operation" :label="item.name" v-if="item.fund_state == fundStateData"
-              :value="item.operation"></el-option>
-          </template>
+  <div>
+    <el-dialog
+      :title="fundStateData == 'PositiveAdjustment' ? '金额调整' : (fundStateData == 'CollectionAndSettlement' ? '代收结算' : '代付结算')"
+      :visible.sync="showData" width="400px" append-to-body :before-close="() => {
+        showData = false
+      }">
+      <el-form ref="form" :model="form" label-width="90px" class="Breakdown-el-form" :rules="rules">
+        <!--        <el-form-item label="商户id" prop="mchId">-->
+        <!--          <el-input v-model="form.mchId" placeholder="请输入商户id" />-->
+        <!--        </el-form-item>-->
+        <el-form-item label="商户号" prop="mch_number">
+          <el-input v-model="form.mch_number" placeholder="请输入商户号" disabled />
+        </el-form-item>
+        <el-form-item :label="fundStateData == 'CollectionAndSettlement' ? '待结算余额' : '可用余额'"
+          v-if="fundStateData == 'CollectionAndSettlement' || fundStateData == 'ProxyPaymentSettlement'">
+          <el-input :value="showMsg.Balance" placeholder="请输入金额" class="w100_input " disabled />
+        </el-form-item>
+        <el-form-item label="调整金额" prop="big_amount">
+          <el-input-number v-model="form.big_amount" placeholder="请输入金额" class="w100_input " :precision="2"
+            @change="bigAmountChange" />
+        </el-form-item>
+        <el-form-item label="调整方式" prop="operation">
+          <el-select v-model="form.operation" placeholder="请选择调整方式" class="w100_input">
+            <template v-for="item in selectList">
+              <el-option :key="item.operation" :label="item.name" v-if="item.fund_state == fundStateData"
+                :value="item.operation"></el-option>
+            </template>
 
-        </el-select>
-      </el-form-item>
-      <el-form-item label="备注" prop="msg">
-        <el-input v-model="form.msg" type="textarea" placeholder="请备注调整原因" rows="3" />
-      </el-form-item>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="备注" prop="msg">
+          <el-input v-model="form.msg" type="textarea" placeholder="请备注调整原因" rows="3" />
+        </el-form-item>
+        <el-form-item label="订单号" prop="msg">
+          <el-input v-model="form.msg" type="textarea" placeholder="请备注调整原因" rows="3" />
+        </el-form-item>
 
+      </el-form>
+      <div slot="footer" class="dialog-footer">
 
-    </el-form>
-    <div slot="footer" class="dialog-footer">
-      <el-button type="primary" @click="submitForm">确 定</el-button>
-      <el-button @click="showData = false">取 消</el-button>
-    </div>
-  </el-dialog>
+        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button @click="showData = false">取 消</el-button>
+      </div>
+    </el-dialog>
+
+  </div>
+
 </template>
 
 <script>
@@ -74,6 +81,8 @@ export default {
   },
   data() {
     return {
+
+
       form: {
         mch_number: '',
         big_amount: 0,

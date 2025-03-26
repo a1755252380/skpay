@@ -82,6 +82,8 @@
     <AdjustmentsToFunds :show="AdjustmentsToFundsShow" :Change="form" :fundState="AdjustmentsToFundsType"
       @CloseAdjustmentsToFunds="CloseAdjustmentsToFunds" @UpdateAdjustmentsToFunds="UpdateAdjustmentsToFunds">
     </AdjustmentsToFunds>
+
+    <!-- <ChangeBack></ChangeBack> -->
   </div>
 </template>
 
@@ -98,7 +100,7 @@ import AdjustmentsToFunds from "./AdjustmentsToFunds.vue";
 import dynamicTableVue from "@/components/Excellent/dynamicTable.vue";
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
 import mchNameVue from '@/components/Excellent/Mch/mchName.vue';
-
+// import ChangeBack from "./ChangeBack.vue";
 export default {
   name: "MchAcc",
   components: { AdjustmentsToFunds, dynamicTableVue, MchNumSelect, mchNameVue },

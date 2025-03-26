@@ -12,12 +12,19 @@ export function listOrderRecords(query) {
   cancelTokenSource = axios.CancelToken.source();
   return request({
     url: "/order",
-    method: "get",
-    params: query,
+    method: "post",
+    data: query,
     cancelToken: cancelTokenSource.token, // 绑定 cancelToken
   });
 }
-
+// 批量查询订单列表
+export function BatchListOrderRecords(query) {
+  return request({
+    url: "/order",
+    method: "get",
+    params: query,
+  });
+}
 // 修改订单状态
 export function ModifyOrderStatus(query) {
   return request({
