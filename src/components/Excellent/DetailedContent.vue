@@ -15,7 +15,7 @@
             width: contextWidth + 'px'
           }" border>
 
-          <template v-for=" item2 in item.content">
+          <template v-for="item2 in item.content">
             <el-descriptions-item :key="item2.key" v-if="
               item2.Jurisdiction == '' ||
               hasPermiVisible(item2.Jurisdiction)

@@ -64,7 +64,7 @@ export default {
   computed: {
     computedPickerOptions() {
       return {
-        ...this.shortcuts, // 先使用默认配置
+        shortcuts: this.shortcuts, // 先使用默认配置
         ...this.$attrs["picker-options"] // 再覆盖传入的 picker-options
       };
     }

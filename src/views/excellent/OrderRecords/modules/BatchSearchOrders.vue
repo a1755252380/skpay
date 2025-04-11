@@ -4,9 +4,10 @@
       <div slot="title" class="drawer_title">批量商户订单号查单/导出</div>
       <div style="" class="drawer_div">
         <div class="header_div">
-          <el-input type="textarea" :rows="4" placeholder="请输入订单号信息/直接复制粘贴Excel表数据" v-model="batchInput"
+          <el-input type="textarea" :rows="4" placeholder="请输入商户订单号信息/直接复制粘贴Excel表数据" v-model="batchInput"
             size="small"></el-input>
-          <el-button type="primary" size="small" @click="batchAddBlacklist" style="margin-top: 6px;">确定</el-button>
+          <el-button type="primary" size="small" @click="batchAddBlacklist"
+            style="margin-top: 6px;width: 100%;">确定</el-button>
         </div>
         <div class="tagShow_div">
           <template v-for="(item, index) in batchList">

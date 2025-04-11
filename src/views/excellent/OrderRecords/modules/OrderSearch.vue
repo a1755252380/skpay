@@ -73,10 +73,11 @@
       <template #search_btn>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-        <el-button type="warning" plain icon="el-icon-download" size="mini"
-          @click="handleExport(queryParams)">导出</el-button>
+        <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport">导出</el-button>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="BatchSearchOrdersShow = true"
-          v-hasPermi="['excellent:OrderRecords:edit']" slot="btn">批量查单</el-button>
+          v-hasPermi="['excellent:OrderRecords:edit']">批量查单</el-button>
+        <el-button type="primary" icon="el-icon-plus" size="mini" @click="AddOrderShow = true"
+          v-hasPermi="['excellent:OrderRecords:edit']">创建订单</el-button>
         <slot name="btn"></slot>
 
       </template>
@@ -91,19 +92,41 @@
       </div>
     </el-form> -->
     <!-- 输入订单号的方式进行查单 -->
-    <BatchSearchOrders v-model="BatchSearchOrdersShow" @ConfirmBatchSearch="ConfirmBatchSearch"
-      @ConfirmBatchExport="ConfirmBatchExport"></BatchSearchOrders>
+    <!-- <BatchSearchOrders v-model="BatchSearchOrdersShow" @ConfirmBatchSearch="ConfirmBatchSearch"
+      @ConfirmBatchExport="ConfirmBatchExport"></BatchSearchOrders> -->
+    <BatchDrawer :BatchList.sync="BatchList" :drawer.sync="BatchSearchOrdersShow">
+      <div class="batch_div">
+        <el-select v-model="BatchSelect" size="mini" style="width: 100%;">
+          <el-option label="商户订单号" value="mch"></el-option>
+          <el-option label="UTR" value="utr"></el-option>
+          <el-option label="三方订单号" value="plat"></el-option>
+        </el-select>
+        <div class="batch_div_btn_div">
+          <el-button type="info" style="" class=" batch_div_btn " size="small" @click="ConfirmBatchExport"
+            icon="el-icon-download">批量导出</el-button>
+          <el-button type="warning" style="" class=" batch_div_btn " size="small" @click="ConfirmBatchSearch"
+            icon="el-icon-search">批量查询</el-button>
+        </div>
 
+      </div>
+    </BatchDrawer>
+    <!-- 添加订单 -->
+    <AddOrder :show.sync="AddOrderShow" v-if="parseInt($route.query.type) == 1"></AddOrder>
+    <AddOrderIn :show.sync="AddOrderShow" v-if="parseInt($route.query.type) == 0"></AddOrderIn>
   </div>
 </template>
 
 <script>
+
 import { listChnlSetting } from "@/api/excellent/chnlSetting";
 import { listMchSetting } from "@/api/excellent/MchSetting"
 import ChannelQuery from "@/components/Excellent/Channel/ChannelQuery.vue";
 import OrderAndSteam from "@/components/Excellent/SearchLayout/OrderAndSteam.vue";
 import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
-import BatchSearchOrders from './BatchSearchOrders.vue';
+// import BatchSearchOrders from './BatchSearchOrders.vue';
+import BatchDrawer from "@/components/dialog/BatchDrawer.vue";
+import AddOrder from "./AddOrderOut.vue";
+import AddOrderIn from "./AddOrderIn.vue";
 
 export default {
   name: 'WorkspaceJsonOrderSearch',
@@ -121,8 +144,12 @@ export default {
   },
   data() {
     return {
+      //添加订单
+      AddOrderShow: false,
       //批量添加补单
       BatchSearchOrdersShow: false,
+      BatchList: [],
+      BatchSelect: 'mch',
       queryParams: {
         utr: null, //交易流水号
         mch_number: null,
@@ -139,7 +166,10 @@ export default {
         create_end_time: null,
         //更新时间
         update_time: null,
-        update_end_time: null
+        update_end_time: null,
+        utr_list: null,
+        merchant_order_id_list: null,
+        platform_order_id_list: null,
       },
 
       //展示用
@@ -233,12 +263,18 @@ export default {
     },
     /** 搜索按钮操作 */
     handleQuery() {
-
+      this.restListQuery()
       this.$emit('ReturnSearch', this.RearrangeParams());
     },
     RequestingDataAgain() {
 
       this.$emit('RequestingDataAgain', this.RearrangeParams());
+    },
+    //重置列表的查询参数
+    restListQuery() {
+      this.queryParams.merchant_order_id_list = null
+      this.queryParams.utr_list = null
+      this.queryParams.platform_order_id_list = null
     },
     /** 重置按钮操作 */
     resetQuery() {
@@ -262,42 +298,90 @@ export default {
         create_end_time: null,
         //更新时间
         update_time: null,
-        update_end_time: null
+        update_end_time: null,
+        utr_list: null,
+        merchant_order_id_list: null,
+        platform_order_id_list: null,
       }
 
       this.handleQuery();
     },
     //批量查单
-    ConfirmBatchSearch(list) {
+    ConfirmBatchSearch() {
+      if (this.BatchList.length == 0) {
+        this.$message({
+          message: '请先输入商户订单号',
+          type: 'warning'
+        })
+        return
+      }
       this.BatchSearchOrdersShow = false
       this.loading = true
-      this.queryParams.merchant_order_id = null
-      this.$emit('ReturnSearch', this.RearrangeParams(list));
+      this.restListQuery()
+
+      if (this.BatchSelect == 'utr') {
+        this.queryParams.utr_list = JSON.parse(JSON.stringify(this.BatchList))
+      }
+      if (this.BatchSelect == 'mch') {
+        this.queryParams.merchant_order_id_list = JSON.parse(JSON.stringify(this.BatchList))
+      }
+      if (this.BatchSelect == 'plat') {
+        this.queryParams.platform_order_id_list = JSON.parse(JSON.stringify(this.BatchList))
+
+      }
+      this.BatchList.splice(0)
+      this.$emit('ReturnSearch', this.RearrangeParams());
     },
-    ConfirmBatchExport(list) {
+    ConfirmBatchExport() {
+      if (this.BatchList.length == 0) {
+        this.$message({
+          message: '请先输入商户订单号',
+          type: 'warning'
+        })
+        return
+      }
       this.BatchSearchOrdersShow = false
       this.loading = true
-      this.queryParams.merchant_order_id = null
-      this.download.DownloadOrderXlsx('/order/download/commit', {
-        merchant_order_id_list: list,
+      const query = {
         time_type: this.TabsChangeStatus,
-        type: this.$route.query.type
-      }, ('批量导出' + (this.$route.query.type == 1 ? '代付' : '代收') + '订单记录'));
+        order_type: Number(this.$route.query.type),
+      }
+      if (this.BatchSelect == 'utr') {
+        query['utr_list'] = JSON.parse(JSON.stringify(this.BatchList))
+      }
+      if (this.BatchSelect == 'mch') {
+        query['merchant_order_id_list'] = JSON.parse(JSON.stringify(this.BatchList))
+      }
+      if (this.BatchSelect == 'plat') {
+        query['platform_order_id_list'] = JSON.parse(JSON.stringify(this.BatchList))
+
+      }
+      this.BatchList.splice(0)
+      this.download.DownloadOrderXlsx('/order/download/commit', query, ('批量导出' + (this.$route.query.type == 1 ? '代付' : '代收') + '订单记录'));
     },
     //参数进行重新分配整理
-    RearrangeParams(merchant_order_id_list) {
-      const { merchant_order_id, ...newObj } = this.queryParams; // 通过解构剔除 b
-      if (merchant_order_id_list) {
-        return { ...newObj, merchant_order_id_list: merchant_order_id_list }
-      }
-      return { ...newObj, merchant_order_id_list: merchant_order_id ? (typeof merchant_order_id === 'string' ? [merchant_order_id] : merchant_order_id) : null }
+    RearrangeParams() {
+      const { merchant_order_id, merchant_order_id_list, utr, utr_list, platform_order_id, platform_order_id_list, ...obj } = this.queryParams;
+
+      const queryParams = {
+        ...obj,
+        ...(merchant_order_id ? { merchant_order_id_list: [merchant_order_id] } : {}), // 仅在有值时添加
+        ...(merchant_order_id_list ? { merchant_order_id_list } : {}), // 仅在有值时添加
+        ...(utr ? { utr_list: [utr] } : {}), // 仅在有值时添加
+        ...(utr_list ? { utr_list } : {}), // 仅在有值时添加
+        ...(platform_order_id ? { platform_order_id_list: [platform_order_id] } : {}), // 仅在有值时添加
+        ...(platform_order_id_list ? { platform_order_id_list } : {}) // 仅在有值时添加
+      };
+
+      return queryParams;
+
     },
     //导出功能
     handleExport(query) {
       if ((this.queryParams.create_end_time && this.queryParams.create_time) || (this.queryParams.update_time && this.queryParams.update_end_time)) {
-        let params = { ...query }
+        let params = { ...this.RearrangeParams() }
         params['time_type'] = this.TabsChangeStatus
-        params['type'] = this.$route.query.type
+        params['order_type'] = Number(this.$route.query.type)
         let TimeFrame = ''
         if (params['mch_number']) {
           TimeFrame += params['mch_number'] + '_'
@@ -343,7 +427,8 @@ export default {
   components: {
     TimeFrameVue,
     OrderAndSteam,
-    ChannelQuery, BatchSearchOrders
+    AddOrder,
+    ChannelQuery, BatchDrawer, AddOrderIn
   }
 };
 </script>
@@ -379,5 +464,26 @@ export default {
   //     grid-template-columns: repeat(auto-fill, minmax(245px, 19.5%));
 
   //   }
+}
+
+.batch_div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+
+  .batch_div_btn_div {
+    display: flex;
+    width: 100%;
+    margin-top: 12px;
+
+    .batch_div_btn {
+
+      flex: 1;
+    }
+  }
+
+
 }
 </style>

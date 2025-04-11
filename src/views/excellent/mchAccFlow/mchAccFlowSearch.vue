@@ -1,79 +1,103 @@
 <template>
-  <OrderAndSteam :queryParams="queryParams" :showSearch="showSearch">
-    <template #search_option>
-      <el-form-item v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" label="商户" prop="mch_number">
-        <el-select v-model="queryParams.mch_number" placeholder="请选择商户" clearable class="w100_input">
-          <el-option v-for="dict in MainAccount" :key="dict.id" :label="dict.mch_num" :value="dict.mch_num" />
-        </el-select>
-      </el-form-item>
+  <div>
+    <OrderAndSteam :queryParams="queryParams" :showSearch="showSearch">
+      <template #search_option>
+        <el-form-item v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" label="商户" prop="mch_number">
+          <MchNumSelect v-model="queryParams.mch_number" class="w100_input"> </MchNumSelect>
+          <!-- <el-select v-model="queryParams.mch_number" placeholder="请选择商户" clearable class="w100_input">
+            <el-option v-for="dict in MainAccount" :key="dict.id" :label="dict.mch_num" :value="dict.mch_num" />
+          </el-select> -->
+        </el-form-item>
 
-      <el-form-item v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" label="支付通道" prop="chnl_id">
-        <ChannelQuery v-model="queryParams.chnl_id"></ChannelQuery>
-      </el-form-item>
+        <!-- <el-form-item v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" label="支付通道" prop="chnl_id">
+          <ChannelQuery v-model="queryParams.chnl_id"></ChannelQuery>
+        </el-form-item> -->
 
-      <el-form-item :label="'商户订单号'" prop="merchant_order_id">
-        <el-input v-model="queryParams.merchant_order_id" :placeholder="'请输入商户订单号'" clearable @clear="handleQuery" />
-      </el-form-item>
+        <el-form-item :label="'商户订单号'" prop="merchant_order_id">
+          <el-input v-model="queryParams.merchant_order_id" :placeholder="'请输入商户订单号'" clearable @clear="handleQuery" />
+        </el-form-item>
 
-      <el-form-item :label="'系统订单号'" prop="order_id">
-        <el-input v-model="queryParams.order_id" :placeholder="'请输入系统订单号'" clearable @clear="handleQuery" />
-      </el-form-item>
+        <el-form-item :label="'订单号'" prop="order_id">
+          <NumberInput v-model="queryParams.order_id" :placeholder="'请输入订单号'" clearable @clear="handleQuery">
+          </NumberInput>
+        </el-form-item>
 
-      <el-form-item label="资金变动原因" prop="msg">
-        <el-select v-model="queryParams.msg" placeholder="请选择资金变动原因" clearable class="w100_input">
-          <template v-for="dict in msgList">
-            <el-option :key="dict.value" :label="dict.name" :value="dict.value" />
+        <el-form-item label="资金变动原因" prop="msg">
+          <el-select v-model="queryParams.msg" placeholder="请选择资金变动原因" clearable class="w100_input">
+            <template v-for="dict in msgList">
+              <el-option :key="dict.value" :label="dict.name" :value="dict.value" />
 
-          </template>
+            </template>
 
-        </el-select>
-      </el-form-item>
+          </el-select>
+        </el-form-item>
 
-      <el-form-item label="交易类型" prop="msg">
-        <el-select v-model="queryParams.operation" placeholder="请选择操作类型" class="w100_input" @change="DealOperationList">
-          <template v-for="dict in operationList">
-            <el-option :key="dict.value" :label="dict.name" :value="dict.value" />
-          </template>
+        <el-form-item label="交易类型" prop="msg">
+          <el-select v-model="queryParams.operation" placeholder="请选择操作类型" class="w100_input"
+            @change="DealOperationList">
+            <template v-for="dict in operationList">
+              <el-option :key="dict.value" :label="dict.name" :value="dict.value" />
+            </template>
 
-        </el-select>
-      </el-form-item>
-      <el-form-item label="订单类型" prop="msg" v-if="TypeParameter.stream_type == 'total'">
-        <el-select v-model="queryParams.type" placeholder="请选择交易类型" class="w100_input">
-          <template v-for="dict in typelist">
-            <el-option :key="dict.value" :label="dict.name" :value="dict.value"
-              v-show="dict.show.includes(queryParams.operation) || dict.show.includes('all')" />
-          </template>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="订单类型" prop="msg" v-if="TypeParameter.stream_type == 'total'">
+          <el-select v-model="queryParams.type" placeholder="请选择交易类型" class="w100_input">
+            <template v-for="dict in typelist">
+              <el-option :key="dict.value" :label="dict.name" :value="dict.value"
+                v-show="dict.show.includes(queryParams.operation) || dict.show.includes('all')" />
+            </template>
 
-        </el-select>
-      </el-form-item>
-      <el-form-item label="订单创建时间" prop="create_time" class="large">
-        <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'">
-        </TimeFrameVue>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="订单创建时间" prop="create_time" class="large">
+          <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'">
+          </TimeFrameVue>
 
-      </el-form-item>
+        </el-form-item>
 
-      <el-form-item label="流水更新时间" prop="update_time" class="large">
-        <TimeFrameVue v-model="timedata.update_time" @parseTime="parseTime" :ParameterIndex="'update_time'">
-        </TimeFrameVue>
+        <el-form-item label="流水更新时间" prop="update_time" class="large">
+          <TimeFrameVue v-model="timedata.update_time" @parseTime="parseTime" :ParameterIndex="'update_time'">
+          </TimeFrameVue>
 
-      </el-form-item>
-    </template>
+        </el-form-item>
 
-    <template #search_btn>
-      <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-      <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-      <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport">导出</el-button>
-      <slot name="btn"></slot>
-      <span class="CalculationFormula">
+      </template>
 
-        <strong>（本模块依据<span class="redcolor">代收订单更新时间</span>和<span class="redcolor">代付订单更新时间</span>）</strong>
-        <strong>账户余额=待结算金额+账户可用余额+代付余额+账户冻结金额（扣除的是账户可用余额）</strong>
-        <strong>代付余额=代付可用余额+代付冻结金额</strong>
+      <template #search_btn>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+        <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport">导出</el-button>
+        <el-button type="warning" plain icon="el-icon-search" size="mini" v-hasPermi="['excellent:OrderRecords:edit']"
+          @click="BatchSearch">批量查单</el-button>
+        <slot name="btn"></slot>
+        <el-popover placement="bottom" width="80%" trigger="click" style="margin-left: 10px;">
+          <span class="CalculationFormula">
+            <strong>（本模块依据<span class="redcolor">代收订单更新时间</span>和<span class="redcolor">代付订单更新时间</span>）</strong>
+            <strong>账户余额=待结算金额+账户可用余额+代付余额+账户冻结金额（扣除的是账户可用余额）</strong>
+            <strong>代付余额=代付可用余额+代付冻结金额</strong>
+          </span>
+          <el-button slot="reference" icon="el-icon-s-opportunity" size="mini"></el-button>
+        </el-popover>
 
 
-      </span>
-    </template>
-  </OrderAndSteam>
+      </template>
+
+    </OrderAndSteam>
+    <BatchDrawer :BatchList.sync="BatchList" :drawer.sync="BatchSearchOrdersShow">
+      <div class="batch_div">
+
+        <div class="batch_div_btn_div">
+          <el-button type="info" style="" class=" batch_div_btn " size="small" @click="ConfirmBatchExport"
+            icon="el-icon-download">批量导出</el-button>
+          <el-button type="warning" style="" class=" batch_div_btn " size="small" @click="ConfirmBatchSearch"
+            icon="el-icon-search">批量查询</el-button>
+        </div>
+
+      </div>
+    </BatchDrawer>
+  </div>
+
 </template>
 
 <script>
@@ -82,6 +106,9 @@ import { listMchSetting } from "@/api/excellent/MchSetting";
 import ChannelQuery from "@/components/Excellent/Channel/ChannelQuery.vue";
 import OrderAndSteam from "@/components/Excellent/SearchLayout/OrderAndSteam.vue";
 import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
+import BatchDrawer from "@/components/dialog/BatchDrawer.vue";
+import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
+import NumberInput from "@/components/element/NumberInput.vue";
 
 export default {
   name: 'WorkspaceJsonOrderSearch',
@@ -102,20 +129,16 @@ export default {
         create_end_time: null,
         //更新时间
         update_time: null,
-        update_end_time: null
+        update_end_time: null,
+        merchant_order_id_list: null,//商户订单号列表
       },
       timedata: {
         create_time: [],
         update_time: []
       },
-      PaymentChannel: [],
-      MainAccount: [],
-      msgList: [
-        { name: 'Refund', value: 'Refund', show: '1' },
-        { name: 'Reduce', value: 'Reduce', show: '1' },
-        { name: 'Frozen', value: 'Frozen', show: '1' },
-        { name: 'Increase', value: 'Increase', show: '0' },
-      ],
+      BatchList: [],
+      BatchSearchOrdersShow: false,
+
 
       typelist: [
         { name: '全部', value: null, show: ['all'] },
@@ -127,6 +150,24 @@ export default {
   },
 
   computed: {
+    msgList() {
+      if (this.TypeParameter.type == 0) {
+        return [
+          { name: 'Increase', value: 'Increase', show: '0' },
+        ]
+      }
+      if (this.TypeParameter.type == 1) {
+        return [{ name: 'Refund', value: 'Refund', show: '1' },
+        { name: 'Reduce', value: 'Reduce', show: '1' },
+        { name: 'Frozen', value: 'Frozen', show: '1' },]
+      }
+      return [
+        { name: 'Refund', value: 'Refund', show: '1' },
+        { name: 'Reduce', value: 'Reduce', show: '1' },
+        { name: 'Frozen', value: 'Frozen', show: '1' },
+        { name: 'Increase', value: 'Increase', show: '0' },
+      ]
+    },
     operationList() {
       let operationList
       if (this.TypeParameter.stream_type == 'total') {
@@ -162,16 +203,20 @@ export default {
   },
 
   created() {
-    if (this.hasPermiVisible(['excellent:OrderRecords:platform'])) {
-      Promise.all([this.getMainAccount()]);
-    }
+    // if (this.hasPermiVisible(['excellent:OrderRecords:platform'])) {
+    //   Promise.all([this.getMainAccount()]);
+    // }
   },
 
   components: {
-    OrderAndSteam, TimeFrameVue, ChannelQuery
+    OrderAndSteam, TimeFrameVue, ChannelQuery, BatchDrawer, MchNumSelect, NumberInput
   },
 
   methods: {
+    BatchSearch() {
+      this.BatchList = [];
+      this.BatchSearchOrdersShow = true;
+    },
     //处理全部的筛选项，赋值为null
     DealOperationList(value) {
 
@@ -194,12 +239,48 @@ export default {
       }
 
     },
+    //参数处理
+    ParamsDeal() {
+      // utr, utr_list, platform_order_id, platform_order_id_list,
+      const { merchant_order_id, merchant_order_id_list, ...obj } = this.queryParams;
+
+      const queryParams = {
+        ...obj,
+        ...(merchant_order_id ? { merchant_order_id_list: [merchant_order_id] } : {}), // 仅在有值时添加
+        ...(merchant_order_id_list ? { merchant_order_id_list } : {}), // 仅在有值时添加
+      };
+
+      return queryParams;
+
+    },
 
     handleQuery() {
-      this.$emit('ReturnSearch', this.queryParams);
+      this.queryParams.merchant_order_id_list = null
+      this.$emit('ReturnSearch', this.ParamsDeal());
     },
     RequestingDataAgain() {
-      this.$emit('RequestingDataAgain', this.queryParams);
+      this.queryParams.merchant_order_id_list = null
+      this.$emit('RequestingDataAgain', this.ParamsDeal());
+    },
+    ConfirmBatchExport() {
+      this.queryParams.merchant_order_id_list = this.BatchList;
+      let { stream_type } = this.TypeParameter
+      let type
+      const params = { ...this.ParamsDeal(), stream_type };
+      if (this.TypeParameter.stream_type == 'total') {
+        params['order_type'] = this.queryParams.type
+      } else {
+        params['order_type'] = this.TypeParameter.type
+      }
+
+      this.BatchSearchOrdersShow = false;
+
+      this.download.DownloadXlsx('/stream/download/commit', params, ('批量导出流水记录'));
+    },
+    ConfirmBatchSearch() {
+      this.queryParams.merchant_order_id_list = this.BatchList;
+      this.BatchSearchOrdersShow = false;
+      this.$emit('ReturnSearch', this.ParamsDeal());
     },
     resetQuery() {
       this.timedata = { create_time: null, end_time: null };
@@ -213,6 +294,7 @@ export default {
         msg: null,
         operation: null,
         type: null,//交易类型
+        merchant_order_id_list: null,//商户订单号列表
       }
       this.queryParams.create_end_time = null
       this.queryParams.create_time = null
@@ -226,13 +308,12 @@ export default {
       if ((this.queryParams.create_end_time && this.queryParams.create_time) || (this.queryParams.update_time && this.queryParams.update_end_time)) {
         let { stream_type } = this.TypeParameter
         let type
-        const params = { ...this.queryParams, stream_type };
+        const params = { ...this.ParamsDeal(), stream_type };
         if (this.TypeParameter.stream_type == 'total') {
-          params['type'] = this.queryParams.type
+          params['order_type'] = this.queryParams.type
         } else {
-          params['type'] = this.TypeParameter.type
+          params['order_type'] = this.TypeParameter.type
         }
-        console.log(params);
 
         let TimeFrame = ''
         if (params['mch_number']) {
@@ -249,10 +330,10 @@ export default {
 
           }
         }
-        if (params['type'] == 1) {
+        if (params['order_type'] == 1) {
           TimeFrame += '代付'
         }
-        if (params['type'] == 0) {
+        if (params['order_type'] == 0) {
           TimeFrame += '代收'
         }
 
@@ -266,18 +347,18 @@ export default {
       }
     },
 
-    //获取筛选项的列表数据
-    getChnl() {
-      return listChnlSetting().then(response => {
-        this.PaymentChannel = response.rows;
-      });
-    },
+    // //获取筛选项的列表数据
+    // getChnl() {
+    //   return listChnlSetting().then(response => {
+    //     this.PaymentChannel = response.rows;
+    //   });
+    // },
 
-    getMainAccount() {
-      return listMchSetting().then(response => {
-        this.MainAccount = response.rows;
-      });
-    },
+    // getMainAccount() {
+    //   return listMchSetting().then(response => {
+    //     this.MainAccount = response.rows;
+    //   });
+    // },
   },
 };
 </script>

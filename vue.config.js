@@ -8,6 +8,8 @@ console.log(versionInfo);
 const moment = require("moment");
 const Timestamp = new Date().getTime();
 function versionChange(version) {
+  console.log(version);
+
   // 获取当前版本号
   let [major, minor, patch] = version.split(".").map(Number);
   // 增加修订号

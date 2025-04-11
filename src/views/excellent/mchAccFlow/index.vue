@@ -12,6 +12,7 @@
 
         <!-- 表格列配置 -->
         <el-table-column label="商户号 " align="center" prop="mch_number" fixed="left" width="80" />
+
         <el-table-column label="账户初期金额" align="center" prop="mch_start_balance" :formatter="Formatter.TableAmount"
           width="120" />
         <el-table-column label="账户末期金额" align="center" prop="mch_final_balance" :formatter="Formatter.TableAmount"
@@ -34,7 +35,11 @@
           </template>
 
         </el-table-column>
-        <el-table-column label="相关订单号" align="center" prop="merchant_order_id" width="210" show-overflow-tooltip />
+        <el-table-column label="订单号 " align="center" prop="order_id" width="100">
+        </el-table-column>
+
+        <el-table-column label="商户订单号" align="center" prop="merchant_order_id" width="210" show-overflow-tooltip />
+
         <el-table-column label="流水更新时间" align="center" prop="update_time" :formatter="Formatter.TableTimeSecond"
           width="180" />
         <el-table-column label="创建时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond"
@@ -71,7 +76,17 @@ export default {
   created() {
     // 初始化 stream_type 值
     this.queryPage.stream_type = this.$route.query.stream_type || 'total';
-    this.queryPage.type = this.$route.query.stream_type ? (this.$route.query.stream_type == 'payin' ? 0 : 1) : null;
+    if (this.$route.query.stream_type) {
+      if (this.$route.query.stream_type == 'payin') {
+        this.queryPage.type = 0;
+      } else if (this.$route.query.stream_type == 'payout') {
+        this.queryPage.type = 1;
+      }
+    } else {
+      this.queryPage.type = null;
+    }
+
+    // this.queryPage.type = this.$route.query.stream_type ? (this.$route.query.stream_type == 'payin' ? 0 : 1) : null;
 
   },
 
@@ -121,12 +136,14 @@ export default {
         this.loading = false;
         return;
       }
+
       const query = { ...this.queryPage, ...queryParams };
       if (this.queryPage.stream_type == 'total') {
-        query['type'] = queryParams.type
+        query['order_type'] = queryParams.type;
       } else {
-        query['type'] = this.queryPage.type
+        query['order_type'] = this.queryPage.type
       }
+      delete query.type;
       listMchAccFlow(query).then((response) => {
         this.queryPage.last_id = response.last_id;
         this.mchAccFlowList = [...this.mchAccFlowList, ...this.$util.deepFreeze(response.results)];

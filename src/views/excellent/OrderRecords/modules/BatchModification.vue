@@ -60,15 +60,15 @@ export default {
     radioList() {
 
       return [
-        {
-          name: "标记成功",
-          value: 0,
-          show: "now",
-        },
+        // {
+        //   name: "标记成功",
+        //   value: 0,
+        //   show: "now",
+        // },
         {
           name: "标记失败",
           value: 1,
-          show: "now",
+          show: "all",
         },
         {
           name: "同步状态",

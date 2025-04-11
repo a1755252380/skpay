@@ -81,13 +81,13 @@ function autoRefresh() {
       if (willUpdate) {
         // 这里定义一个关键资源 URL，请根据你的项目实际情况修改，
         // 例如可以使用 newScripts 数组的第一个链接，也可以是一个专门的 version.json 文件。
-        const criticalResourceUrl = "/version.json"; // ← 请根据实际情况调整
+        const criticalResourceUrl = "version.json"; // ← 请根据实际情况调整
 
         // 等待该关键资源就绪
         const resourceReady = await waitForResource(
           criticalResourceUrl,
           10,
-          3000
+          20000
         );
 
         if (!resourceReady) {

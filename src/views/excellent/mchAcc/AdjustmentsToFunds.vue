@@ -6,9 +6,7 @@
         showData = false
       }">
       <el-form ref="form" :model="form" label-width="90px" class="Breakdown-el-form" :rules="rules">
-        <!--        <el-form-item label="商户id" prop="mchId">-->
-        <!--          <el-input v-model="form.mchId" placeholder="请输入商户id" />-->
-        <!--        </el-form-item>-->
+
         <el-form-item label="商户号" prop="mch_number">
           <el-input v-model="form.mch_number" placeholder="请输入商户号" disabled />
         </el-form-item>
@@ -30,9 +28,6 @@
           </el-select>
         </el-form-item>
         <el-form-item label="备注" prop="msg">
-          <el-input v-model="form.msg" type="textarea" placeholder="请备注调整原因" rows="3" />
-        </el-form-item>
-        <el-form-item label="订单号" prop="msg">
           <el-input v-model="form.msg" type="textarea" placeholder="请备注调整原因" rows="3" />
         </el-form-item>
 

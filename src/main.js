@@ -49,6 +49,7 @@ import { hasPermiVisible } from "@/utils/hasPermiVisible.js";
 import * as download from "@/utils/download";
 import * as Formatter from "@/utils/Formatter";
 import { checkRole } from "@/utils/permission";
+import md5 from "blueimp-md5";
 
 // 全局方法挂载
 Vue.prototype.getDicts = getDicts;
@@ -65,6 +66,8 @@ Vue.prototype.Formatter = Formatter;
 Vue.prototype.hasPermiVisible = hasPermiVisible;
 Vue.prototype.download = download;
 Vue.prototype.checkRole = checkRole; //身份检验方法
+Vue.prototype.$md5 = md5;
+
 // 全局组件挂载
 Vue.component("DictTag", DictTag);
 Vue.component("Pagination", Pagination);

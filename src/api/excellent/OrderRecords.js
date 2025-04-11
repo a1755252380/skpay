@@ -10,6 +10,20 @@ export function listOrderRecords(query) {
   }
   // 创建新的 cancelToken
   cancelTokenSource = axios.CancelToken.source();
+  if (query["order_id"] && !isNaN(Number(query["order_id"]))) {
+    query["order_id"] = Number(query["order_id"]);
+  } else {
+    delete query["order_id"];
+  }
+  if (query["last_id"]) {
+    query["last_id"] = String(query["last_id"]);
+  }
+  for (const key in query) {
+    if (query[key] === null || query[key] === undefined || query[key] === "") {
+      delete query[key];
+    }
+  }
+
   return request({
     url: "/order",
     method: "post",
@@ -29,6 +43,21 @@ export function BatchListOrderRecords(query) {
 export function ModifyOrderStatus(query) {
   return request({
     url: "/order/operation",
+    method: "post",
+    data: query,
+  });
+}
+//添加新代收订单
+export function AddPayOutOrder(query) {
+  return request({
+    url: "/order/create/payout",
+    method: "post",
+    data: query,
+  });
+}
+export function AddPayInOrder(query) {
+  return request({
+    url: "/order/create/payin",
     method: "post",
     data: query,
   });

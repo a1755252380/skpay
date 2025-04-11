@@ -13,7 +13,6 @@
           <template v-for="item in radioList">
             <el-radio :key="item.value" :label="item.value" class="radio-item-options" border v-if="
               item.NoState == 'all' ||
-              item.show == 'all' ||
               (item.NoState != ChangeData.status && item.show == type)
             ">{{ item.name }}</el-radio></template>
         </el-radio-group>
@@ -60,7 +59,6 @@ export default {
     Change: {
       deep: true,
       handler(newval, oldval) {
-        console.log(newval.status);
 
         for (const key in this.form) {
           this.form[key] = newval[key] ? newval[key] : this.form[key];
@@ -85,13 +83,13 @@ export default {
         {
           name: "标记失败",
           value: 1,
-          NoState: 0,
+          NoState: "all",
           show: "all",
         },
         {
           name: "同步状态",
           value: 2,
-          NoState: 0,
+          NoState: [0],
           show: "all",
         },
 

@@ -278,12 +278,9 @@ export default {
             }
           }
           updateMchAcc(confirmList).then((res) => {
-            console.log(res);
             loading.close();
-            console.log(res.code);
 
             if (res.code < 0) {
-              console.log(res.errors);
 
               this.showResult = true;
               this.errorList = res.errors
@@ -366,7 +363,6 @@ export default {
 
       let confirmList = [];
       let listMchAccList = [];
-      console.log(this.QueryDetailedContentList);
 
       for (
         let index = 0;
@@ -401,7 +397,6 @@ export default {
         100
       )
         .then(async (response) => {
-          console.log(response);
 
           const results = response['listMchSettlement'].successList.map((item) => {
             return item.response.results;
@@ -522,8 +517,6 @@ export default {
           (sum, child) => sum + (child.payout_settle_status == 1 ? child.payin_success_amount_count : 0),
           0
         )
-        console.log(ListMchResults[children[0].mch_number].account_available_balance);
-        console.log(children[0].mch_number);
 
         // 汇总父节点数据
         const parentNode = {
@@ -587,7 +580,6 @@ export default {
         });
       }
       initData(q);
-      console.log(q);
 
       return q;
     },
@@ -797,28 +789,28 @@ export default {
       //
 
       if (row.parentId == 0) {
-        console.log("row", row);
 
         if (row.payout_settle_status != 0) {
           return false;
         }
-        //所有金额大于0
+        //子项所有金额大于0
         const allZero = row.children.every((selectStatusItem) => {
           return selectStatusItem.payin_success_amount_count <= 0
         })
-        // if (!allZero) {
-        //   return false
-        // }
+        if (allZero) {
+          return false
+        }
         //所有都是结算过的状态
         const allSelect = row.children.every((selectStatusItem) => {
-          return (selectStatusItem.payin_success_amount_count == 0 || selectStatusItem.payout_settle_status == 0)
+          return selectStatusItem.payout_settle_status != 0
         });
 
-        if (allSelect && allZero) {
+        if (allSelect) {
           return false
         }
 
-        return allSelect;
+
+        return true;
       } else {
 
         //未结算状态 以及且父级为未结算状态 结算金额小于0 则返回false  不给选择
@@ -839,7 +831,6 @@ export default {
       if (data.account_available_balance == "/") {
         return "/";
       }
-      console.log(data);
 
       return ((data.account_available_balance - data.PendingSettlementAmount) / 100).toFixed(2);
     },

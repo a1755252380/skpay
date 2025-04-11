@@ -2,8 +2,8 @@
   <div class="OrderRecords_div fulltable_div" ref="OrderRecords_div">
     <el-tabs type="card" class="OrderRecords_title" @tab-click="TabsChange" v-model="queryPage.time_type"
       ref="OrderRecordsTitle">
-      <el-tab-pane :label="'当前' + (this.queryPage.type == 1 ? '代付' : '代收') + '订单'" name="now"></el-tab-pane>
-      <el-tab-pane :label="'历史' + (this.queryPage.type == 1 ? '代付' : '代收') + '订单'" name="history"></el-tab-pane>
+      <el-tab-pane :label="'当前' + (this.queryPage.order_type == 1 ? '代付' : '代收') + '订单'" name="now"></el-tab-pane>
+      <el-tab-pane :label="'历史' + (this.queryPage.order_type == 1 ? '代付' : '代收') + '订单'" name="history"></el-tab-pane>
     </el-tabs>
 
 
@@ -72,7 +72,7 @@
             }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="通道ID" align="center" prop="chnl_id" :formatter="Formatter.ChannelNameFormatter"
+        <el-table-column label="通道名称" align="center" prop="chnl_id" :formatter="Formatter.ChannelNameFormatter"
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" />
         <el-table-column label="UTR" align="center" prop="utr" width="160">
 
@@ -86,7 +86,8 @@
             <el-button size="mini" type="text" icon="el-icon-refresh" @click="handleCallback(scope.row)"
               v-hasPermi="['excellent:OrderRecords:edit']">回调</el-button>
             <el-button size="mini" type="text" icon="el-icon-refresh" @click="handleChangeOrderStatus(scope.row)"
-              v-hasPermi="['excellent:OrderRecords:edit']" v-if="scope.row.status != 0">调整</el-button>
+              v-hasPermi="['excellent:OrderRecords:edit']"
+              v-if="scope.row.status != 0 || ($route.query.type == 1)">调整</el-button>
             <el-button size="mini" type="text" icon="el-icon-view" @click="WarchDeatil(scope.row)">详情</el-button>
           </template>
         </el-table-column>
@@ -105,8 +106,8 @@
       :type="queryPage.time_type" @ChangeBatchModification="ChangeBatchModification">
     </BatchModification>
     <!-- 内容详情弹窗 -->
-    <DetailedContent :show="detailShow" @updateShow="updateShow" :detail="form" :detailkey="detailKeyList">
-    </DetailedContent>
+    <OrderDetail :show="detailShow" @updateShow="updateShow" :detail="form">
+    </OrderDetail>
 
     <ProgressDialog v-model="progressShow" ref="ProgressDialog"></ProgressDialog>
   </div>
@@ -123,12 +124,12 @@ import {
 } from "@/api/excellent/OrderRecords";
 import AdjustOrderStatus from "./modules/AdjustOrderStatus.vue";
 import OrderSearch from "./modules/OrderSearch.vue";
-import DetailedContent from "@/components/Excellent/DetailedContent.vue";
+
 import dynamicTableVue from "@/components/Excellent/dynamicTable.vue";
 import moment from "moment-timezone";
 import BatchModification from "./modules/BatchModification.vue";
 import ProgressDialog from "@/components/dialog/ProgressDialog.vue";
-
+import OrderDetail from "./modules/OrderDetail.vue";
 export default {
   name: "OrderRecords",
   filters: {
@@ -175,9 +176,8 @@ export default {
   components: {
     OrderSearch,
     AdjustOrderStatus,
-    DetailedContent,
     dynamicTableVue,
-    BatchModification, ProgressDialog
+    BatchModification, ProgressDialog, OrderDetail
   },
   computed: {
     // 计算当前页显示的数据
@@ -214,7 +214,7 @@ export default {
       open: false,
       // 查询参数
       queryPage: {
-        type: "0", //0是代收 1是代付
+        order_type: 0, //0是代收 1是代付
         last_id: null,
         time_type: "now",
       },
@@ -235,183 +235,7 @@ export default {
       TabsChangeloading: false,
       //详情弹窗
       detailShow: false,
-      detailKeyList: [
-        {
-          title: "用户信息",
-          Jurisdiction: "",
-          content: [
-            {
-              label: "用户名",
-              key: "user_name",
-              Jurisdiction: "",
-            },
 
-            {
-              label: "用户手机号",
-              key: "user_phone",
-              Jurisdiction: "",
-            },
-            {
-              label: "用户地址",
-              key: "user_address",
-              Jurisdiction: "",
-            },
-            {
-              label: "用户邮箱",
-              key: "user_email",
-              Jurisdiction: "",
-            },
-            {
-              label: "用户银行账户",
-              key: "user_bank_acct",
-              Jurisdiction: "",
-            },
-            {
-              label: "用户支付凭证",
-              key: "utr",
-              Jurisdiction: "",
-            },
-          ],
-        },
-
-        {
-          title: "通道信息",
-          content: [
-            {
-              label: "通道ID",
-              key: "chnl_id",
-              Jurisdiction: "",
-            },
-            {
-              label: "通道费率",
-              value: "100.00",
-              key: "chnl_fee_ratio",
-              Jurisdiction: "",
-            },
-          ],
-          Jurisdiction: ["excellent:OrderRecords:platform"],
-        },
-        {
-          title: "设备信息",
-          content: [
-            {
-              label: "设备号",
-              key: "device_number",
-              Jurisdiction: "",
-            },
-            {
-              label: "IP地址",
-              key: "ip",
-              Jurisdiction: "",
-            },
-          ],
-          Jurisdiction: ["excellent:OrderRecords:platform"],
-        },
-        {
-          title: "订单信息",
-          Jurisdiction: "",
-          content: [
-            {
-              label: "订单编号",
-              value: "20210101000001",
-              key: "_id",
-              Jurisdiction: "",
-            },
-            {
-              label: "订单金额",
-              value: "100.00",
-              key: "amount",
-              Jurisdiction: "",
-            },
-
-            {
-              label: "订单状态",
-              key: "status",
-              type: "tag",
-              Jurisdiction: "",
-            },
-            // {
-            //   label: "订单时间",
-            //   key: "amount",
-            //   Jurisdiction: "",
-            // },
-            // {
-            //   label: "订单备注",
-            //   key: "amount",
-            //   Jurisdiction: "",
-            // },
-          ],
-        },
-        {
-          title: "交易信息",
-          Jurisdiction: "",
-          content: [
-            {
-              label: "商户号",
-              key: "mch_number",
-              Jurisdiction: "",
-            },
-            {
-              label: "商户费率",
-              key: "mch_fee_ratio",
-              Jurisdiction: "",
-            },
-
-            {
-              label: "商户订单号",
-              key: "merchant_order_id",
-              Jurisdiction: "",
-            },
-
-            {
-              label: "三方订单号",
-              key: "platform_order_id",
-              Jurisdiction: ["excellent:OrderRecords:platform"],
-            },
-            {
-              label: "单笔手续费",
-              key: "fee_single",
-              Jurisdiction: "",
-            },
-
-            {
-              label: "回调状态",
-              key: "callback_status",
-              type: "tag",
-              Jurisdiction: "",
-            },
-            {
-              label: "银行ifsc",
-              key: "bank_ifsc",
-              Jurisdiction: "",
-            },
-            {
-              label: "UPI链接",
-              key: "upi_link",
-              Jurisdiction: "",
-            },
-
-            {
-              label: "创建时间",
-              key: "create_time",
-              type: "formatTime",
-              Jurisdiction: "",
-            },
-
-            {
-              label: "更新时间",
-              key: "update_time",
-              type: "formatTime",
-              Jurisdiction: "",
-            },
-            {
-              label: "三方回复信息",
-              key: "resp_msg",
-              Jurisdiction: ["excellent:OrderRecords:platform"],
-            },
-          ],
-        },
-      ],
       height: 0,
 
       //批量修改
@@ -424,7 +248,9 @@ export default {
   },
   created() {
     this.loading = true;
-    this.queryPage.type = this.$route.query.type;
+
+
+    this.queryPage.order_type = parseInt(this.$route.query.type);
   },
   mounted() { },
   methods: {
@@ -442,7 +268,7 @@ export default {
         let query = {
           _id: this.BatchModificationList[index]._id,
           mch_number: this.BatchModificationList[index].mch_number,
-          order_type: parseInt(this.queryPage.type),
+          order_type: parseInt(this.queryPage.order_type),
         };
 
         //在超时状态选择回调状态时不给通过，不修改
@@ -455,11 +281,12 @@ export default {
         }
         query["operation"] =
           this.BatchModificationList[index].status == 0
-            ? this.BatchModificationList[index].status
+            ? (this.$route.query.type == 1 && value.operation == 1 ? value.operation : this.BatchModificationList[index].status)
             : value.operation;
 
         promise.push(query);
       }
+      // return console.log(promise);
       this.$refs.ProgressDialog.batchRequest(promise, ModifyOrderStatus).then(res => {
 
         this.$refs.myTable.clearSelection();
@@ -483,9 +310,10 @@ export default {
       let query = {
         _id: value._id,
         mch_number: value.mch_number,
-        order_type: parseInt(this.queryPage.type),
+        order_type: parseInt(this.queryPage.order_type),
         operation: value.operation,
       };
+      // return console.log(query);
 
       this.ChangeOrderStatus(query);
     },
@@ -501,7 +329,7 @@ export default {
           let query = {
             _id: value._id,
             mch_number: value.mch_number,
-            order_type: parseInt(this.queryPage.type),
+            order_type: parseInt(this.queryPage.order_type),
             operation: 3,
           };
 
@@ -542,7 +370,7 @@ export default {
             confirmList.push({
               _id: this.BatchModificationList[index]._id,
               mch_number: this.BatchModificationList[index].mch_number,
-              order_type: parseInt(this.queryPage.type),
+              order_type: parseInt(this.queryPage.order_type),
               operation: 3,
             })
           }

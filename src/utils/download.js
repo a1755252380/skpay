@@ -82,10 +82,21 @@ export function DownloadXlsx(
     spinner: "el-icon-loading",
     background: "rgba(0, 0, 0, 0.7)",
   });
+  for (const key in query) {
+    if (
+      Object.prototype.hasOwnProperty.call(query, key) &&
+      (query[key] == null ||
+        query[key] == "" ||
+        query[key] == "null" ||
+        query[key] == "undefined")
+    ) {
+      delete query[key];
+    }
+  }
   return request({
     url: CommitUrl,
-    method: "get",
-    params: query,
+    method: "POST",
+    data: query,
   }).then((res) => {
     let filename = name ? name : res.file_name;
     RequestNum = 30;
@@ -107,9 +118,12 @@ export function DownloadOrderXlsx(
     background: "rgba(0, 0, 0, 0.7)",
   });
   for (const key in query) {
-    if (query[key] === null) {
+    if (query[key] === null || query[key] === undefined || query[key] === "") {
       delete query[key];
     }
+  }
+  if (query["order_id"]) {
+    query["order_id"] = Number(query["order_id"]);
   }
   return request({
     url: CommitUrl,

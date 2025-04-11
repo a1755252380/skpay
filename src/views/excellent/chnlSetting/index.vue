@@ -29,11 +29,12 @@
 
     <dynamicTableVue :loading="loading" :tableData="chnlSettingList" :defaultSort="{ prop: 'id', order: 'ascending' }">
       <!-- <el-table-column type="selection" width="30" align="center" /> -->
-      <el-table-column label="通道ID" align="center" prop="id" :formatter="Formatter.SettingChannelNameFormatter" />
+      <el-table-column label="通道ID" align="center" prop="id" :formatter="Formatter.SettingChannelNameFormatter"
+        width="100" />
       <!-- <el-table-column label="通道名称" align="center" prop="id" v-if="hasPermiVisible(['excellent:chnlSetting:edit'])" /> -->
       <!-- <el-table-column label="平台代号" align="center" prop="terraceSymbol" /> -->
 
-      <el-table-column label="代收状态" align="center" prop="payin_state">
+      <el-table-column label="代收状态" align="center" prop="payin_state" width="100">
         <template slot-scope="scope">
           <el-switch v-model="scope.row.payin_state" active-color="#409EFF" inactive-color="#DCDFE6" :active-value="0"
             :inactive-value="1" @change="ChangeState($event, scope.row, 2)">
@@ -41,7 +42,7 @@
 
         </template>
       </el-table-column>
-      <el-table-column label="代付状态" align="center" prop="payout_state">
+      <el-table-column label="代付状态" align="center" prop="payout_state" width="100">
         <template slot-scope="scope">
           <el-switch v-model="scope.row.payout_state" active-color="#409EFF" inactive-color="#DCDFE6" :active-value="0"
             :inactive-value="1" @change="ChangeState($event, scope.row, 1)">
@@ -50,11 +51,11 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="货币代号" align="center" prop="currency" />
+      <el-table-column label="货币代号" align="center" prop="currency" width="100" />
+      <el-table-column label="备注" align="center" prop="chnl_symbol" />
 
 
-
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width"
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="80"
         v-if="hasPermiVisible(['excellent:chnlSetting:edit'])">
         <template slot-scope="scope">
           <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"
@@ -110,6 +111,10 @@
         </el-form-item>
         <el-form-item label="单笔代付最大限额" prop="payout_max_limit">
           <el-input-number v-model="form.payout_max_limit" placeholder="请输入单笔代付最大限额" :min="0" class="w100_input" />
+          <!-- <el-input v-model="form.payout_max_limit" placeholder="请输入单笔代付最大限额" /> -->
+        </el-form-item>
+        <el-form-item label="通道备注" prop="chnl_symbol">
+          <el-input type="textarea" :rows="4" v-model="form.chnl_symbol" placeholder="请输入通道备注" class="w100_input" />
           <!-- <el-input v-model="form.payout_max_limit" placeholder="请输入单笔代付最大限额" /> -->
         </el-form-item>
       </el-form>
@@ -221,7 +226,8 @@ export default {
         createBy: null,
         createTime: null,
         updateBy: null,
-        updateTime: null
+        updateTime: null,
+        chnl_symbol: null,
       };
       this.resetForm("form");
     },
