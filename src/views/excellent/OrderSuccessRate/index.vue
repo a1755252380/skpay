@@ -18,10 +18,16 @@
 
     <dynamicTableVue :loading="loading" :tableData="OrderSuccessRateListSort" :cellClassName="'HoverTooltipCopy'"
       @cellDblclick="cellDblclick">
-      <el-table-column prop="mch_number" label="商户号" align="center" width="80" fixed="left" v-if="routeFlag == 'order'">
+      <el-table-column prop="mch_num" label="商户号" align="center" width="70" fixed="left" v-if="routeFlag == 'order'">
       </el-table-column>
-      <el-table-column prop="chnl_id" label="通道ID" align="center" fixed="left" v-else
-        :formatter="Formatter.ChannelNameFormatter" width="80">
+      <el-table-column prop="chnl_id" label="通道名称" align="center" fixed="left" v-else
+        :formatter="Formatter.SettingChannelNameFormatter" width="80">
+      </el-table-column>
+      <el-table-column label="代收通道" align="center" min-width="80" v-if="routeFlag == 'order'"
+        :formatter="Formatter.MerchantChannelInNameFormatter">
+      </el-table-column>
+      <el-table-column label="代收分流通道" align="center" min-width="80" v-if="routeFlag == 'order'"
+        :formatter="Formatter.MerchantChannelOverInNameFormatter">
       </el-table-column>
       <el-table-column prop="payin_success_rate" label="代收成功率" align="center" width="100" class-name="rate_show"
         :formatter="Formatter.TableRate">
@@ -34,7 +40,8 @@
       <el-table-column prop="payin_success_count" label="代收成功订单总数" align="center">
 
       </el-table-column>
-      <el-table-column prop="payin_success_amount" label="代收成功订单总额" align="center" :formatter="Formatter.TableAmount">
+      <el-table-column prop="payin_success_amount" label="代收成功订单总额" align="center" :formatter="Formatter.TableAmount"
+        width="100">
 
       </el-table-column>
 
@@ -53,6 +60,12 @@
         :formatter="Formatter.TableRate">
 
       </el-table-column>
+      <el-table-column label="代付通道" align="center" min-width="80" v-if="routeFlag == 'order'"
+        :formatter="Formatter.MerchantChannelOutNameFormatter">
+      </el-table-column>
+      <el-table-column label="代付分流通道" align="center" min-width="80" v-if="routeFlag == 'order'"
+        :formatter="Formatter.MerchantChannelOverOutNameFormatter">
+      </el-table-column>
       <!-- <el-table-column prop="payout_success_service_charge" label="代付成功手续费" align="center"
         :formatter="Formatter.TableAmount">
 
@@ -60,7 +73,8 @@
       <el-table-column prop="payout_success_count" label="代付成功订单总数" align="center">
 
       </el-table-column>
-      <el-table-column prop="payout_success_amount" label="代付成功订单总额" align="center" :formatter="Formatter.TableAmount">
+      <el-table-column prop="payout_success_amount" label="代付成功订单总额" align="center" :formatter="Formatter.TableAmount"
+        width="100">
 
       </el-table-column>
 
@@ -117,7 +131,6 @@ export default {
     this.loading = true;
   },
   mounted() {
-    console.log(this.routeFlag);
     this.fetchMchSettings();
   },
   methods: {
@@ -127,9 +140,9 @@ export default {
       for (let index = 0; index < res.length; index++) {
         let q = {}
         if (this.routeFlag == 'order') {
-          q["mch_number"] = res[index]
+          q = res[index]
         } else {
-          q["chnl_id"] = res[index].id
+          q = res[index]
         }
 
         this.OrderSuccessRateList.push({
@@ -148,18 +161,29 @@ export default {
 
 
       }
+
     },
     async UpdateData(list) {
 
       let key = this.routeFlag === 'order' ? "mch_number" : "chnl_id"
+      let FindKey = this.routeFlag === 'order' ? "mch_num" : "id"
+
       for (let index = 0; index < list.length; index++) {
+
+        const DataKey = this.OrderSuccessRateList.findIndex((res) => {
+          return list[index][key] === res[FindKey];
+        })
+
+        const { payin_success_amount, payin_success_count, payin_success_rate, payin_total_amount, payin_total_count, payout_success_amount,
+          payout_success_count,
+          payout_success_rate,
+          payout_total_amount,
+          payout_total_count, payout_pending_amount_count, payout_pending_count, ...NoChange } =
+          this.OrderSuccessRateList[DataKey];
         this.$set(
           this.OrderSuccessRateList,
-          this.OrderSuccessRateList.findIndex((res) => {
-
-            return list[index][key] === res[key];
-          }),
-          list[index]
+          DataKey,
+          { ...NoChange, ...list[index] }
         );
       }
       this.handleSort().then(() => {
@@ -170,7 +194,7 @@ export default {
     fetchMchSettings() {
       if (this.routeFlag == "order") {
         listMchAccConfig().then((res) => {
-          this.mch_list = res.rows.map((item) => item.mch_num);
+          this.mch_list = res.rows;
           this.AddData(this.mch_list).then(res => {
             this.getList();
 
@@ -202,7 +226,7 @@ export default {
         });
       } else {
         const query = {
-          mch_list: this.mch_list,
+          mch_list: this.mch_list.map((item) => item.mch_num),
           cycle: this.queryParams.StatisticalTime,
         };
         listOrderSuccessRate(query).then((response) => {

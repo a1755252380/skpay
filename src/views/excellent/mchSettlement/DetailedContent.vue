@@ -423,32 +423,6 @@ export default {
           });
         });
 
-      // this.$refs.ProgressDialog.batchRequest(
-      //   confirmList,
-      //   listMchSettlement,
-      //   100
-      // ).then(async (response) => {
-      //   const results = response.successList.map((item) => {
-      //     return item.response.results;
-      //   });
-      //   for (let index = 0; index < results.length; index++) {
-      //     this.DetailedContentList = this.DetailedContentList.concat(
-      //       results[index]
-      //     );
-      //   }
-
-      //   this.treeTableData = await this.processData(this.DetailedContentList);
-      //   this.DetailedContentListQueryParams.total = this.treeTableData.length;
-      //   this.$nextTick(() => {
-      //     this.DetailedContentLoading = false;
-
-      //     this.$forceUpdate();
-      //   });
-      // });
-
-      // return await listMchSettlement(query).then(async (response) => {
-
-      // });
     },
     //分页处理
     handleCurrentChange(page) {

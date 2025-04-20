@@ -3,7 +3,7 @@ import { tansParams, blobValidate } from "@/utils/ruoyi";
 import request from "@/utils/requestGo";
 import axios from "axios";
 import { saveAs } from "file-saver";
-let RequestNum = 60;
+let RequestNum = 120;
 //查询文件是否生成
 function CheckIfTheFileHasBeenGenerated(url) {
   return axios({
@@ -99,7 +99,7 @@ export function DownloadXlsx(
     data: query,
   }).then((res) => {
     let filename = name ? name : res.file_name;
-    RequestNum = 30;
+    RequestNum = 120;
     // 启动请求的入口
     fetchAndDownload(downloadUrl + "?file_name=" + res.file_name, filename);
 
@@ -131,7 +131,7 @@ export function DownloadOrderXlsx(
     data: query,
   }).then((res) => {
     let filename = name ? name : res.file_name;
-    RequestNum = 30;
+    RequestNum = 120;
     // 启动请求的入口
     fetchAndDownload(downloadUrl + "?file_name=" + res.file_name, filename);
 
