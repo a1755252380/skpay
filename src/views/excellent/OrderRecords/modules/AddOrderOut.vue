@@ -2,6 +2,12 @@
   <el-dialog title="创建订单" :visible.sync="visible" width="550px" @close="beforeClose">
     <el-form ref="form" :model="form" label-width="120px" label-position="top" :rules="rules">
       <div class="form-item">
+        <el-form-item label="商户号" prop="mch_number">
+          <el-select v-model="form.mch_number" placeholder="请选择商户">
+            <el-option label="888888" :value="888888"></el-option>
+            <el-option label="999999" :value="999999"></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="地址" prop="bene_address">
           <el-input v-model="form.bene_address" placeholder="请输入受益人地址"></el-input>
         </el-form-item>
@@ -65,6 +71,7 @@ export default {
     return {
 
       form: {
+        mch_number: 888888, //商户号
         amount: 0, //金额 单位（分）
         bene_address: 'India', //受益人地址
         bene_bank_acct: null, //受益人银行卡号
@@ -170,6 +177,7 @@ export default {
       this.$refs.form.resetFields();
 
       this.form = {
+        mch_number: 888888, //商户号
         amount: 0, //金额 单位（分）
         bene_address: 'India', //受益人地址
         bene_bank_acct: null, //受益人银行卡号

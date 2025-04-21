@@ -2,7 +2,12 @@
   <el-dialog title="创建订单" :visible.sync="visible" width="550px" @close="beforeClose" :close-on-click-modal="false">
     <el-form ref="form" :model="form" label-width="120px" label-position="top" :rules="rules">
       <div class="form-item">
-
+        <el-form-item label="商户号" prop="mch_number">
+          <el-select v-model="form.mch_number" placeholder="请选择商户">
+            <el-option label="888888" :value="888888"></el-option>
+            <el-option label="999999" :value="999999"></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="邮箱" prop="customer_email">
           <el-input v-model="form.customer_email" placeholder="请输入受益人邮箱"></el-input>
         </el-form-item>
@@ -14,7 +19,6 @@
           <div class="flex-item">
             <el-input v-model="form.merchant_order_id" placeholder="请输入订单号"></el-input>
             <el-button type="primary" @click="generateOrderId" style="margin-left: 6px">生成</el-button>
-
           </div>
         </el-form-item>
         <el-form-item label="金额" prop="amount">
@@ -59,6 +63,7 @@ export default {
       OrderType: 1, //0是代收 1是代付
 
       form: {
+        mch_number: 888888, //商户号
         amount: 0, //金额 单位（分）
         customer_email: '123@buddy.com',//受益人邮箱
         customer_name: null, //受益人名字
@@ -151,8 +156,8 @@ export default {
     },
     beforeClose() {
       this.$refs.form.resetFields();
-
       this.form = {
+        mch_number: 888888, //商户号
         amount: 0, //金额 单位（分）
         customer_email: '123@buddy.com',//受益人邮箱
         customer_name: null, //受益人名字

@@ -9,11 +9,11 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" icon="el-icon-search" size="mini" @click="getList">查询</el-button>
+          <el-button type="primary" icon="el-icon-search" size="mini" @click="fetchMchSettings(false)">查询</el-button>
           <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
         </el-form-item>
       </el-form>
-      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+      <right-toolbar :showSearch.sync="showSearch" @queryTable="fetchMchSettings(false)"></right-toolbar>
     </div>
 
     <dynamicTableVue :loading="loading" :tableData="OrderSuccessRateListSort" :cellClassName="'HoverTooltipCopy'"
@@ -146,7 +146,7 @@ export default {
         }
 
         this.OrderSuccessRateList.push({
-          ...q,
+          ...res[index],
           payin_success_amount: 0,
           payin_success_count: 0,
           payin_success_rate: 0,
@@ -165,63 +165,77 @@ export default {
     },
     async UpdateData(list) {
 
+
       let key = this.routeFlag === 'order' ? "mch_number" : "chnl_id"
       let FindKey = this.routeFlag === 'order' ? "mch_num" : "id"
 
-      for (let index = 0; index < list.length; index++) {
 
-        const DataKey = this.OrderSuccessRateList.findIndex((res) => {
-          return list[index][key] === res[FindKey];
-        })
 
-        const { payin_success_amount, payin_success_count, payin_success_rate, payin_total_amount, payin_total_count, payout_success_amount,
-          payout_success_count,
-          payout_success_rate,
-          payout_total_amount,
-          payout_total_count, payout_pending_amount_count, payout_pending_count, ...NoChange } =
-          this.OrderSuccessRateList[DataKey];
-        this.$set(
-          this.OrderSuccessRateList,
-          DataKey,
-          { ...NoChange, ...list[index] }
+      const resultList = this.mergeListsByTwoKeys(list, this.mch_list, key, FindKey)
+      console.log(resultList);
+
+      for (const newItem of resultList) {
+        // 查找 this.OrderSuccessRateList 中是否有匹配的项
+        const index = this.OrderSuccessRateList.findIndex(
+          (item) => item[FindKey] === newItem[key]
         );
+
+        if (index !== -1) {
+          // 如果找到匹配项，更新它（使用 Vue 的 $set 确保响应式）
+          this.$set(this.OrderSuccessRateList, index, {
+            ...this.OrderSuccessRateList[index], // 保留原有数据
+            ...newItem,                         // 用新数据覆盖
+          });
+        } else {
+          // 如果没有匹配项，可以选择是否添加到 this.OrderSuccessRateList
+          // this.OrderSuccessRateList.push(newItem); // 如果需要新增，取消注释
+        }
       }
       this.handleSort().then(() => {
         this.loading = false;
 
       })
     },
-    fetchMchSettings() {
+    async fetchMchSettings(add = true) {
+      this.loading = true;
       if (this.routeFlag == "order") {
         listMchAccConfig().then((res) => {
           this.mch_list = res.rows;
-          this.AddData(this.mch_list).then(res => {
+          if (add) {
+            this.AddData(res.rows).then(res => {
+              this.getList();
+            })
+          } else {
             this.getList();
+          }
 
-          })
 
         });
       }
       if (this.routeFlag == "chnl") {
-        listChnlSetting().then((res) => {
-          this.mch_list = res.rows;
-          this.AddData(this.mch_list).then(res => {
-            this.getList();
-          })
+        if (add) {
+          listChnlSetting().then((res) => {
+            this.mch_list = res.rows;
+            this.AddData(res.rows).then(res => {
+              this.getList();
+            })
+          });
+        } else {
+          this.getList();
+        }
 
-        });
       }
     },
-    getList(NumList) {
-      this.loading = true;
+    async getList() {
+
 
       if (this.routeFlag == "chnl") {
         const query = {
           chnl_list: this.mch_list.map((item) => item.chnl_name),
           cycle: this.queryParams.StatisticalTime,
         };
-        listChnlSuccessRate(query).then((response) => {
 
+        listChnlSuccessRate(query).then((response) => {
           this.UpdateData(response.data);
         });
       } else {
@@ -237,6 +251,46 @@ export default {
 
 
 
+    },
+    //合并配置信息和成功率数据
+    /**
+  * 合并两个列表，按照两个不同的 key 匹配（只要值相同就合并）
+  * @param {Array} list1 - 第一个对象数组
+  * @param {Array} list2 - 第二个对象数组
+  * @param {string} key1 - 第一个列表的匹配属性
+  * @param {string} key2 - 第二个列表的匹配属性
+  * @returns {Array} 合并后的新数组
+  */
+    mergeListsByTwoKeys(list1, list2, key1, key2) {
+      const map = new Map();
+
+      // 先遍历 list1，用 key1 的值作为 Map 的键
+      for (const item of list1) {
+        if (item[key1] !== undefined) {
+          map.set(item[key1], { ...item });
+        }
+      }
+
+      // 遍历 list2，检查 key2 的值是否匹配 key1 的值
+      for (const item of list2) {
+        if (item[key2] !== undefined) {
+          // 查找是否有 key1 的值等于当前 key2 的值
+          const matchedKey = Array.from(map.keys()).find(
+            (k) => k === item[key2]
+          );
+
+          if (matchedKey !== undefined) {
+            // 合并对象（后者覆盖前者）
+            const mergedItem = { ...map.get(matchedKey), ...item };
+            map.set(matchedKey, mergedItem);
+          } else {
+            // 如果没有匹配项，仍然保留（可选是否添加）
+            // map.set(item[key2], { ...item }); // 如果需要保留未匹配项，取消注释
+          }
+        }
+      }
+
+      return Array.from(map.values());
     },
     resetQuery() {
       this.queryParams.StatisticalTime = "today";
