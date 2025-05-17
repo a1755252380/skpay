@@ -49,15 +49,26 @@ export function ModifyOrderStatus(query) {
 }
 //添加新代收订单
 export function AddPayOutOrder(query) {
-  for (const key in query) {
-    if (query[key] === null || query[key] === undefined || query[key] === "") {
-      delete query[key];
+  let submit;
+  if (!Array.isArray(query)) {
+    for (const key in query) {
+      if (
+        query[key] === null ||
+        query[key] === undefined ||
+        query[key] === ""
+      ) {
+        delete query[key];
+      }
     }
+    submit = [query];
+  } else {
+    submit = query;
   }
+
   return request({
     url: "/order/create/payout",
     method: "post",
-    data: query,
+    data: submit,
   });
 }
 export function AddPayInOrder(query) {

@@ -8,6 +8,9 @@
             <el-option label="999999" :value="999999"></el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="姓名" prop="customer_name">
+          <el-input v-model="form.customer_name" placeholder="请输入受益人姓名"></el-input>
+        </el-form-item>
         <el-form-item label="邮箱" prop="customer_email">
           <el-input v-model="form.customer_email" placeholder="请输入受益人邮箱"></el-input>
         </el-form-item>
@@ -65,7 +68,7 @@ export default {
       form: {
         mch_number: 888888, //商户号
         amount: 0, //金额 单位（分）
-        customer_email: '123@buddy.com',//受益人邮箱
+        customer_email: '123@gmail.com',//受益人邮箱
         customer_name: null, //受益人名字
         customer_phone: '9876543210',//受益人手机号（印度10位数）
         merchant_order_id: null, //商户自己的订单号
@@ -89,7 +92,9 @@ export default {
           { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] },
         ],
 
-
+        customer_name: [
+          { required: true, message: '请输入受益人姓名', trigger: ['blur', 'change'] },
+        ],
         customer_phone: [
           { required: true, message: '请输入受益人手机号', trigger: 'blur' },
           { pattern: /^\d{1,10}$/, message: '请输入最多10位的数字', trigger: 'blur' },
@@ -159,7 +164,7 @@ export default {
       this.form = {
         mch_number: 888888, //商户号
         amount: 0, //金额 单位（分）
-        customer_email: '123@buddy.com',//受益人邮箱
+        customer_email: '123@gmail.com',//受益人邮箱
         customer_name: null, //受益人名字
         customer_phone: '9876543210',//受益人手机号（印度10位数）
         merchant_order_id: null, //商户自己的订单号
