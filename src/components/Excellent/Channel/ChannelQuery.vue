@@ -7,7 +7,6 @@
 </template>
 
 <script>
-import { listChnlSetting } from "@/api/excellent/chnlSetting"
 import { mapState } from 'vuex';
 export default {
   inheritAttrs: false, // 禁止自动绑定父组件的属性到根元素

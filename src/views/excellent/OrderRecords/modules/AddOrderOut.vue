@@ -36,6 +36,9 @@
             <el-button type="primary" @click="generateOrderId" style="margin-left: 6px">生成</el-button>
           </div>
         </el-form-item>
+        <el-form-item label="代付通道" prop="payout_chnl_id">
+          <ChannelQuery v-model="form.payout_chnl_id"></ChannelQuery>
+        </el-form-item>
         <el-form-item label="金额" prop="amount">
           <el-input-number v-model="form.amount" placeholder="请输入金额" :precision="2" :min="0"
             class="w100_input"></el-input-number>
@@ -53,14 +56,18 @@
   </el-dialog>
 </template>
 <script>
+import {
+  updateMchAccConfig,
+} from "@/api/excellent/mchAccConfig";
 import { AddPayOutOrder, } from '@/api/excellent/OrderRecords'
 import NumberInput from '@/components/element/NumberInput.vue';
 import filesubmitPayoutVue from './filesubmitPayout.vue';
-
+import ChannelQuery from '@/components/Excellent/Channel/ChannelQuery.vue';
+import { mapState } from 'vuex'
 export default {
   name: 'AddOrder',
   components: {
-    NumberInput
+    NumberInput, ChannelQuery, filesubmitPayoutVue
   },
   mixins: [],
   props: {
@@ -94,6 +101,7 @@ export default {
         bene_phone: '9876543210',//受益人手机号（印度10位数）
         merchant_order_id: null, //商户自己的订单号
         pan: null, //商户的pan卡号
+        payout_chnl_id: null, //代收通道
       },
       rules: {
         amount: [
@@ -136,12 +144,17 @@ export default {
         merchant_order_id: [
           { required: true, message: '请输入商户自己的订单号', trigger: ['blur', 'change'] },
 
-        ]
-
+        ],
+        payout_chnl_id: [
+          { required: true, message: '请选择创建订单的通道', trigger: 'blur' },
+        ],
       }
     }
   },
   computed: {
+    ...mapState({
+      PassageList: state => state.Cache.channelList,
+    }),
     visible: {
       get() {
         return this.show;
@@ -152,9 +165,7 @@ export default {
       }
     }
   },
-  watch: {
 
-  },
 
   methods: {
 
@@ -162,7 +173,7 @@ export default {
     handleConfirm() {
 
 
-      this.$refs.form.validate((valid) => {
+      this.$refs.form.validate(async (valid) => {
         if (valid) {
           const loading = this.$loading({
             lock: true,
@@ -170,30 +181,58 @@ export default {
             spinner: 'el-icon-loading',
             background: 'rgba(0, 0, 0, 0.7)'
           });
-          const submitForm = this.form
-          submitForm.amount = submitForm.amount * 100
 
-          AddPayOutOrder(submitForm).then(res => {
-            this.visible = false
-            const error = res.results.filter(item => item.code === 1)
-            if (error.length > 0) {
+          //先修改用户配置，再创建订单
+          const EditUserConfig = await this.EditUserConfig()
+          if (EditUserConfig) {
+            //创建代付订单
+            const { payout_chnl_id, ...submitForm } = JSON.parse(JSON.stringify(this.form));
+            submitForm.amount = submitForm.amount * 100
 
-              return this.$message.error(error[0].msg)
+            AddPayOutOrder(submitForm).then(res => {
+              this.visible = false
+              const error = res.results.filter(item => item.code === 1)
+              if (error.length > 0) {
+                return this.$message.error(error[0].msg)
+              }
+              this.$message.success('新增代付订单成功')
+            }).catch(err => {
+              this.visible = false
             }
-            this.$message.success('新增代付订单成功')
-          }).catch(err => {
-            this.visible = false
-          }
-          ).finally(() => {
-            loading.close()
+            ).finally(() => {
+              loading.close()
 
-          })
+            })
+          } else {
+            loading.close()
+            console.log('error submit!!');
+          }
+
         } else {
           console.log('error submit!!');
           return false;
         }
       });
 
+    },
+
+    //修改用户配置
+    EditUserConfig() {
+      const submitForm = {}
+      submitForm["mch_num"] = this.form.mch_number;
+      submitForm['payout_chnl_id'] = this.form.payout_chnl_id;
+      let payoutProductIndex = this.PassageList.findIndex((res) => {
+        return res.id === this.form.payout_chnl_id;
+      });
+
+      submitForm["payout_chnl_name"] =
+        this.PassageList[payoutProductIndex].chnl_name;
+
+      return updateMchAccConfig(submitForm).then(res => {
+        return true
+      }).catch(err => {
+        return false
+      })
     },
     generateOrderId() {
       this.form.merchant_order_id = this.$store.state.user.name + Math.floor(10000000 + Math.random() * 90000000)
@@ -212,15 +251,14 @@ export default {
         bene_phone: '9876543210',//受益人手机号（印度10位数）
         merchant_order_id: null, //商户自己的订单号
         pan: null, //商户的pan卡号
+        payout_chnl_id: null, //代收通道
       }
     },
     CancelFileSubmit() {
       this.uploadDialogVisible = false
     }
   },
-  components: {
-    filesubmitPayoutVue
-  }
+
 
 };
 </script>

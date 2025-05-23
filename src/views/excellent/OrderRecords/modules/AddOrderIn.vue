@@ -24,6 +24,9 @@
             <el-button type="primary" @click="generateOrderId" style="margin-left: 6px">生成</el-button>
           </div>
         </el-form-item>
+        <el-form-item label="代收通道" prop="payin_chnl_id">
+          <ChannelQuery v-model="form.payin_chnl_id"></ChannelQuery>
+        </el-form-item>
         <el-form-item label="金额" prop="amount">
           <el-input-number v-model="form.amount" placeholder="请输入金额" :precision="2" :min="0"
             class="w100_input"></el-input-number>
@@ -39,11 +42,15 @@
 <script>
 import { AddPayOutOrder, AddPayInOrder } from '@/api/excellent/OrderRecords'
 import NumberInput from '@/components/element/NumberInput.vue';
-
+import ChannelQuery from '@/components/Excellent/Channel/ChannelQuery.vue';
+import { mapState } from 'vuex'
+import {
+  updateMchAccConfig,
+} from "@/api/excellent/mchAccConfig";
 export default {
   name: 'AddOrder',
   components: {
-    NumberInput
+    NumberInput, ChannelQuery
   },
   mixins: [],
   props: {
@@ -72,6 +79,7 @@ export default {
         customer_name: null, //受益人名字
         customer_phone: '9876543210',//受益人手机号（印度10位数）
         merchant_order_id: null, //商户自己的订单号
+        payin_chnl_id: null, //代收渠道id
       },
       rules: {
         amount: [
@@ -102,12 +110,17 @@ export default {
         merchant_order_id: [
           { required: true, message: '请输入商户自己的订单号', trigger: ['blur', 'change'] },
 
+        ],
+        payin_chnl_id: [
+          { required: true, message: '请选择创建订单的通道', trigger: ['blur', 'change'] },
         ]
-
       }
     }
   },
   computed: {
+    ...mapState({
+      PassageList: state => state.Cache.channelList,
+    }),
     visible: {
       get() {
         return this.show;
@@ -128,7 +141,7 @@ export default {
     handleConfirm() {
 
 
-      this.$refs.form.validate((valid) => {
+      this.$refs.form.validate(async (valid) => {
         if (valid) {
           const loading = this.$loading({
             lock: true,
@@ -136,18 +149,28 @@ export default {
             spinner: 'el-icon-loading',
             background: 'rgba(0, 0, 0, 0.7)'
           });
-          const submitForm = this.form
-          submitForm.amount = submitForm.amount * 100
-          AddPayInOrder(submitForm).then(res => {
-            this.visible = false
-            this.$message.success('新增代收订单成功')
-          }).catch(err => {
-            this.visible = false
-          }
-          ).finally(() => {
-            loading.close()
+          //先修改用户配置，再创建订单
+          const EditUserConfig = await this.EditUserConfig()
+          if (EditUserConfig) {
+            //创建代收订单
+            const { payin_chnl_id, ...submitForm } = JSON.parse(JSON.stringify(this.form));
+            submitForm.amount = submitForm.amount * 100
 
-          })
+            AddPayInOrder(submitForm).then(res => {
+              this.visible = false
+              this.$message.success('新增代收订单成功')
+            }).catch(err => {
+              this.visible = false
+            }
+            ).finally(() => {
+              loading.close()
+
+            })
+          } else {
+            loading.close()
+            console.log('error submit!!');
+          }
+
 
         } else {
           console.log('error submit!!');
@@ -155,6 +178,24 @@ export default {
         }
       });
 
+    },
+    //修改用户配置
+    EditUserConfig() {
+      const submitForm = {}
+      submitForm["mch_num"] = this.form.mch_number;
+      submitForm['payin_chnl_id'] = this.form.payin_chnl_id;
+      let payinProductIndex = this.PassageList.findIndex((res) => {
+        return res.id === this.form.payin_chnl_id;
+      });
+
+      submitForm["payin_chnl_name"] =
+        this.PassageList[payinProductIndex].chnl_name;
+
+      return updateMchAccConfig(submitForm).then(res => {
+        return true
+      }).catch(err => {
+        return false
+      })
     },
     generateOrderId() {
       this.form.merchant_order_id = 'text' + Math.floor(10000000 + Math.random() * 90000000)
@@ -168,6 +209,7 @@ export default {
         customer_name: null, //受益人名字
         customer_phone: '9876543210',//受益人手机号（印度10位数）
         merchant_order_id: null, //商户自己的订单号
+        payin_chnl_id: null, //支付通道id
       }
     }
   },
