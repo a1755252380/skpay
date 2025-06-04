@@ -62,14 +62,14 @@
           <template slot-scope="scope">
             <el-tag :type="formatStatus(scope.row.status).type">{{
               formatStatus(scope.row.status).name
-              }}</el-tag>
+            }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="回调状态" align="center" prop="callback_status" width="100" class-name="NoTooltip">
           <template slot-scope="scope">
             <el-tag :type="formatCallbackStatus(scope.row.callback_status).type">{{
               formatCallbackStatus(scope.row.callback_status).name
-              }}</el-tag>
+            }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="pan码" align="center" prop="pan" v-if="parseInt(this.$route.query.type) == 1" />
@@ -96,7 +96,7 @@
 
       <pagination ref="pagination" v-show="total > 0" :total="pageData.total" :page.sync="pageData.pageNum"
         :limit.sync="pageData.pageSize" @pagination="handleCurrentChange" :layout="'sizes,prev, pager, next'"
-        :page-sizes="[10, 20, 30, 50, 100]" @handleSizeChange="handleSizeChange" />
+        :page-sizes="[10, 20, 30, 50, 100, 150]" @handleSizeChange="handleSizeChange" />
     </div>
 
     <!-- 订单状态修改弹窗 -->
@@ -109,7 +109,9 @@
     <!-- 内容详情弹窗 -->
     <OrderDetail :show="detailShow" @updateShow="updateShow" :detail="form">
     </OrderDetail>
+    <!-- 大数据修改订单 -->
 
+    <BatchChangeState :BatchShow.sync="BatchInputShow" @submit="BatchInputSubmit"></BatchChangeState>
     <ProgressDialog v-model="progressShow" ref="ProgressDialog"></ProgressDialog>
   </div>
 </template>
@@ -130,7 +132,9 @@ import dynamicTableVue from "@/components/Excellent/dynamicTable.vue";
 import moment from "moment-timezone";
 import BatchModification from "./modules/BatchModification.vue";
 import ProgressDialog from "@/components/dialog/ProgressDialog.vue";
+
 import OrderDetail from "./modules/OrderDetail.vue";
+import BatchChangeState from "./modules/BatchChangeState.vue";
 export default {
   name: "OrderRecords",
   filters: {
@@ -178,7 +182,8 @@ export default {
     OrderSearch,
     AdjustOrderStatus,
     dynamicTableVue,
-    BatchModification, ProgressDialog, OrderDetail
+    BatchChangeState,
+    BatchModification, ProgressDialog, OrderDetail,
   },
   computed: {
     // 计算当前页显示的数据
@@ -222,7 +227,7 @@ export default {
       lastQueryParams: null, // 记录上一次的搜索参数
       pageData: {
         currentPage: 1, // 当前页码
-        pageSize: 10, // 每页显示的条数
+        pageSize: 100, // 每页显示的条数
         total: 1, // 数据总条数
       },
 
@@ -242,15 +247,13 @@ export default {
       //批量修改
       BatchModificationShow: false,
       BatchModificationList: [],
-
+      BatchInputShow: false,
       //进度条显示
       progressShow: false,
     };
   },
   created() {
     this.loading = true;
-
-
     this.queryPage.order_type = parseInt(this.$route.query.type);
   },
   mounted() { },
@@ -259,59 +262,79 @@ export default {
     CloseBatchModification(value) {
       this.BatchModificationShow = value;
     },
-    //批量修改状态
-    ChangeBatchModification(value) {
-      this.progressShow = true
-
-
-      let promise = [];
-      for (let index = 0; index < this.BatchModificationList.length; index++) {
-        let query = {
-          _id: this.BatchModificationList[index]._id,
-          mch_number: this.BatchModificationList[index].mch_number,
-          order_type: parseInt(this.queryPage.order_type),
-        };
-
-        //在超时状态选择回调状态时不给通过，不修改
-        //在超时状态是只能选择同步状态
-        if (
-          this.BatchModificationList[index].status == 2 &&
-          value.operation == 3
-        ) {
-          continue;
-        }
-        query["operation"] =
-          this.BatchModificationList[index].status == 0
-            ? (this.$route.query.type == 1 && value.operation == 1 ? value.operation : this.BatchModificationList[index].status)
-            : value.operation;
-
-        promise.push(query);
-      }
-      // return console.log(promise);
-      this.$refs.ProgressDialog.batchRequest(promise, ModifyOrderStatus).then(res => {
-
-        this.$refs.myTable.clearSelection();
-        this.BatchModificationList.splice(0);
-        this.BatchModificationShow = false;
-
+    //输入大量订单号并进行修改状态时
+    BatchInputSubmit(promise) {
+      const loading = this.$loading({
+        lock: true,
+        text: "Loading",
+        spinner: "el-icon-loading",
+        background: "rgba(0, 0, 0, 0.7)",
+      })
+      ModifyOrderStatus(promise).then((response) => {
         this.$message({
           message: "批量修改成功",
           type: "success",
         });
-
         this.$refs.search.handleQuery();//重新搜索一次
-
+      }).finally(() => {
+        loading.close();
       })
+    },
+    //批量修改状态
+    ChangeBatchModification(value) {
+      const loading = this.$loading({
+        lock: true,
+        text: "Loading",
+        spinner: "el-icon-loading",
+        background: "rgba(0, 0, 0, 0.7)",
+      })
+      let query = {
+        merchant_order_id_list: this.BatchModificationList.map((item) => item.merchant_order_id),
+        operation: value.operation
+      };
+      // this.progressShow = true
+      // let promise = [];
+      // for (let index = 0; index < this.BatchModificationList.length; index++) {
+      //   let query = {
+      //     merchant_order_id: this.BatchModificationList[index].merchant_order_id,
+      //     mch_number: this.BatchModificationList[index].mch_number,
+      //     order_type: parseInt(this.queryPage.order_type),
+      //   };
 
+      //   //在超时状态选择回调状态时不给通过，不修改
+      //   //在超时状态是只能选择同步状态
+      //   if (
+      //     this.BatchModificationList[index].status == 2 &&
+      //     value.operation == 3
+      //   ) {
+      //     continue;
+      //   }
+      //   query["operation"] =
+      //     this.BatchModificationList[index].status == 0
+      //       ? (this.$route.query.type == 1 && value.operation == 1 ? value.operation : this.BatchModificationList[index].status)
+      //       : value.operation;
 
-
+      //   promise.push(query);
+      // }
+      ModifyOrderStatus(query).then((response) => {
+        this.$refs.myTable.clearSelection();
+        this.BatchModificationList.splice(0);
+        this.BatchModificationShow = false;
+        this.$message({
+          message: "批量修改成功",
+          type: "success",
+        });
+        this.$refs.search.handleQuery();//重新搜索一次
+      }).finally(() => {
+        loading.close();
+      })
     },
     //单个修改状态
     ChangeOrderStatusRow(value) {
       let query = {
-        _id: value._id,
-        mch_number: value.mch_number,
-        order_type: parseInt(this.queryPage.order_type),
+        merchant_order_id_list: [value.merchant_order_id],
+        // mch_number: value.mch_number,
+        // order_type: parseInt(this.queryPage.order_type),
         operation: value.operation,
       };
       // return console.log(query);
@@ -327,34 +350,30 @@ export default {
         cancelButtonText: '取消'
       })
         .then(res => {
+
           let query = {
-            _id: value._id,
-            mch_number: value.mch_number,
-            order_type: parseInt(this.queryPage.order_type),
+            merchant_order_id_list: [value.merchant_order_id],
+
             operation: 3,
           };
-
           this.ChangeOrderStatus(query);
-
-
         }).catch(() => {
           this.$message({
             type: 'info',
             message: '已取消'
           });
         });
-
-
     },
 
     OpenBatchModification() {
       if (this.BatchModificationList.length == 0) {
-        this.$message.warning("请选择要修改的数据");
+        this.BatchInputShow = true;
         return;
       } else {
         this.BatchModificationShow = true;
       }
     },
+    //批量回调
     OpenBatchCallBack() {
       if (this.BatchModificationList.length == 0) {
         this.$message.warning("请选择要修改的数据");
@@ -365,25 +384,45 @@ export default {
           confirmButtonText: '确定',
           cancelButtonText: '取消'
         }).then(res => {
-          this.progressShow = true;
-          let confirmList = []
-          for (let index = 0; index < this.BatchModificationList.length; index++) {
-            confirmList.push({
-              _id: this.BatchModificationList[index]._id,
-              mch_number: this.BatchModificationList[index].mch_number,
-              order_type: parseInt(this.queryPage.order_type),
-              operation: 3,
-            })
-          }
-          this.$refs.ProgressDialog.batchRequest(confirmList, ModifyOrderStatus).then(res => {
-
+          const loading = this.$loading({
+            lock: true,
+            text: "Loading",
+            spinner: "el-icon-loading",
+            background: "rgba(0, 0, 0, 0.7)",
+          })
+          let query = {
+            merchant_order_id_list: this.BatchModificationList.map(item => item.merchant_order_id),
+            operation: 3,
+          };
+          ModifyOrderStatus(query).then(() => {
             this.$message.success("批量回调成功");
             this.$refs.myTable.clearSelection();
             this.BatchModificationList.splice(0);
 
             this.$refs.search.handleQuery();//重新搜索一次
-
+          }).finally(() => {
+            loading.close();
           })
+
+          // this.progressShow = true;
+          // let confirmList = []
+          // for (let index = 0; index < this.BatchModificationList.length; index++) {
+          //   confirmList.push({
+          //     merchant_order_id_list: this.BatchModificationList[index].merchant_order_id,
+          //     mch_number: this.BatchModificationList[index].mch_number,
+          //     order_type: parseInt(this.queryPage.order_type),
+          //     operation: 3,
+          //   })
+          // }
+          // this.$refs.ProgressDialog.batchRequest(confirmList, ModifyOrderStatus).then(res => {
+
+          //   this.$message.success("批量回调成功");
+          //   this.$refs.myTable.clearSelection();
+          //   this.BatchModificationList.splice(0);
+
+          //   this.$refs.search.handleQuery();//重新搜索一次
+
+          // })
 
 
         })
@@ -521,21 +560,7 @@ export default {
         }
       });
     },
-    /** 删除按钮操作 */
-    handleDelete(row) {
-      const ids = row.id || this.ids;
-      this.$modal
-        .confirm('是否确认删除订单编号为"' + ids + '"的数据项？')
-        .then(function () {
-          return delOrderRecords(ids);
-        })
-        .then(() => {
-          this.getList();
-          this.$refs.search.handleQuery();
-          this.$modal.msgSuccess("删除成功");
-        })
-        .catch(() => { });
-    },
+
 
     //调整订单状态
     CloseAdjustOrderStatus(value) {
@@ -559,12 +584,12 @@ export default {
     //修改状态提交
     ChangeOrderStatus(value, showMsg = true, SuccessMsg = "修改成功", errorMsg = "修改失败") {
       return new Promise((resolve, reject) => {
-
         ModifyOrderStatus(value).then((response) => {
+          const result = response.results[0]
           let index = this.OrderRecordsList.findIndex((res) => {
-            return res._id == value._id;
+            return res.merchant_order_id == value.merchant_order_id_list[0];
           });
-          if (response.status == 0 || response.status == 1) {
+          if (result.status == 0 || result.status == 1) {
             if (showMsg) {
               this.$modal.msgSuccess(SuccessMsg);
 
@@ -580,14 +605,14 @@ export default {
             }
             this.$set(this.OrderRecordsList[index], "status", value.operation);
 
-          } else if (response.status == 2) {
+          } else if (result.status == 2) {
             this.$modal.msgWarning("订单还未完成，请稍后再试");
             this.AdjustOrderStatusShow = false;
-          } else if (response.status == -1) {
+          } else if (result.status == -1) {
             this.$modal.msgError(errorMsg);
             this.AdjustOrderStatusShow = false;
           }
-          resolve(response);
+          resolve(result);
         });
       });
     },

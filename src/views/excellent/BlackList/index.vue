@@ -86,8 +86,8 @@ export default {
       showAddBlack: false,
       loading: true, // 加载状态
       mchAccFlowList: [], // 商户流水列表
-      queryParams: { page: 1, limit: 20 }, // 查询参数
-      pageData: { currentPage: 1, pageSize: 20, total: 1 }, // 分页数据
+      queryParams: { page: 1, limit: 30 }, // 查询参数
+      pageData: { currentPage: 1, pageSize: 30, total: 1 }, // 分页数据
       queryPage: { last_id: null, }, // 查询页面信息
       showSearch: true, // 是否显示搜索
       RepeatedRequests: false // 是否重复请求

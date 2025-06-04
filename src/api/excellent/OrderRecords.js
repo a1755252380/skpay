@@ -45,6 +45,7 @@ export function ModifyOrderStatus(query) {
     url: "/order/operation",
     method: "post",
     data: query,
+    timeout: 180000, // 单独设置超时时间（单位：毫秒）
   });
 }
 //添加新代收订单
@@ -112,7 +113,6 @@ function isObject(val) {
 function fetchAndDownload(fileName, name) {
   GetDownload("/console/download/pull?file_name=" + fileName)
     .then((res) => {
-      console.log(res);
       if (res.state) {
         // 如果结果是对象，继续递归调用
         setTimeout(() => {

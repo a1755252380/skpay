@@ -28,20 +28,24 @@
     }" :cellClassName="'HoverTooltipCopy'">
       <!--      <el-table-column label="商户id" align="center" prop="mchId" />-->
       <el-table-column label="商户号" align="center" prop="mch_num" fixed="left" />
-      <el-table-column label="商户名称" align="center" prop="mch_name" />
+      <el-table-column label="商户名称" align="center" prop="mch_name" width="120" />
       <el-table-column label="货币代号" align="center" prop="currency" />
-      <el-table-column label="账户余额" align="center" prop="account_balance" :formatter="Formatter.TableAmount" />
-      <el-table-column label="待结算金额" align="center" prop="account_pending_settlement_balance"
+      <el-table-column label="账户余额" align="center" prop="account_balance" :formatter="Formatter.TableAmount"
+        width="120" />
+      <el-table-column label="待结算金额" align="center" prop="account_pending_settlement_balance" width="120"
         :formatter="Formatter.TableAmount" />
-      <el-table-column label="账户可用余额" align="center" prop="account_available_balance"
+      <el-table-column label="账户可用余额" align="center" prop="account_available_balance" width="120"
         :formatter="Formatter.TableAmount" />
-      <el-table-column label="账户冻结金额" align="center" prop="account_freeze_balance" :formatter="Formatter.TableAmount" />
-      <el-table-column label="代付余额" align="center" prop="account_payout_balance" :formatter="Formatter.TableAmount" />
-      <el-table-column label="代付可用余额" align="center" prop="account_payout_available_balance"
+      <el-table-column label="账户冻结金额" align="center" prop="account_freeze_balance" :formatter="Formatter.TableAmount"
+        width="120" />
+      <el-table-column label="代付余额" align="center" prop="account_payout_balance" :formatter="Formatter.TableAmount"
+        width="120" />
+      <el-table-column label="代付可用余额" align="center" prop="account_payout_available_balance" width="120"
         :formatter="Formatter.TableAmount" />
 
-      <el-table-column label="代付冻结金额" align="center" prop="payou_freeze_amount" :formatter="Formatter.TableAmount" />
-      <el-table-column label="代付冻结金额手续费" align="center" prop="payou_freeze_amount_service"
+      <el-table-column label="代付冻结金额" align="center" prop="payou_freeze_amount" :formatter="Formatter.TableAmount"
+        width="120" />
+      <el-table-column label="代付冻结金额手续费" align="center" prop="payou_freeze_amount_service" width="120"
         :formatter="Formatter.TableAmount" />
 
       <el-table-column label="操作" align="center" fixed="right" class-name="small-padding fixed-width" width="230"
@@ -129,7 +133,7 @@ export default {
       // 查询参数
       queryParams: {
         page: 1,
-        limit: 20,
+        limit: 30,
         mch_num: null,
         mch_name: null,
         currency: null,

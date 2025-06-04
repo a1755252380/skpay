@@ -65,8 +65,8 @@ export default {
     return {
       loading: true, // 加载状态
       mchAccFlowList: [], // 商户流水列表
-      queryParams: { page: 1, limit: 20 }, // 查询参数
-      pageData: { currentPage: 1, pageSize: 20, total: 1 }, // 分页数据
+      queryParams: { page: 1, limit: 100 }, // 查询参数
+      pageData: { currentPage: 1, pageSize: 100, total: 1 }, // 分页数据
       queryPage: { last_id: null, stream_type: 'total', type: null }, // 查询页面信息
       showSearch: true, // 是否显示搜索
       RepeatedRequests: false // 是否重复请求

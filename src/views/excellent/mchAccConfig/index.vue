@@ -107,7 +107,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="代付费率" align="center" prop="payout_rate" width="300">
+          <el-table-column label="代付费率" align="center" prop="payout_rate" width="320">
             <template slot-scope="scope">
               <div style="">
                 <span v-for="(item, index) in JSON.parse(scope.row.payout_rate_interval)" :key="index"
@@ -264,7 +264,7 @@ export default {
       // 查询参数
       queryParams: {
         page: 1,
-        limit: 20,
+        limit: 30,
         mch_num: null,
         currency: null,
         payout_chnl_id: null,
@@ -488,12 +488,12 @@ export default {
 .table_expand_rate_item {
   margin: 6px 0;
   display: inline-block;
-  width: 135px;
+  width: 145px;
   font-weight: 600;
 
   .table_expand_rate_label {
     display: inline-block;
-    width: 90px;
+    width: 100px;
     color: #99a9bf;
   }
 

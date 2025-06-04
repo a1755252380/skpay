@@ -26,7 +26,8 @@
 
         <el-form-item :label="'商户' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" prop="merchant_order_id">
           <el-input v-model="queryParams.merchant_order_id"
-            :placeholder="'请输入商户' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" clearable @clear="handleQuery" />
+            :placeholder="'请输入商户' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" clearable @clear="handleQuery"
+            @change="restListQuery" />
         </el-form-item>
         <el-form-item :label="'系统' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" prop="order_id">
           <el-input v-model="queryParams.order_id"
@@ -34,10 +35,12 @@
         </el-form-item>
         <el-form-item :label="'三方平台' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" prop="platform_order_id">
           <el-input v-model="queryParams.platform_order_id"
-            :placeholder="'请输入三方平台' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" clearable @clear="handleQuery" />
+            :placeholder="'请输入三方平台' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" clearable @clear="handleQuery"
+            @change="restListQuery" />
         </el-form-item>
         <el-form-item label="UTR" prop="UTR">
-          <el-input v-model="queryParams.utr" placeholder="请输入UTR" clearable @clear="handleQuery" />
+          <el-input v-model="queryParams.utr" placeholder="请输入UTR" clearable @clear="handleQuery"
+            @change="restListQuery" />
         </el-form-item>
         <el-form-item label="订单状态" prop="status">
           <el-select v-model="queryParams.status" placeholder="请选择订单状态" clearable class="w100_input">
@@ -71,9 +74,18 @@
 
       </template>
       <template #search_btn>
-        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+        <el-tooltip :content="BathSearchTips + '搜索'" placement="top" effect="light" v-if="BatchList.length > 0">
+          <el-button type="warning" icon="el-icon-search" size="mini" @click="handleQuery">批量搜索</el-button>
+        </el-tooltip>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery" v-else>搜索</el-button>
+
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-        <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport">导出</el-button>
+        <el-tooltip :content="BathSearchTips + '导出'" placement="top" effect="light" v-if="BatchList.length > 0">
+          <el-button type="warning" icon="el-icon-download" size="mini" @click="ConfirmBatchExport">批量导出</el-button>
+        </el-tooltip>
+        <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport" v-else>导出</el-button>
+
+
         <el-button type="primary" icon="el-icon-search" size="mini" @click="BatchSearchOrdersShow = true"
           v-hasPermi="['excellent:OrderRecords:edit']">批量查单</el-button>
         <el-button type="primary" icon="el-icon-plus" size="mini" @click="AddOrderShow = true"
@@ -94,12 +106,11 @@
     <!-- 输入订单号的方式进行查单 -->
     <!-- <BatchSearchOrders v-model="BatchSearchOrdersShow" @ConfirmBatchSearch="ConfirmBatchSearch"
       @ConfirmBatchExport="ConfirmBatchExport"></BatchSearchOrders> -->
-    <BatchDrawer :BatchList.sync="BatchList" :drawer.sync="BatchSearchOrdersShow">
+    <BatchDrawer :BatchList.sync="BatchList" :drawer.sync="BatchSearchOrdersShow" @change="BathListChange">
       <div class="batch_div">
         <el-select v-model="BatchSelect" size="mini" style="width: 100%;">
-          <el-option label="商户订单号" value="mch"></el-option>
-          <el-option label="UTR" value="utr"></el-option>
-          <el-option label="三方订单号" value="plat"></el-option>
+          <el-option :label="item.label" :value="item.value" v-for="item in BatchSelectOptions"
+            :key="item.value"></el-option>
         </el-select>
         <div class="batch_div_btn_div">
           <el-button type="info" style="" class=" batch_div_btn " size="small" @click="ConfirmBatchExport"
@@ -142,6 +153,11 @@ export default {
 
     },
   },
+  computed: {
+    BathSearchTips() {
+      return '正在使用' + this.BatchSelectOptions.find(item => item.value == this.BatchSelect).label + '批量'
+    }
+  },
   data() {
     return {
       //添加订单
@@ -150,6 +166,21 @@ export default {
       BatchSearchOrdersShow: false,
       BatchList: [],
       BatchSelect: 'mch',
+      BatchSelectOptions: [
+        {
+          label: '商户订单号',
+          value: 'mch'
+        },
+        {
+          label: 'UTR',
+          value: 'utr'
+        },
+        {
+          label: '三方订单号',
+          value: 'plat'
+        },
+
+      ],
       queryParams: {
         utr: null, //交易流水号
         mch_number: null,
@@ -248,8 +279,6 @@ export default {
         utcTime = value[0];
         utcEndTime = value[1];
       }
-
-
       if (index == 'create_time') {
         this.$set(this.queryParams, 'create_time', utcTime ? utcTime : null);
         this.$set(this.queryParams, 'create_end_time', utcEndTime ? utcEndTime : null);
@@ -272,9 +301,18 @@ export default {
     },
     //重置列表的查询参数
     restListQuery() {
-      this.queryParams.merchant_order_id_list = null
-      this.queryParams.utr_list = null
-      this.queryParams.platform_order_id_list = null
+      if (this.queryParams.merchant_order_id) {
+        this.queryParams.merchant_order_id_list = null
+        this.BatchList.splice(0, this.BatchList.length)
+      }
+      if (this.queryParams.utr) {
+        this.queryParams.utr_list = null
+        this.BatchList.splice(0, this.BatchList.length)
+      }
+      if (this.queryParams.platform_order_id) {
+        this.queryParams.platform_order_id_list = null
+        this.BatchList.splice(0, this.BatchList.length)
+      }
     },
     /** 重置按钮操作 */
     resetQuery() {
@@ -303,74 +341,70 @@ export default {
         merchant_order_id_list: null,
         platform_order_id_list: null,
       }
-
+      this.BatchList.splice(0, this.BatchList.length)
       this.handleQuery();
     },
     //批量查单
-    ConfirmBatchSearch() {
+    beforeBath() {
       if (this.BatchList.length == 0) {
         this.$message({
           message: '请先输入商户订单号',
           type: 'warning'
         })
-        return
+        return false
       }
       this.BatchSearchOrdersShow = false
       this.loading = true
-      this.restListQuery()
-
       if (this.BatchSelect == 'utr') {
-        this.queryParams.utr_list = JSON.parse(JSON.stringify(this.BatchList))
+        this.queryParams.utr_list = this.BatchList.length > 0 ? this.BatchList : null
       }
       if (this.BatchSelect == 'mch') {
-        this.queryParams.merchant_order_id_list = JSON.parse(JSON.stringify(this.BatchList))
+        this.queryParams.merchant_order_id_list = this.BatchList.length > 0 ? this.BatchList : null
       }
       if (this.BatchSelect == 'plat') {
-        this.queryParams.platform_order_id_list = JSON.parse(JSON.stringify(this.BatchList))
+        this.queryParams.platform_order_id_list = this.BatchList.length > 0 ? this.BatchList : null
+      }
+      return true
+    },
+    //批量列表改变
+    BathListChange() {
+      if (this.queryParams.merchant_order_id) {
+        this.queryParams.merchant_order_id = null
+      }
+      if (this.queryParams.utr) {
+        this.queryParams.utr = null
+      }
+      if (this.queryParams.platform_order_id) {
+        this.queryParams.platform_order_id = null
+      }
+    },
+    ConfirmBatchSearch() {
+      if (this.beforeBath()) {
+        this.$emit('ReturnSearch', this.RearrangeParams());
 
       }
-      this.BatchList.splice(0)
-      this.$emit('ReturnSearch', this.RearrangeParams());
     },
     ConfirmBatchExport() {
-      if (this.BatchList.length == 0) {
-        this.$message({
-          message: '请先输入商户订单号',
-          type: 'warning'
-        })
-        return
+      if (this.beforeBath()) {
+        const query = {
+          time_type: this.TabsChangeStatus,
+          order_type: Number(this.$route.query.type),
+          ...this.RearrangeParams()
+        }
+        this.download.DownloadOrderXlsx('/order/download/commit', query, ('批量导出' + (this.$route.query.type == 1 ? '代付' : '代收') + '订单记录'));
       }
-      this.BatchSearchOrdersShow = false
-      this.loading = true
-      const query = {
-        time_type: this.TabsChangeStatus,
-        order_type: Number(this.$route.query.type),
-      }
-      if (this.BatchSelect == 'utr') {
-        query['utr_list'] = JSON.parse(JSON.stringify(this.BatchList))
-      }
-      if (this.BatchSelect == 'mch') {
-        query['merchant_order_id_list'] = JSON.parse(JSON.stringify(this.BatchList))
-      }
-      if (this.BatchSelect == 'plat') {
-        query['platform_order_id_list'] = JSON.parse(JSON.stringify(this.BatchList))
-
-      }
-      this.BatchList.splice(0)
-      this.download.DownloadOrderXlsx('/order/download/commit', query, ('批量导出' + (this.$route.query.type == 1 ? '代付' : '代收') + '订单记录'));
     },
     //参数进行重新分配整理
     RearrangeParams() {
       const { merchant_order_id, merchant_order_id_list, utr, utr_list, platform_order_id, platform_order_id_list, ...obj } = this.queryParams;
-
       const queryParams = {
         ...obj,
         ...(merchant_order_id ? { merchant_order_id_list: [merchant_order_id] } : {}), // 仅在有值时添加
-        ...(merchant_order_id_list ? { merchant_order_id_list } : {}), // 仅在有值时添加
+        ...(merchant_order_id_list && merchant_order_id_list.length > 0 ? { merchant_order_id_list } : {}), // 仅在有值时添加
         ...(utr ? { utr_list: [utr] } : {}), // 仅在有值时添加
-        ...(utr_list ? { utr_list } : {}), // 仅在有值时添加
+        ...(utr_list && utr_list.length > 0 ? { utr_list } : {}), // 仅在有值时添加
         ...(platform_order_id ? { platform_order_id_list: [platform_order_id] } : {}), // 仅在有值时添加
-        ...(platform_order_id_list ? { platform_order_id_list } : {}) // 仅在有值时添加
+        ...(platform_order_id_list && platform_order_id_list.length > 0 ? { platform_order_id_list } : {}) // 仅在有值时添加
       };
 
       return queryParams;

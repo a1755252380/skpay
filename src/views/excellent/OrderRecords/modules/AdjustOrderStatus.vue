@@ -38,7 +38,7 @@ export default {
       set(value) {
         this.num = 0;
         (this.form = {
-          _id: "",
+          merchant_order_id: "",
           operation: null,
           // changeReason: ''
         }),
@@ -69,7 +69,7 @@ export default {
   data() {
     return {
       form: {
-        _id: "",
+        merchant_order_id: "",
         operation: null,
       },
       //调整选项
