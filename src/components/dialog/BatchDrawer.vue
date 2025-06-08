@@ -11,7 +11,8 @@
           <el-button type="info" size="small" @click="clearList" style="margin-top: 6px;width: 100%;">清空</el-button>
         </div>
       </div>
-      <div class="tagShow_div">
+
+      <div class="tagShow_div" v-loading="LoadingCompleted" :element-loading-text="`已加载${successCount * 100}条`">
         <!-- <RecycleScroller :items="List" :item-size="12" class="scroller" v-if="List.length > 0" v-slot="{ item }">
           <template v-for="(item, index) in List">
           <el-tag :key="index" type="info" size="small" closable @close="TagClose(index)" style="margin: 3px;">{{
@@ -31,7 +32,7 @@
           🔽 点击加载更多（已展示 {{ visibleCount }} 条，还有 {{ List.length - visibleCount }} 条未显示）
         </div>
       </div>
-      <div class="footer_div">
+      <div class="footer_div" v-show="!LoadingCompleted">
         <div class="footer_div_text">
           <slot></slot>
 
@@ -76,6 +77,15 @@ export default {
   },
 
   computed: {
+    LoadingCompleted() {
+      if (this.UploadingCount == 0 || this.UploadingCount <= this.successCount) {
+        return false
+      }
+      if (this.UploadingCount != this.successCount) {
+        return true
+      }
+      return false
+    },
     List: {
       set(value) {
         this.$emit('update:BatchList', value)
@@ -107,14 +117,14 @@ export default {
   data() {
     return {
       ResultDialogVisible: false,
-      progress: 0, // 当前进度百分比
-      status: null, // 进度条状态
+
       successCount: 0, // 成功数量
+      UploadingCount: 0,
       errorList: [], // 失败数量
       displayText: '',    // 显示在 textarea 中的内容（仅做预览）
       batchInput: '',     // 实际处理用的数据，完整保留
       batchlimit: 40000, // 每次处理的数量
-      visibleCount: 500 // 初始展示条数 // 显示的数量限制
+      visibleCount: 50 // 初始展示条数 // 显示的数量限制
       // batchList: [],
     }
   },
@@ -138,10 +148,12 @@ export default {
         const batchSize = 100;
         const total = dataArray.length;
         let index = 0;
-
+        that.UploadingCount = Math.floor(total / batchSize);
         const loadNextBatch = () => {
           const nextBatch = dataArray.slice(index, index + batchSize);
           that.List.push(...nextBatch);
+          that.successCount++
+
           index += batchSize;
 
           if (index < total) {
@@ -161,19 +173,19 @@ export default {
 
       const maxLimit = this.batchlimit;
       const totalLength = this.List.length + items.length;
-
+      this.successCount = 0
       if (totalLength > maxLimit) {
         const allowedCount = maxLimit - this.List.length;
-        if (allowedCount > 0) {
-          // renderInBatches(items.slice(0, allowedCount))
-          this.List = this.List.concat(items.slice(0, allowedCount));
+        if (allowedCount >= 0) {
+          renderInBatches(items.slice(0, allowedCount))
+          // this.List = this.List.concat(items.slice(0, allowedCount));
           this.$message.warning(`最多只能添加 ${maxLimit} 条，已截取前 ${allowedCount} 条。`);
         } else {
           this.$message.warning(`已达到最大限制 ${maxLimit} 条，无法继续添加。`);
         }
       } else {
-        this.List = this.List.concat(items);
-        // renderInBatches(items)
+        // this.List = this.List.concat(items);
+        renderInBatches(items)
       }
       this.displayText = ''
       this.batchInput = ''
@@ -232,7 +244,7 @@ export default {
 
     loadMore() {
       // 每次增加 1000 条，最多不超过 List 长度
-      const nextCount = this.visibleCount + 1000;
+      const nextCount = this.visibleCount + 200;
       this.visibleCount = Math.min(nextCount, this.List.length);
     },
     //确认提交
