@@ -2,11 +2,9 @@
   <div>
     <OrderAndSteam :queryParams="queryParams" :showSearch="showSearch">
       <template #search_option>
-        <el-form-item v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" label="商户" prop="mch_number">
-          <MchNumSelect v-model="queryParams.mch_number" class="w100_input"> </MchNumSelect>
-          <!-- <el-select v-model="queryParams.mch_number" placeholder="请选择商户" clearable class="w100_input">
-            <el-option v-for="dict in MainAccount" :key="dict.id" :label="dict.mch_num" :value="dict.mch_num" />
-          </el-select> -->
+        <el-form-item v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" label="商户" prop="mch_number_list">
+          <MchNumSelect v-model="queryParams.mch_number_list" class="w100_input" multiple collapse-tags> </MchNumSelect>
+
         </el-form-item>
 
         <!-- <el-form-item v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" label="支付通道" prop="chnl_id">
@@ -107,8 +105,8 @@ import ChannelQuery from "@/components/Excellent/Channel/ChannelQuery.vue";
 import OrderAndSteam from "@/components/Excellent/SearchLayout/OrderAndSteam.vue";
 import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
 import BatchDrawer from "@/components/dialog/BatchDrawer.vue";
-import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
 import NumberInput from "@/components/element/NumberInput.vue";
+import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
 
 export default {
   name: 'WorkspaceJsonOrderSearch',
@@ -117,7 +115,7 @@ export default {
   data() {
     return {
       queryParams: {
-        mch_number: null,
+        mch_number_list: null,
         merchant_order_id: null,
         order_id: null,
         chnl_id: null,
@@ -285,7 +283,7 @@ export default {
     resetQuery() {
       this.timedata = { create_time: null, end_time: null };
       this.queryParams = {
-        mch_number: null,
+        mch_number_list: null,
         merchant_order_id: null,
         order_id: null,
         chnl_id: null,
@@ -316,9 +314,9 @@ export default {
         }
 
         let TimeFrame = ''
-        if (params['mch_number']) {
-          TimeFrame += params['mch_number'] + '_'
-        }
+        // if (params['mch_number']) {
+        //   TimeFrame += params['mch_number'] + '_'
+        // }
         if (this.queryParams.create_time && this.queryParams.create_end_time) {
           TimeFrame += this.Formatter.FormatTime(this.queryParams.create_time * 1000, 'YYYY-MM-DD') + '-' + this.Formatter.FormatTime(this.queryParams.create_end_time * 1000, 'YYYY-MM-DD') + "_"
         }

@@ -18,8 +18,6 @@ export function listMchAccFlow(query) {
     };
   }
   for (const key in query) {
-    console.log();
-
     if (
       (typeof query[key] == "string" &&
         (query[key] == "" ||
@@ -29,6 +27,9 @@ export function listMchAccFlow(query) {
     ) {
       delete query[key];
     }
+  }
+  if (query["mch_number_list"] && query.mch_number_list.length <= 0) {
+    delete query["mch_number_list"];
   }
   return request({
     url: "/stream",

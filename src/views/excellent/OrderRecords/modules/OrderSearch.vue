@@ -4,11 +4,11 @@
 
     <OrderAndSteam :queryParams="queryParams" :showSearch="showSearch">
       <template #search_option>
-        <el-form-item label="商户" prop="mch_number" v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
-          <el-select v-model="queryParams.mch_number" placeholder="请选择商户" clearable class="w100_input">
+        <el-form-item label="商户" prop="mch_number_list" v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
+          <el-select v-model="queryParams.mch_number_list" placeholder="请选择商户" clearable class="w100_input" multiple
+            collapse-tags>
             <el-option v-for="dict in MainAccount" :key="dict.id" :label="dict.mch_num" :value="dict.mch_num" />
           </el-select>
-
         </el-form-item>
         <el-form-item label="支付通道" prop="chnl_id" v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
           <!-- <el-select v-model="queryParams.chnl_id" placeholder="请选择支付通道" clearable class="w100_input">
@@ -183,7 +183,7 @@ export default {
       ],
       queryParams: {
         utr: null, //交易流水号
-        mch_number: null,
+        mch_number_list: null,
         merchant_order_id: null,
         order_id: null,
         platform_order_id: null,
@@ -322,7 +322,7 @@ export default {
       }
       this.queryParams = {
         utr: null,
-        mch_number: null,
+        mch_number_list: null,
         merchant_order_id: null,
         order_id: null,
         platform_order_id: null,
@@ -417,9 +417,9 @@ export default {
         params['time_type'] = this.TabsChangeStatus
         params['order_type'] = Number(this.$route.query.type)
         let TimeFrame = ''
-        if (params['mch_number']) {
-          TimeFrame += params['mch_number'] + '_'
-        }
+        // if (params['mch_number_list']) {
+        //   TimeFrame += params['mch_number_list'] + '_'
+        // }
         if (this.queryParams.create_time && this.queryParams.create_end_time) {
           TimeFrame += this.Formatter.FormatTime(this.queryParams.create_time * 1000, 'YYYY-MM-DD') + '-' + this.Formatter.FormatTime(this.queryParams.create_end_time * 1000, 'YYYY-MM-DD') + "_"
         }

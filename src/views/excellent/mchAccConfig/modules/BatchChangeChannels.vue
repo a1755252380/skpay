@@ -50,8 +50,8 @@ export default {
     visible: {
       set(val) {
         this.form = {
-          payin_chnl_id: null,
-          payout_chnl_id: null,
+          payin_chnl_id: '默认',
+          payout_chnl_id: '默认',
         }
         this.$emit('updateVisible', val);
       },
@@ -119,27 +119,34 @@ export default {
       let message = ''
       //选择了代收通道
       if (this.form.payin_chnl_id != '默认') {
-        let index = this.ChnlOptions.findIndex(item => item.id == this.form.payin_chnl_id)
+        const index = this.ChnlOptions.findIndex(item => {
+
+          return item.id == this.form.payin_chnl_id
+        })
         confirmList = confirmList.map(item => {
           item.payin_chnl_id = this.ChnlOptions[index].id
           item.payin_chnl_name = this.ChnlOptions[index].chnl_name
           return item
         })
+
         message = message + '代收通道切换为 ' + this.ChnlOptions[index].chnl_name[0] + this.ChnlOptions[index].id
       }
 
       //选择了代付通道
       if (this.form.payout_chnl_id != '默认') {
-        let index = this.ChnlOptions.findIndex(item => item.id == this.form.payout_chnl_id)
+        console.log(this.form.payout_chnl_id, this.ChnlOptions);
+
+        const payoutIndex = this.ChnlOptions.findIndex(item => item.id == this.form.payout_chnl_id)
+        console.log(payoutIndex, this.ChnlOptions[payoutIndex]);
+
         confirmList = confirmList.map(item => {
-          item.payout_chnl_id = this.ChnlOptions[index].id
-          item.payout_chnl_name = this.ChnlOptions[index].chnl_name
+          item.payout_chnl_id = this.ChnlOptions[payoutIndex].id
+          item.payout_chnl_name = this.ChnlOptions[payoutIndex].chnl_name
           return item
         })
-        message = message + '，代付通道切换为 ' + this.ChnlOptions[index].chnl_name[0] + this.ChnlOptions[index].id
+        message = message + '，代付通道切换为 ' + this.ChnlOptions[payoutIndex].chnl_name[0] + this.ChnlOptions[payoutIndex].id
 
       }
-      const h = this.$createElement;
       this.$confirm(
         '确认批量将商户' + message + ' 吗？', '提示',
         {

@@ -15,6 +15,9 @@ export function listOrderRecords(query) {
   } else {
     delete query["order_id"];
   }
+  if (query["mch_number_list"] && query.mch_number_list.length <= 0) {
+    delete query["mch_number_list"];
+  }
   if (query["last_id"]) {
     query["last_id"] = String(query["last_id"]);
   }

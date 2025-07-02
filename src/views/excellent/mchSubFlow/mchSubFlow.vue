@@ -2,7 +2,8 @@
   <OrderAndSteam :queryParams="queryParams" :showSearch="showSearch" :gridwidth="'24.5%'">
     <template #search_option>
       <el-form-item v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" label="商户" prop="mch_number">
-        <el-select v-model="queryParams.mch_number" placeholder="请选择商户" clearable class="w100_input">
+        <el-select v-model="queryParams.mch_number_list" placeholder="请选择商户" clearable class="w100_input" multiple
+          collapse-tags>
           <el-option v-for="dict in MainAccount" :key="dict.id" :label="dict.mch_num" :value="dict.mch_num" />
         </el-select>
       </el-form-item>
@@ -57,7 +58,7 @@ export default {
   data() {
     return {
       queryParams: {
-        mch_number: null,
+        mch_number_list: null,
         merchant_order_id: null,
         order_id: null,
         chnl_id: null,
@@ -170,7 +171,7 @@ export default {
     },
     resetQuery() {
       this.queryParams = {
-        mch_number: null,
+        mch_number_list: null,
         merchant_order_id: null,
         order_id: null,
         chnl_id: null,
@@ -193,9 +194,9 @@ export default {
       if (this.queryParams.create_time && this.queryParams.create_end_time) {
         let TimeFrame = '';
         const params = { ...this.queryParams };
-        if (params['mch_number']) {
-          TimeFrame += params['mch_number'] + '_'
-        }
+        // if (params['mch_number']) {
+        //   TimeFrame += params['mch_number'] + '_'
+        // }
         if (this.queryParams.create_time && this.queryParams.create_end_time) {
           TimeFrame += this.Formatter.FormatTime(this.queryParams.create_time * 1000, 'YYYY-MM-DD') + '-' + this.Formatter.FormatTime(this.queryParams.create_end_time * 1000, 'YYYY-MM-DD') + "_"
         }
