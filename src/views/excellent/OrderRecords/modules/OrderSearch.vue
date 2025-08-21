@@ -33,7 +33,8 @@
           <el-input v-model="queryParams.order_id"
             :placeholder="'请输入系统' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" clearable @clear="handleQuery" />
         </el-form-item>
-        <el-form-item :label="'三方平台' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" prop="platform_order_id">
+        <el-form-item :label="'三方平台' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" prop="platform_order_id"
+          v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
           <el-input v-model="queryParams.platform_order_id"
             :placeholder="'请输入三方平台' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" clearable @clear="handleQuery"
             @change="restListQuery" />

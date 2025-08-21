@@ -36,8 +36,22 @@ const permission = {
         getRouters().then((res) => {
           res = res.route;
           // console.log("路由列表");
+          // console.log(res);
+          // res.data.splice(0);
+          // res.data.push({
 
-          // res.data.push();
+          //   path: "/ChargeBack",
+          //   component: "Layout",
+          //   children: [
+          //     {
+          //       path: "/excellent/ChargeBack",
+          //       component: "excellent/ChargeBack",
+          //       name: "ChargeBack",
+          //       meta: { title: "ChargeBack", icon: "dict", affix: true },
+          //     },
+          //   ],
+          // });
+
           const sdata = JSON.parse(JSON.stringify(res.data));
           const rdata = JSON.parse(JSON.stringify(res.data));
           const sidebarRoutes = filterAsyncRouter(sdata);

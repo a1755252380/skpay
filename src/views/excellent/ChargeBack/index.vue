@@ -1,21 +1,15 @@
 <template>
   <div class="OrderRecords_div fulltable_div" ref="OrderRecords_div">
-    <el-tabs type="card" class="OrderRecords_title" @tab-click="TabsChange" v-model="queryPage.time_type"
-      ref="OrderRecordsTitle">
-      <el-tab-pane :label="'当前' + (this.queryPage.order_type == 1 ? '代付' : '代收') + '订单'" name="now"></el-tab-pane>
-      <el-tab-pane :label="'历史' + (this.queryPage.order_type == 1 ? '代付' : '代收') + '订单'" name="history"></el-tab-pane>
-    </el-tabs>
-
 
     <div class="OrderRecords_table FlexColumn" v-loading="TabsChangeloading">
       <!-- 筛选条件模块 -->
       <OrderSearch :showSearch="showSearch" ref="search" @ReturnSearch="ReturnSearch"
         :TabsChangeStatus="queryPage.time_type" @RequestingDataAgain="RequestingDataAgain">
-        <el-button type="primary" icon="el-icon-refresh-left" size="mini" @click="OpenBatchModification"
+        <!-- <el-button type="primary" icon="el-icon-refresh-left" size="mini" @click="OpenBatchModification"
           v-hasPermi="['excellent:OrderRecords:edit']" slot="btn">批量修改</el-button>
         <el-button type="primary" icon="el-icon-refresh-left" size="mini" @click="OpenBatchCallBack"
           v-hasPermi="['excellent:OrderRecords:edit']" slot="btn"
-          v-if="queryPage.time_type == 'history'">批量回调</el-button>
+          v-if="queryPage.time_type == 'history'">批量回调</el-button> -->
 
         <!-- <el-button type="primary" icon="el-icon-refresh-left" size="mini" @click="BatchSearchOrdersShow = true"
           v-if="queryPage.time_type == 'history'" slot="btn">批量补单</el-button> -->
@@ -62,33 +56,25 @@
           <template slot-scope="scope">
             <el-tag :type="formatStatus(scope.row.status).type">{{
               formatStatus(scope.row.status).name
-              }}</el-tag>
+            }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="回调状态" align="center" prop="callback_status" width="100" class-name="NoTooltip">
           <template slot-scope="scope">
             <el-tag :type="formatCallbackStatus(scope.row.callback_status).type">{{
               formatCallbackStatus(scope.row.callback_status).name
-              }}</el-tag>
+            }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="pan码" align="center" prop="pan" v-if="parseInt(this.$route.query.type) == 1" />
         <el-table-column label="通道名称" align="center" prop="chnl_id" :formatter="Formatter.ChannelNameFormatter"
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" />
-        <el-table-column label="UTR" align="center" prop="utr" width="160">
-
-        </el-table-column>
-        <!-- <el-table-column label="通道费率" align="center" prop="chnl_fee_ratio" width="80" />
-        <el-table-column label="商户费率" align="center" prop="mch_fee_ratio" width="80" />
-        <el-table-column label="手续费" align="center" prop="fee_single" width="100" /> -->
-        <el-table-column label="操作" align="center" class-name="small-padding fixed-width" fixed="right"
-          :width="hasPermiVisible(['excellent:OrderRecords:edit']) ? 180 : 80">
+        <el-table-column label="操作" align="center" class-name="small-padding fixed-width" fixed="right" :width="80">
           <template slot-scope="scope">
-            <el-button size="mini" type="text" icon="el-icon-refresh" @click="handleCallback(scope.row)"
+            <!-- <el-button size="mini" type="text" icon="el-icon-refresh" @click="handleCallback(scope.row)"
               v-hasPermi="['excellent:OrderRecords:edit']">回调</el-button>
             <el-button size="mini" type="text" icon="el-icon-refresh" @click="handleChangeOrderStatus(scope.row)"
               v-hasPermi="['excellent:OrderRecords:edit']"
-              v-if="scope.row.status != 0 || ($route.query.type == 1)">调整</el-button>
+              v-if="scope.row.status != 0 || ($route.query.type == 1)">调整</el-button> -->
             <el-button size="mini" type="text" icon="el-icon-view" @click="WarchDeatil(scope.row)">详情</el-button>
           </template>
         </el-table-column>
@@ -110,9 +96,7 @@
     <OrderDetail :show="detailShow" @updateShow="updateShow" :detail="form">
     </OrderDetail>
     <!-- 大数据修改订单 -->
-
     <BatchChangeState :BatchShow.sync="BatchInputShow" @submit="BatchInputSubmit"></BatchChangeState>
-    <ProgressDialog v-model="progressShow" ref="ProgressDialog"></ProgressDialog>
   </div>
 </template>
 
@@ -120,7 +104,6 @@
 import {
   listOrderRecords,
   getOrderRecords,
-  delOrderRecords,
   addOrderRecords,
   updateOrderRecords,
   ModifyOrderStatus, BatchListOrderRecords
@@ -220,9 +203,10 @@ export default {
       open: false,
       // 查询参数
       queryPage: {
-        order_type: 0, //0是代收 1是代付
+        order_type: null, //0是代收 1是代付
         last_id: null,
-        time_type: "now",
+        time_type: "history",
+        charge_back: 1
       },
       lastQueryParams: null, // 记录上一次的搜索参数
       pageData: {
@@ -254,7 +238,6 @@ export default {
   },
   created() {
     this.loading = true;
-    this.queryPage.order_type = parseInt(this.$route.query.type);
   },
   mounted() { },
   methods: {
@@ -292,31 +275,18 @@ export default {
         merchant_order_id_list: this.BatchModificationList.map((item) => item.merchant_order_id),
         operation: value.operation
       };
-      // this.progressShow = true
-      // let promise = [];
-      // for (let index = 0; index < this.BatchModificationList.length; index++) {
-      //   let query = {
-      //     merchant_order_id: this.BatchModificationList[index].merchant_order_id,
-      //     mch_number: this.BatchModificationList[index].mch_number,
-      //     order_type: parseInt(this.queryPage.order_type),
-      //   };
 
-      //   //在超时状态选择回调状态时不给通过，不修改
-      //   //在超时状态是只能选择同步状态
-      //   if (
-      //     this.BatchModificationList[index].status == 2 &&
-      //     value.operation == 3
-      //   ) {
-      //     continue;
-      //   }
-      //   query["operation"] =
-      //     this.BatchModificationList[index].status == 0
-      //       ? (this.$route.query.type == 1 && value.operation == 1 ? value.operation : this.BatchModificationList[index].status)
-      //       : value.operation;
-
-      //   promise.push(query);
-      // }
       ModifyOrderStatus(query).then((response) => {
+        // if (value.operation == 4) {
+        //   for (let index = 0; index < this.BatchModificationList.length; index++) {
+        //     const listIndex = this.OrderRecordsList.findIndex((res) => {
+        //       return res.merchant_order_id == this.BatchModificationList[index].merchant_order_id;
+        //     });
+        //     if (listIndex != -1) {
+        //       this.OrderRecordsList.splice(listIndex, 1);
+        //     }
+        //   }
+        // }
         this.$refs.myTable.clearSelection();
         this.BatchModificationList.splice(0);
         this.BatchModificationShow = false;
@@ -338,40 +308,7 @@ export default {
         operation: value.operation,
       };
       // return console.log(query);
-      if (value.operation == 4) {
-        return this.$confirm('是否将订单设置为chargeback状态？', '确认信息', {
-          distinguishCancelAndClose: true,
-          confirmButtonText: '确定',
-          cancelButtonText: '取消'
-        })
-          .then(res => {
-            return this.ChangeOrderStatus(query);
-          }).catch(() => {
-            this.$message({
-              type: 'info',
-              message: '已取消'
-            });
-            return;
-          });
 
-      }
-      if (value.operation == 0) {
-        return this.$confirm('是否将订单设置为成功状态？', '确认信息', {
-          distinguishCancelAndClose: true,
-          confirmButtonText: '确定',
-          cancelButtonText: '取消'
-        })
-          .then(res => {
-            return this.ChangeOrderStatus(query);
-          }).catch(() => {
-            this.$message({
-              type: 'info',
-              message: '已取消'
-            });
-            return;
-          });
-
-      }
       this.ChangeOrderStatus(query);
     },
     //点击回调
@@ -397,16 +334,11 @@ export default {
           });
         });
     },
-    //批量修改弹窗打开
+
     OpenBatchModification() {
       if (this.BatchModificationList.length == 0) {
-        if (this.queryPage.time_type == "history") {
-          this.BatchInputShow = true;
-          return
-        } else {
-          return this.$message.warning("请选择要修改的数据");
-        }
-        ;
+        this.BatchInputShow = true;
+        return;
       } else {
         this.BatchModificationShow = true;
       }
@@ -436,6 +368,7 @@ export default {
             this.$message.success("批量回调成功");
             this.$refs.myTable.clearSelection();
             this.BatchModificationList.splice(0);
+
             this.$refs.search.handleQuery();//重新搜索一次
           }).finally(() => {
             loading.close();
@@ -619,16 +552,21 @@ export default {
       this.detailShow = value;
     },
     //修改状态提交
-    //修改状态提交
     ChangeOrderStatus(value, showMsg = true, SuccessMsg = "修改成功", errorMsg = "修改失败") {
+
       return new Promise((resolve, reject) => {
         ModifyOrderStatus(value).then((response) => {
           const result = response.results[0]
           let index = this.OrderRecordsList.findIndex((res) => {
             return res.merchant_order_id == value.merchant_order_id_list[0];
           });
+          console.log(index, value.operation);
 
           if (value.operation == 4) {
+            if (index != -1) {
+              this.OrderRecordsList.splice(index, 1);
+            }
+
 
             return this.$modal.msgSuccess(SuccessMsg);
           }
@@ -673,16 +611,7 @@ export default {
 
     },
 
-    //订单详情
 
-    //tab选项切换按钮
-    TabsChange(value) {
-      this.loading = true;
-      this.queryPage.time_type = value.name;
-
-      // this.resetSearch();
-      this.$refs.search.resetQuery();
-    },
 
     //状态调整
     formatStatus(value) {
@@ -700,6 +629,8 @@ export default {
         return { name: "已提交", type: "" };
       } else if (value == -1) {
         return { name: "修改失败", type: "danger" };
+      } else if (value == -1) {
+        return { name: "ChargeBack", type: "danger" };
       } else {
         return { name: "未知", type: "danger" };
       }

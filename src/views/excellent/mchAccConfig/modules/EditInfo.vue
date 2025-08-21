@@ -163,14 +163,15 @@ export default {
     const validateNumber = function (rule, value, callback) {
       if (value === "") {
         callback(new Error("费率不能为空"));
-      } else if (value == 0) {
-        callback(new Error("费率不能为0"));
-      } else if (!/^(?!0(\.0+)?$)\d+(\.\d+)?$/.test(value)) {
-        callback(new Error("费率不能为0"));
+      } else if (!/^\d+(\.\d+)?$/.test(value)) {
+        callback(new Error("请输入非负数字"));
+      } else if (parseFloat(value) < 0) {
+        callback(new Error("费率不能小于0"));
       } else {
         callback();
       }
     };
+
     return {
       num: 0,
       editloading: false,
@@ -424,8 +425,9 @@ export default {
           this.form['payout_over_chnl_name'] = this.PassageList[payOutOverIndex].chnl_name
         }
         function allValuesValid(data) {
-          return data.every(item => item.value);
+          return data.every(item => item.value !== '' && item.value !== null && item.value !== undefined);
         }
+
         if (this.payinRange.length == 0 || this.payoutRange.length == 0) {
           return this.$message.error('请添加价格区间费率');
         }

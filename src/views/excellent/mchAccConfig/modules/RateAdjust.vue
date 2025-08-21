@@ -162,7 +162,6 @@ export default {
       this.handleChange();
       this.Range.min = this.Range.max;
       this.Range.max = this.maxValue;
-      console.log("*****", this.Range.min, this.Range.max);
 
     },
   }

@@ -50,10 +50,7 @@ export default {
           name: "回调状态",
           value: 3,
         },
-        {
-          name: "chargeback",
-          value: 4,
-        },
+
       ],
     }
   },
@@ -82,17 +79,6 @@ export default {
       }
       if (this.operation == 0) {
         return this.$confirm('批量将订单标记成功，是否继续？', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          this.confirmBatchClose()
-        }).catch(() => {
-          return
-        })
-      }
-      if (this.operation == 4) {
-        return this.$confirm('批量将订单标记chargeback，是否继续？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'

@@ -13,13 +13,6 @@
       </div>
 
       <div class="tagShow_div" v-loading="LoadingCompleted" :element-loading-text="`已加载${successCount * 100}条`">
-        <!-- <RecycleScroller :items="List" :item-size="12" class="scroller" v-if="List.length > 0" v-slot="{ item }">
-          <template v-for="(item, index) in List">
-          <el-tag :key="index" type="info" size="small" closable @close="TagClose(index)" style="margin: 3px;">{{
-            item
-          }}</el-tag>
-          </template>
-</RecycleScroller> -->
         <template v-for="(item, index) in displayList">
           <el-tag :key="index" type="info" size="small" closable @close="TagClose(index)" style="margin: 3px;">{{
             item
@@ -31,8 +24,9 @@
           @click="loadMore">
           🔽 点击加载更多（已展示 {{ visibleCount }} 条，还有 {{ List.length - visibleCount }} 条未显示）
         </div>
+
       </div>
-      <div class="footer_div" v-show="!LoadingCompleted">
+      <div class="footer_div">
         <div class="footer_div_text">
           <slot></slot>
 
@@ -349,11 +343,17 @@ export default {
   .tagShow_div {
     flex: 1;
     margin: 16px 0;
-    // height: calc(100% - 320px)
-    overflow-y: auto;
+    min-height: 0;
+    /* ⚠️关键：允许内容缩小 */
+    overflow: auto;
+    /* 出现滚动条 */
+    position: relative;
+    /* ✅ 关键：让 loading 遮罩定位于此区域 */
+
   }
 
   .footer_div {
+    flex-shrink: 0;
 
     .footer_div_text {
       width: 100%;
@@ -365,5 +365,14 @@ export default {
       // }
     }
   }
+}
+
+.tagShow_div>.el-loading-mask {
+  position: absolute !important;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
 }
 </style>

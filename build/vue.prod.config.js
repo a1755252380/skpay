@@ -93,7 +93,7 @@ module.exports = {
       filename: "[path][base].gz[query]",
       algorithm: "gzip",
       minRatio: 0.8,
-      deleteOriginalAssets: false,
+      deleteOriginalAssets: true,
     }),
   ],
 };

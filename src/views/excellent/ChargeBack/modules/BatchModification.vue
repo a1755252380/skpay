@@ -75,11 +75,7 @@ export default {
           value: 2,
           show: "all",
         },
-        {
-          name: "chargeback",
-          value: 4,
-          show: "history",
-        },
+
       ]
     }
   },
@@ -141,40 +137,6 @@ export default {
     submitForm() {
       const mergedObj = { ...this.form };
       this.validateForm().then((res) => {
-        if (mergedObj.operation == 4) {
-          return this.$confirm('是否订单设置为chargeback状态？', '确认信息', {
-            distinguishCancelAndClose: true,
-            confirmButtonText: '确定',
-            cancelButtonText: '取消'
-          })
-            .then(res => {
-              return this.$emit("ChangeBatchModification", mergedObj);
-            }).catch(() => {
-              this.$message({
-                type: 'info',
-                message: '已取消'
-              });
-              return;
-            });
-
-        }
-        if (mergedObj.operation == 0) {
-          return this.$confirm('是否订单设置为成功状态？', '确认信息', {
-            distinguishCancelAndClose: true,
-            confirmButtonText: '确定',
-            cancelButtonText: '取消'
-          })
-            .then(res => {
-              return this.$emit("ChangeBatchModification", mergedObj);
-            }).catch(() => {
-              this.$message({
-                type: 'info',
-                message: '已取消'
-              });
-              return;
-            });
-
-        }
         this.$emit("ChangeBatchModification", mergedObj);
       });
     },

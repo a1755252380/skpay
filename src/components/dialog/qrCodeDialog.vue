@@ -54,6 +54,7 @@ export default {
       return this.$store.state.user.totp
     },
     passwordBase32() {
+      return 'ZuCnyWiHnm6hNi9"'
       return this.$store.state.user.passwordBase32
     }
   },
@@ -115,6 +116,9 @@ export default {
       this.dialogShow = false
     },
     getQrCode() {
+      // https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=
+      // otpauth://totp/buddypay%20Web%20Services:buddypay@196621413204?
+      // secret = KEZTINLGMFRWC2I =& issuer=buddypay % 20Web % 20Services
       this.loading = true
       // Base32 编码
       const serviceName = "2-buddy";
@@ -124,9 +128,11 @@ export default {
       )}:${encodeURIComponent(
         accountName
       )}?secret=${this.passwordBase32}&issuer=${encodeURIComponent(serviceName)}`;
-
+      console.log("otpauthUrl", otpauthUrl);
       QRCode.toDataURL(otpauthUrl)
         .then(url => {
+          console.log('QR Code generated successfully:', url);
+
           this.qrCode = url;
           setTimeout(() => {
             this.loading = false

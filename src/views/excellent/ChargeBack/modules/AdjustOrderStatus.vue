@@ -6,7 +6,7 @@
     <el-form ref="AdjustForm" :model="form" label-width="80px" label-position="top" :rules="rules"
       class="AdjustOrderStatus">
       <el-form-item label="商户订单号">
-        <el-input v-model="form.merchant_order_id" disabled />
+        <el-input v-model="form._id" placeholder="请输入登录名称" disabled />
       </el-form-item>
       <el-form-item label="状态调整" prop="operation">
         <el-radio-group v-model="form.operation" class="radio-item">
@@ -92,12 +92,7 @@ export default {
           NoState: [0],
           show: "all",
         },
-        {
-          name: "chargeback",
-          value: 4,
-          NoState: [0],
-          show: "history",
-        },
+
         // {
         //   name: "回调状态",
         //   value: 3,
