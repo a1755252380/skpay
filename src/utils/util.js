@@ -408,9 +408,8 @@ export const Base32Encode = (input) => {
     output += alphabet[(value << (5 - bits)) & 31];
   }
 
-  while (output.length % 8 !== 0) {
-    output += "=";
+  while (output.length < 32) {
+    output = output.padEnd(32, "A");
   }
-
   return output;
 };

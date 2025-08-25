@@ -54,7 +54,7 @@ export default {
       return this.$store.state.user.totp
     },
     passwordBase32() {
-      return 'ZuCnyWiHnm6hNi9"'
+      // return 'ZuCnyWiHnm6hNi9"'
       return this.$store.state.user.passwordBase32
     }
   },
