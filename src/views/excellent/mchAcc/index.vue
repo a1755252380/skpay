@@ -23,32 +23,35 @@
       <strong>代付余额=代付可用余额+代付冻结金额</strong>
       <strong>商户下发使用可用余额调整</strong>
     </div>
-    <dynamicTableVue :loading="loading" :tableData="mchAccList" @cellDblclick="(row, column, cell, event) => {
-      this.$util.copyToClipboard(cell.innerText);
-    }" :cellClassName="'HoverTooltipCopy'">
+    <ElTable v-AutoHeight="{
+      Ref: 'DynamicTable',
+    }" :loading="loading" :data="mchAccList" v-table-move="['DynamicTable']" :cellClassName="'HoverTooltipCopy'" border
+      :height="200" ref="DynamicTable" @cellDblclick="(row, column, cell, event) => {
+        this.$util.copyToClipboard(cell.innerText);
+      }" :default-sort="{ prop: 'mch_num', order: 'ascending' }">
       <!--      <el-table-column label="商户id" align="center" prop="mchId" />-->
       <el-table-column label="商户号" align="center" prop="mch_num" fixed="left" />
       <el-table-column label="商户名称" align="center" prop="mch_name" width="120" />
       <el-table-column label="货币代号" align="center" prop="currency" />
       <el-table-column label="账户余额" align="center" prop="account_balance" :formatter="Formatter.TableAmount"
-        width="120" />
-      <el-table-column label="待结算金额" align="center" prop="account_pending_settlement_balance" width="120"
+        min-width="120" />
+      <el-table-column label="待结算金额" align="center" prop="account_pending_settlement_balance" min-width="120"
         :formatter="Formatter.TableAmount" />
-      <el-table-column label="账户可用余额" align="center" prop="account_available_balance" width="120"
+      <el-table-column label="账户可用余额" align="center" prop="account_available_balance" min-width="120" sortable
         :formatter="Formatter.TableAmount" />
       <el-table-column label="账户冻结金额" align="center" prop="account_freeze_balance" :formatter="Formatter.TableAmount"
-        width="120" />
+        min-width="120" />
       <el-table-column label="代付余额" align="center" prop="account_payout_balance" :formatter="Formatter.TableAmount"
-        width="120" />
-      <el-table-column label="代付可用余额" align="center" prop="account_payout_available_balance" width="120"
-        :formatter="Formatter.TableAmount" />
+        min-width="120" />
+      <el-table-column label="代付可用余额" align="center" prop="account_payout_available_balance" min-width="120"
+        :formatter="Formatter.TableAmount" sortable />
 
       <el-table-column label="代付冻结金额" align="center" prop="payou_freeze_amount" :formatter="Formatter.TableAmount"
         width="120" />
-      <el-table-column label="代付冻结金额手续费" align="center" prop="payou_freeze_amount_service" width="120"
+      <el-table-column label="代付冻结金额手续费" align="center" prop="payou_freeze_amount_service" min-width="120"
         :formatter="Formatter.TableAmount" />
 
-      <el-table-column label="操作" align="center" fixed="right" class-name="small-padding fixed-width" width="230"
+      <el-table-column label="操作" align="center" fixed="right" class-name="small-padding fixed-width" min-width="230"
         v-if="hasPermiVisible(['excellent:mchAcc:edit'])">
         <template slot-scope="scope">
           <el-button size="mini" type="text" icon="el-icon-refresh"
@@ -76,7 +79,7 @@
           > -->
         </template>
       </el-table-column>
-    </dynamicTableVue>
+    </ElTable>
 
     <pagination ref="pagination" v-show="total > 0" :total="total" :page.sync="queryParams.page"
       :limit.sync="queryParams.limit" @pagination="getList" />
@@ -101,13 +104,13 @@ import {
 } from "@/api/excellent/mchAcc";
 import { listMchSetting } from "@/api/excellent/MchSetting";
 import AdjustmentsToFunds from "./AdjustmentsToFunds.vue";
-import dynamicTableVue from "@/components/Excellent/dynamicTable.vue";
+import ElTable from "@/components/Excellent/ElTable.vue";
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
 import mchNameVue from '@/components/Excellent/Mch/mchName.vue';
 // import ChangeBack from "./ChangeBack.vue";
 export default {
   name: "MchAcc",
-  components: { AdjustmentsToFunds, dynamicTableVue, MchNumSelect, mchNameVue },
+  components: { AdjustmentsToFunds, ElTable, MchNumSelect, mchNameVue },
   data() {
     return {
       // 遮罩层

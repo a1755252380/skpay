@@ -5,23 +5,15 @@
     <OrderAndSteam :queryParams="queryParams" :showSearch="showSearch">
       <template #search_option>
         <el-form-item label="商户" prop="mch_number_list" v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
-          <el-select v-model="queryParams.mch_number_list" placeholder="请选择商户" clearable class="w100_input" multiple
+          <MchNumSelect v-model="queryParams.mch_number_list" placeholder="请选择商户" clearable class="w100_input" multiple
             collapse-tags>
-            <el-option v-for="dict in MainAccount" :key="dict.id" :label="dict.mch_num" :value="dict.mch_num" />
-          </el-select>
+          </MchNumSelect>
         </el-form-item>
         <el-form-item label="支付通道" prop="chnl_id" v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
-          <!-- <el-select v-model="queryParams.chnl_id" placeholder="请选择支付通道" clearable class="w100_input">
-            <el-option v-for="dict in ChannelAccount" :key="dict.id" :label="dict.chnl_name" :value="dict.id" />
-          </el-select> -->
+
           <ChannelQuery v-model="queryParams.chnl_id"></ChannelQuery>
         </el-form-item>
-        <!-- <el-form-item label="主体账号" prop="MainAccount">
-          <el-select   v-model="queryParams.MainAccount" placeholder="请选择主体账号" clearable
-            class="w100_input">
-            <el-option v-for="dict in MainAccount" :key="dict.id" :label="dict.accountName" :value="dict.id" />
-          </el-select>
-        </el-form-item> -->
+
 
 
         <el-form-item :label="'商户' + ($route.query.type == 1 ? '代付' : '代收') + '订单号'" prop="merchant_order_id">
@@ -135,10 +127,10 @@ import { listMchSetting } from "@/api/excellent/MchSetting"
 import ChannelQuery from "@/components/Excellent/Channel/ChannelQuery.vue";
 import OrderAndSteam from "@/components/Excellent/SearchLayout/OrderAndSteam.vue";
 import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
-// import BatchSearchOrders from './BatchSearchOrders.vue';
 import BatchDrawer from "@/components/dialog/BatchDrawer.vue";
 import AddOrder from "./AddOrderOut.vue";
 import AddOrderIn from "./AddOrderIn.vue";
+import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
 
 export default {
   name: 'WorkspaceJsonOrderSearch',
@@ -189,7 +181,6 @@ export default {
         order_id: null,
         platform_order_id: null,
         chnl_id: null,
-        // MainAccount: null, //商户的主体账户 暂不用
         status: null,
         end_time: null,
         callback_status: null, //回调状态
@@ -213,8 +204,7 @@ export default {
       },
       //支付通道
       PaymentChannel: [],
-      //商户列表
-      MainAccount: [],
+
       //通道账户配置列表
       ChannelAccount: [],
       //订单状态
@@ -265,11 +255,7 @@ export default {
     this.handleQuery();
 
   },
-  created() {
-    this.getChnl()
-    this.getMainAccount()
 
-  },
 
 
   methods: {
@@ -328,7 +314,6 @@ export default {
         order_id: null,
         platform_order_id: null,
         chnl_id: null,
-        // MainAccount: null, //商户的主体账户 暂不用
         status: null,
         end_time: null,
         callback_status: null, //回调状态
@@ -437,33 +422,15 @@ export default {
         return
       }
     },
-    //查询支付通道
-    getChnl() {
-      if (!this.hasPermiVisible(['excellent:OrderRecords:platform'])) {
-        return
-      }
-      listChnlSetting().then(response => {
-        this.PaymentChannel = response.rows
-        return response.rows
-      });
 
 
-    },
-    //查询主账户
-    getMainAccount() {
-      listMchSetting().then(response => {
-        this.MainAccount = response.rows
-
-        return response.rows
-      });
-    },
 
   },
   components: {
     TimeFrameVue,
     OrderAndSteam,
     AddOrder,
-    ChannelQuery, BatchDrawer, AddOrderIn
+    ChannelQuery, BatchDrawer, AddOrderIn, MchNumSelect
   }
 };
 </script>

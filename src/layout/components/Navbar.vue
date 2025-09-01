@@ -8,11 +8,13 @@
 
     <div class="right-menu">
       <template v-if="device !== 'mobile'">
+        <timeShowVue class="right-menu-item hover-effect" v-hasPermi="['excellent:navbar:timeshow']"></timeShowVue>
         <screenfull id="screenfull" class="right-menu-item hover-effect" />
 
         <div class="right-menu-item">
           <el-button size="mini" type="primary" @click="GetQrCode">绑定二维码</el-button>
         </div>
+
         <!-- <search id="header-search" class="right-menu-item" />
 
         <el-tooltip content="源码地址" effect="dark" placement="bottom">
@@ -55,6 +57,7 @@
 </template>
 
 <script>
+
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import TopNav from '@/components/TopNav'
@@ -64,6 +67,7 @@ import SizeSelect from '@/components/SizeSelect'
 import Search from '@/components/HeaderSearch'
 import RuoYiGit from '@/components/RuoYi/Git'
 import RuoYiDoc from '@/components/RuoYi/Doc'
+import timeShowVue from './Narbar/timeShow.vue'
 
 export default {
   filters: {
@@ -80,7 +84,7 @@ export default {
     SizeSelect,
     Search,
     RuoYiGit,
-    RuoYiDoc
+    RuoYiDoc, timeShowVue
   },
   computed: {
     ...mapGetters([

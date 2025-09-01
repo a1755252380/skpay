@@ -1,66 +1,28 @@
 <template>
   <!-- v-payouloading="loadingData" -->
-  <div v-loading="loadingData" class="table-container" ref="DynamicTable_div">
-    <el-table v-bind="$attrs" v-on="$listeners" :ref="'DynamicTable' + tableId" row-class-name="DynamicTable_row"
-      v-table-move="['DynamicTable' + tableId]">
-      <!-- <transition-group tag="tbody" name="fade" class="el-table__body"> -->
-
-      <slot></slot>
-
-      <!-- </transition-group> -->
-
-    </el-table>
-  </div>
+  <el-table v-bind="$attrs" v-on="$listeners" v-loading="$attrs.loading" :cell-class-name="cellClassNameFunction"
+    @cell-dblclick="cellDblclick" :header-cell-class-name="headerCellClassName">
+    <slot></slot>
+  </el-table>
 </template>
 
 <script>
-import { throttle } from "@/utils/util.js";
 export default {
   name: "WorkspaceJsonDynamicTable",
   props: {
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    tableData: {
-      type: Array,
-      default: () => [],
-    },
-    defaultSort: {
-      type: [Object, String],
-      default: () => { },
-    },
     cellClassName: {
       type: String,
       default: ''
-    },
-    //是否显示合计行
-    showSummary: {
-      type: Boolean,
-      default: false,
-    },
-    //合计方法
-    getSummaries: {
-      type: Function,
-      default: () => { }
     },
     headerCellClassName: {
       type: Function,
       default: ({ row, column, rowIndex, columnIndex }) => {
         return 'DynamicTable_header'
       }
-    }
-  },
-
-  computed: {
-    loadingData() {
-      return this.loading;
     },
 
-    DomListData() {
-      return this.DomList;
-    },
   },
+
   data() {
     return {
       height: 200,
@@ -68,105 +30,9 @@ export default {
     };
   },
 
-  mounted() {
-    let attempt = 0;
-    const tryGetRef = () => {
-      this.$nextTick(() => {
-        if (this.$refs.DynamicTable_div) {
-          this.handleResize();
-          window.addEventListener(
-            "resize",
-            throttle(() => {
-              this.handleResize();
-            }, 150)
-          ); // 监听窗口变化
-        } else if (attempt < 5) {
-          // 尝试 5 次
-          attempt++;
 
-          setTimeout(tryGetRef, 400); // 每 200ms 尝试一次
-        }
-      });
-    };
-    tryGetRef();
-  },
-  beforeDestroy() {
-    window.removeEventListener(
-      "resize",
-      throttle(() => {
-        this.handleResize();
-      }, 150)
-    ); // 在组件销毁时移除监听器
-    // this.removeTooltipListeners()
-  },
   methods: {
-    handleSelectionChange(value) {
-      this.$emit("handleSelectionChange", value);
-    },
-    Totop() {
-      let attempt = 0;
-      const TotopRef = () => {
-        this.$nextTick(() => {
-          if (this.$refs["DynamicTable" + this.tableId]) {
-            this.$refs["DynamicTable" + this.tableId].scrollTop = 0;
-            return;
-          } else if (attempt < 10) {
-            // 尝试 5 次
-            attempt++;
-            console.log("Ref 重新挂载:", attempt);
-            setTimeout(TotopRef, 200); // 每 200ms 尝试一次
-          }
-        });
-      };
-      TotopRef();
-    },
-    //重新构建table
 
-    rebuildTable() {
-
-      let attempt = 0;
-      const doLayoutRef = () => {
-        this.$nextTick(() => {
-          if (this.$refs["DynamicTable" + this.tableId]) {
-            this.$refs["DynamicTable" + this.tableId].doLayout();
-            return;
-          } else if (attempt < 10) {
-            // 尝试 5 次
-            attempt++;
-            console.log("Ref 重新挂载:", attempt);
-            setTimeout(doLayoutRef, 200); // 每 200ms 尝试一次
-          }
-        });
-      };
-      doLayoutRef();
-
-    },
-    //重新渲染table
-    renderTable() {
-      this.tableId = new Date().getTime();
-
-      this.$nextTick(() => {
-        this.rebuildTable()
-      });
-    },
-    TableClick() {
-      this.$refs["DynamicTable" + this.tableId]
-    },
-    //重置table高度
-    handleResize() {
-      this.height = 200;
-
-      this.height = this.$refs.DynamicTable_div.offsetHeight - 10;
-      this.tableId = new Date().getTime();
-      this.$nextTick(() => {
-        this.$refs["DynamicTable" + this.tableId].doLayout();
-      });
-
-      this.$forceUpdate();
-    },
-    clearSelection() {
-      this.$refs["DynamicTable" + this.tableId].clearSelection();
-    },
     cellDblclick(row, column, cell, event) {
       if (column.type == "selection" || column.label == "操作" || column.label == "历史" ||
         column.label == "状态" || column.label == "验证状态" || column.label == "账户状态" || column.label == "代收开关" || column.label == "代付开关") {
@@ -174,12 +40,9 @@ export default {
       }
       this.$emit("cellDblclick", row, column, cell, event);
     },
-    handleSort({ column, prop, order }) {
 
-      this.$emit("handleSortChange", { prop, order });
-    },
     cellClassNameFunction({ row, column, rowIndex, columnIndex }) {
-      // console.log(row, column, rowIndex, columnIndex);
+      console.log(this.$attrs);
       if (column.type == "selection" || column.label == "操作" || column.label == "历史" ||
         column.label == "状态" || column.label == "验证状态" || column.label == "账户状态" || column.label == "代收开关" || column.label == "代付开关") {
         return 'DynamicTable_cell'

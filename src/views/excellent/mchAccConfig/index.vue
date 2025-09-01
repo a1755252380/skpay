@@ -96,7 +96,7 @@
           </el-table-column>
           <!-- <el-table-column label="支付方式  " align="center" prop="paymentMode" /> -->
 
-          <el-table-column label="代收费率" align="center" prop="payin_rate" width="300">
+          <el-table-column label="代收费率" align="center" prop="payin_rate" width="320">
             <template slot-scope="scope">
               <div style="">
                 <span v-for="(item, index) in JSON.parse(scope.row.payin_rate_interval)" :key="index"

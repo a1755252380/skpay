@@ -1,7 +1,7 @@
 <template>
   <el-select v-model="modelValue" clearable ref="ClientSearch" :loading="ClientSearchLoading"
     :remote-method="mchNumSearch" placeholder="请选择商户号" @change="handleChange" @clear="handleClear" v-bind="$attrs"
-    v-on="$listeners">
+    :filterable="!('multiple' in $attrs)" v-on="$listeners">
     <el-option v-for="item in ClientSearchList" :key="item.id" :label="item.mch_num" :value="item.mch_num" />
   </el-select>
 </template>
@@ -30,7 +30,10 @@ export default {
       FirstSearched: true
     };
   },
+  mounted() {
+    console.log(!this.$attrs.multiple);
 
+  },
   computed: {
     modelValue: {
       get() {

@@ -46,14 +46,6 @@ export default {
 };
 </script>
 <style lang="scss">
-::v-deep .el-form-item--mini.el-form-item {
-  margin-bottom: 8px;
-}
-
-::v-deep .el-form--label-top .el-form-item__label {
-  padding: 0 0 6px 0;
-}
-
 .OrderRecords_table_search {
   padding: 0 16px 8px 16px;
   // margin-bottom: 20px;
@@ -82,24 +74,13 @@ export default {
   grid-column: span 2;
   /* 跨两列 */
 }
+</style>
+<style lang="scss" scoped>
+::v-deep .el-form-item--mini.el-form-item {
+  margin-bottom: 8px;
+}
 
-// @media (max-width: 900px) {
-//   .search_option_div {
-//     grid-template-columns: repeat(3, minmax(180px, 1fr));
-//     /* 小屏幕时每行 3 个 */
-//   }
-// }
-
-// @media (max-width: 600px) {
-//   .search_option_div {
-//     grid-template-columns: repeat(2, minmax(180px, 1fr));
-//     /* 更小屏幕时每行 2 个 */
-//   }
-// }
-
-// @media (max-width: 400px) {
-//   .search_option_div {
-//     grid-template-columns: 1fr;
-//     /* 最小屏幕时每行 1 个 */
-//   }
-// }</style>
+::v-deep .el-form--label-top .el-form-item__label {
+  padding: 0 0 3px 0 !important;
+}
+</style>

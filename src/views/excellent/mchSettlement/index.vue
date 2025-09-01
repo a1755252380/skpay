@@ -82,12 +82,10 @@
 
 import { listMchSettlementList, getMchSettlementDay, delMchSettlement, addMchSettlement, updateMchSettlement, QueryChannelSettlementAmount } from "@/api/excellent/mchSettlement";
 
-import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
 import DetailedContentVue from "./DetailedContent.vue";
 import TimeFrameVue from "@/components/Excellent/SearchOption/TimeFrame.vue";
 import moment from "moment";
-import dynamicTable2Vue from '@/components/Excellent/dynamicTable2.vue';
 export default {
   name: "MchSettlement",
   filters: {
@@ -527,7 +525,6 @@ export default {
   },
   components: {
     DetailedContentVue,
-    dynamicTableVue, dynamicTable2Vue,
     MchNumSelect,
     TimeFrameVue
   },
