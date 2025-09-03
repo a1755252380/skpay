@@ -95,6 +95,19 @@ export default {
     return {
       shortcuts: [
         {
+          text: "最近一小时",
+          onClick(picker) {
+            const start = moment()
+              .tz("Asia/Kolkata")
+              .subtract(1, "hours")
+              .format("YYYY-MM-DD HH:00:00");
+            const end = moment()
+              .tz("Asia/Kolkata")
+              .format("YYYY-MM-DD HH:00:00");
+            picker.$emit("pick", [start, end]);
+          },
+        },
+        {
           text: "今天一天",
           onClick(picker) {
             const start = moment()
