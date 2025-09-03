@@ -37,13 +37,13 @@
         min-width="120" />
       <el-table-column label="待结算金额" align="center" prop="account_pending_settlement_balance" min-width="120"
         :formatter="Formatter.TableAmount" />
-      <el-table-column label="账户可用余额" align="center" prop="account_available_balance" min-width="120" sortable
+      <el-table-column label="账户可用余额" align="center" prop="account_available_balance" min-width="140" sortable
         :formatter="Formatter.TableAmount" />
       <el-table-column label="账户冻结金额" align="center" prop="account_freeze_balance" :formatter="Formatter.TableAmount"
         min-width="120" />
       <el-table-column label="代付余额" align="center" prop="account_payout_balance" :formatter="Formatter.TableAmount"
         min-width="120" />
-      <el-table-column label="代付可用余额" align="center" prop="account_payout_available_balance" min-width="120"
+      <el-table-column label="代付可用余额" align="center" prop="account_payout_available_balance" min-width="140"
         :formatter="Formatter.TableAmount" sortable />
 
       <el-table-column label="代付冻结金额" align="center" prop="payou_freeze_amount" :formatter="Formatter.TableAmount"

@@ -34,6 +34,7 @@ const Cache = {
   },
 
   actions: {
+    //获取通道列表
     async fetchOptions({ state, commit }) {
       // 如果已有数据，不再请求
       if (state.channelList.length > 0 || state.loading) {
@@ -50,11 +51,7 @@ const Cache = {
         .then((response) => {
           commit(
             "setOptions",
-            response.rows
-              .filter((item) => {
-                return item.payout_state === 0 && item.payin_state === 0;
-              })
-              .sort((a, b) => a.id - b.id)
+            response.rows.sort((a, b) => a.id - b.id)
           ); // 存储数据
         })
         .finally(() => {
