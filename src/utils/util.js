@@ -111,8 +111,7 @@ export const copyToClipboard = (event, key = "") => {
           Notification({
             title: "成功复制到剪贴板",
             customClass: "NotificationMessage",
-            message: event,
-            // "<div style='width:200px;'><strong >" + event + "</strong></div>",
+            message: `<div style="max-height:200px;overflow-y:auto;word-break:break-all;"><strong > ${event} </strong></div>`,
             duration: 1000,
             dangerouslyUseHTMLString: true,
             type: "success",
@@ -136,8 +135,7 @@ export const copyToClipboard = (event, key = "") => {
         Notification({
           title: "成功复制到剪贴板",
           customClass: "NotificationMessage",
-          message: event,
-          // "<div style='width:200px;'><strong >" + event + "</strong></div>",
+          message: `<div style="max-height:200px;overflow-y:auto;word-break:break-all;"><strong > ${event} </strong></div>`,
           duration: 1000,
           dangerouslyUseHTMLString: true,
           type: "success",

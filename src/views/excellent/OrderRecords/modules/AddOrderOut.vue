@@ -47,6 +47,7 @@
     </el-form>
     <template #footer>
       <el-button @click="visible = false">取 消</el-button>
+      <!-- <el-button type="primary" @click="quicklyFillIn" plain>快速填写</el-button> -->
       <el-button type="primary" @click="uploadDialogVisible = true">上传xlsx</el-button>
       <el-button type="primary" @click="handleConfirm">提交新订单</el-button>
     </template>
@@ -64,6 +65,7 @@ import NumberInput from '@/components/element/NumberInput.vue';
 import filesubmitPayoutVue from './filesubmitPayout.vue';
 import ChannelQuery from '@/components/Excellent/Channel/ChannelQuery.vue';
 import { mapState } from 'vuex'
+import Cookies from "js-cookie";
 export default {
   name: 'AddOrder',
   components: {
@@ -165,7 +167,21 @@ export default {
       }
     }
   },
-
+  watch: {
+    visible(newVal) {
+      if (newVal) {
+        if (Cookies.get('bene_bank_acct')) {
+          this.form.bene_bank_acct = Cookies.get('bene_bank_acct');
+        }
+        if (Cookies.get('bene_ifsc')) {
+          this.form.bene_ifsc = Cookies.get('bene_ifsc');
+        }
+        if (Cookies.get('bene_name')) {
+          this.form.bene_name = Cookies.get('bene_name');
+        }
+      }
+    }
+  },
 
   methods: {
 

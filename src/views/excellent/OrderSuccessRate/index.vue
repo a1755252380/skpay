@@ -1,20 +1,36 @@
 <template>
   <div class="app-container fulltable_div">
-    <div class="FlexBetween" ref="search">
-      <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="160px">
-        <el-form-item label="统计时间（分钟）" prop="StatisticalTime">
-          <el-select v-model="queryParams.StatisticalTime" placeholder="请选择统计时间">
-            <el-option v-for="item in StatisticalTimeOptions" :key="item.value" :label="item.label"
-              :value="item.value"></el-option>
-          </el-select>
+    <el-form :model="queryParams" ref="queryForm" size="mini" :inline="true" v-show="showSearch" label-width="160px">
+      <el-form-item label="统计时间（分钟）" prop="StatisticalTime">
+        <el-select v-model="queryParams.StatisticalTime" placeholder="请选择统计时间">
+          <el-option v-for="item in StatisticalTimeOptions" :key="item.value" :label="item.label"
+            :value="item.value"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="fetchMchSettings(false)">查询</el-button>
+        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+        <el-button icon="el-icon-refresh" type="warning" size="mini"
+          v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" @click="changeRate">{{ this.routeFlag ===
+            'order'
+            ? '通道成功率' :
+            '订单成功率'
+          }}</el-button>
+        <el-form-item label="业务中:" v-if="hasPermiVisible(['excellent:OrderRecords:platform']) && routeFlag == 'order'">
+          <div class="FlexCenter">
+            <div style="width: 150px;">
+              <ChannelQueryVue v-model="channelQuery"></ChannelQueryVue>
+            </div>
+            <el-button-group style="margin-left: 6px;">
+              <el-button type="primary" size="mini" @click="copyMch('payin')">代收</el-button>
+              <el-button type="primary" size="mini" @click="copyMch('payout')">代付</el-button>
+            </el-button-group>
+          </div>
         </el-form-item>
-        <el-form-item>
-          <el-button type="primary" icon="el-icon-search" size="mini" @click="fetchMchSettings(false)">查询</el-button>
-          <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-        </el-form-item>
-      </el-form>
-      <right-toolbar :showSearch.sync="showSearch" @queryTable="fetchMchSettings(false)"></right-toolbar>
-    </div>
+
+      </el-form-item>
+    </el-form>
+
 
     <dynamicTableVue :loading="loading" :tableData="OrderSuccessRateListSort" :cellClassName="'HoverTooltipCopy'"
       @cellDblclick="cellDblclick">
@@ -23,10 +39,12 @@
       <el-table-column prop="chnl_id" label="通道名称" align="center" fixed="left" v-else
         :formatter="Formatter.SettingChannelNameFormatter" width="80">
       </el-table-column>
-      <el-table-column label="代收通道" align="center" min-width="80" v-if="routeFlag == 'order'"
+      <el-table-column label="代收通道" align="center" width="80"
+        v-if="routeFlag == 'order' && hasPermiVisible(['excellent:OrderRecords:platform'])"
         :formatter="Formatter.MerchantChannelInNameFormatter">
       </el-table-column>
-      <el-table-column label="代收分流通道" align="center" min-width="80" v-if="routeFlag == 'order'"
+      <el-table-column label="代收分流通道" align="center" width="110"
+        v-if="routeFlag == 'order' && hasPermiVisible(['excellent:OrderRecords:platform'])"
         :formatter="Formatter.MerchantChannelOverInNameFormatter">
       </el-table-column>
       <el-table-column prop="payin_success_rate" label="代收成功率" align="center" width="100" class-name="rate_show"
@@ -41,7 +59,7 @@
 
       </el-table-column>
       <el-table-column prop="payin_success_amount" label="代收成功订单总额" align="center" :formatter="Formatter.TableAmount"
-        width="100">
+        min-width="100">
 
       </el-table-column>
 
@@ -49,21 +67,23 @@
 
       </el-table-column>
 
-      <el-table-column prop="payin_total_amount" label="代收总金额" align="center" width="100"
+      <el-table-column prop="payin_total_amount" label="代收总金额" align="center" min-width="100"
         :formatter="Formatter.TableAmount">
 
       </el-table-column>
 
 
 
-      <el-table-column prop="payout_success_rate" label="代付成功率" align="center" class-name="rate_show" width="100"
+      <el-table-column prop="payout_success_rate" label="代付成功率" align="center" class-name="rate_show" min-width="100"
         :formatter="Formatter.TableRate">
 
       </el-table-column>
-      <el-table-column label="代付通道" align="center" min-width="80" v-if="routeFlag == 'order'"
+      <el-table-column label="代付通道" align="center" width="80"
+        v-if="routeFlag == 'order' && hasPermiVisible(['excellent:OrderRecords:platform'])"
         :formatter="Formatter.MerchantChannelOutNameFormatter">
       </el-table-column>
-      <el-table-column label="代付分流通道" align="center" min-width="80" v-if="routeFlag == 'order'"
+      <el-table-column label="代付分流通道" align="center" width="110"
+        v-if="routeFlag == 'order' && hasPermiVisible(['excellent:OrderRecords:platform'])"
         :formatter="Formatter.MerchantChannelOverOutNameFormatter">
       </el-table-column>
       <!-- <el-table-column prop="payout_success_service_charge" label="代付成功手续费" align="center"
@@ -74,14 +94,14 @@
 
       </el-table-column>
       <el-table-column prop="payout_success_amount" label="代付成功订单总额" align="center" :formatter="Formatter.TableAmount"
-        width="100">
+        min-width="100">
 
       </el-table-column>
 
       <el-table-column prop="payout_total_count" label="代付订单总数" align="center">
 
       </el-table-column>
-      <el-table-column prop="payout_total_amount" label="代付总金额" width="100" align="center"
+      <el-table-column prop="payout_total_amount" label="代付总金额" min-width="100" align="center"
         :formatter="Formatter.TableAmount">
 
       </el-table-column>
@@ -100,15 +120,17 @@
 <script>
 import { listOrderSuccessRate, listChnlSuccessRate } from "@/api/excellent/OrderSuccessRate";
 import dynamicTableVue from "@/components/Excellent/dynamicTable.vue";
+
 import { listMchAccConfig } from "@/api/excellent/mchAccConfig";
 import { listChnlSetting } from "@/api/excellent/chnlSetting";
+import ChannelQueryVue from '@/components/Excellent/Channel/ChannelQuery.vue';
 export default {
   name: "OrderSuccessRate",
-  components: { dynamicTableVue },
+  components: { dynamicTableVue, ChannelQueryVue },
   data() {
     return {
       routeFlag: 'order', //路由标识
-
+      channelQuery: null,
       loading: false,
       showSearch: true,
       queryParams: { StatisticalTime: "five" },
@@ -134,6 +156,57 @@ export default {
     this.fetchMchSettings();
   },
   methods: {
+    //复制在跑的商户
+    copyMch(type) {
+      if (this.routeFlag !== 'order') {
+        return
+      }
+      if (!this.channelQuery) {
+        this.$notify({
+          title: "请选择" + (type === 'payin' ? '代收' : '代付') + "通道",
+          customClass: "NotificationMessage",
+          duration: 1000,
+          type: "warning",
+        });
+        return;
+      }
+      const textMch = [888888, 999999, 1234567]
+      let mchNumbers
+      if (type === 'payin') {
+        mchNumbers = this.OrderSuccessRateListSort
+          .filter(item => item.payin_total_count > 0 && !textMch.includes(Number(item.mch_num)) && item.payin_chnl_id === this.channelQuery)
+          .map(item => item.mch_num);
+
+      }
+      if (type === 'payout') {
+        mchNumbers = this.OrderSuccessRateListSort
+          .filter(item => item.payout_total_count > 0 && !textMch.includes(Number(item.mch_num)) && item.payout_chnl_id === this.channelQuery)
+          .map(item => item.mch_num)
+
+      }
+      if (mchNumbers.length === 0) {
+        this.$notify({
+          title: "暂无" + (type === 'payin' ? '代收' : '代付') + "中的商户",
+          customClass: "NotificationMessage",
+          duration: 1000,
+          type: "warning",
+        });
+        return;
+
+      }
+      this.$util.copyToClipboard(mchNumbers.join(','));
+    },
+    //切换显示成功率
+    changeRate() {
+      this.OrderSuccessRateList.splice(0);
+      this.OrderSuccessRateListSort.splice(0);
+      if (this.routeFlag === 'order') {
+        this.routeFlag = 'chnl'
+      } else {
+        this.routeFlag = 'order'
+      }
+      this.fetchMchSettings();
+    },
     //添加数据
     async AddData(res) {
       this.OrderSuccessRateList.splice(0)
@@ -323,4 +396,9 @@ export default {
   },
 };
 </script>
-<style lang="scss"></style>
+<style lang="scss" scoped>
+::v-deep .el-form-item--mini.el-form-item {
+  margin-bottom: 0px;
+  padding-bottom: 6px;
+}
+</style>

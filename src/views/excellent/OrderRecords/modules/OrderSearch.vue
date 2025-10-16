@@ -6,7 +6,7 @@
       <template #search_option>
         <el-form-item label="商户" prop="mch_number_list" v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
           <MchNumSelect v-model="queryParams.mch_number_list" placeholder="请选择商户" clearable class="w100_input" multiple
-            collapse-tags>
+            filterable collapse-tags>
           </MchNumSelect>
         </el-form-item>
         <el-form-item label="支付通道" prop="chnl_id" v-if="hasPermiVisible(['excellent:OrderRecords:platform'])">
