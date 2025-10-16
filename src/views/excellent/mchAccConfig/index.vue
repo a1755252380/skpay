@@ -7,10 +7,10 @@
             <!-- <el-input v-model="queryParams.mch_num" placeholder="请输入商户号 " clearable @keyup.enter.native="handleQuery" /> -->
             <MchNumSelect v-model="queryParams.mch_num" @change="handleQuery"></MchNumSelect>
           </el-form-item>
-          <el-form-item label="货币代号" prop="currency">
+          <!-- <el-form-item label="货币代号" prop="currency">
             <el-input v-model="queryParams.currency" placeholder="请输入货币代号" clearable
               @keyup.enter.native="handleQuery" />
-          </el-form-item>
+          </el-form-item> -->
           <el-form-item label="代收通道" prop="payin_chnl_id">
             <ChannelQueryVue v-model="queryParams.payin_chnl_id"></ChannelQueryVue>
 
@@ -45,9 +45,12 @@
             <el-button type="primary" plain icon="el-icon-refresh" size="mini"
               @click="BatchSpeedLimitShow">批量设置并发</el-button>
           </el-col>
+          <el-col :span="1.5">
+            <el-button type="primary" plain icon="el-icon-setting" size="mini"
+              @click="BatchDistributionChannels">批量设置代收分配</el-button>
+          </el-col>
           <el-col :span="1.5" class="FlexCenter">
-            <el-input v-model="selectMchList" size="mini" placeholder="请输入商户,相隔" style="width: 8.5rem;" clearable
-              @keyup.enter.native="handleQuery" />
+            <el-input v-model="selectMchList" size="mini" placeholder="请输入商户,相隔" style="width: 8.5rem;" clearable />
             <el-button type="primary" icon="el-icon-finished" size="mini" style="margin-left: 5px;"
               @click="SelectMch"></el-button>
           </el-col>
@@ -59,7 +62,7 @@
         </el-row>
 
         <el-table v-AutoHeight="{
-          Ref: 'myTable',
+          Ref: 'myTable', Height: 15
         }" v-table-move="['myTable']" :data="mchAccConfigList" @selection-change="handleSelectionChange"
           v-loading="loading" ref="myTable" border :highlight-selection-row="true" :height="200" row-key="mch_num">
           <el-table-column type="selection" width="55" align="center" fixed />
@@ -98,7 +101,13 @@
               </el-switch>
             </template>
           </el-table-column>
-          <!-- <el-table-column label="支付方式  " align="center" prop="paymentMode" /> -->
+          <el-table-column label="分配状态" align="center" prop="payin_distribution">
+            <template slot-scope="scope">
+              <el-switch v-model="scope.row.payin_distribution" active-color="#409EFF" inactive-color="#DCDFE6"
+                :active-value="0" :inactive-value="1" @change="ChangeState($event, scope.row, 3)">
+              </el-switch>
+            </template>
+          </el-table-column>
 
           <el-table-column label="代收费率" align="center" prop="payin_rate" width="320">
             <template slot-scope="scope">
@@ -373,7 +382,7 @@ export default {
       // 查询参数
       queryParams: {
         page: 1,
-        limit: 100,
+        limit: 50,
         mch_num: null,
         currency: null,
         payout_chnl_id: null,
@@ -441,6 +450,7 @@ export default {
       }
       this.BatchSpeedLimitVisible = true;
     },
+
     updateVisible() {
       this.batchChangeChannelsVisible = false;
     },
@@ -498,6 +508,34 @@ export default {
 
       })
 
+    },
+    //批量设置分配通道
+    BatchDistributionChannels() {
+      if (this.ids.length == 0) {
+        this.$message.error("请选择要设置的商户");
+        return
+      }
+      this.$confirm('确认批量设置商户使用代收分配池吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }).then(() => {
+        this.progressVisible = true;
+        const confirmList = this.ids.map(item => {
+          return {
+            mch_num: item.mch_num,
+            payin_distribution: item.payin_distribution ? 0 : 1,
+          }
+        })
+        this.$refs.ProgressDialog.batchRequest(confirmList, updateMchAccConfig).then((res) => {
+          this.$message({
+            message: '批量设置代收分配池成功',
+            type: 'success',
+          });
+          this.ids.splice(0, this.ids.length);
+          this.getList();
+        })
+      })
     },
     /** 查询商户账户配置列表 */
     getList() {
@@ -578,6 +616,10 @@ export default {
       } else if (type == 2) {
         form['payout_state'] = ChangeData;
         key = "payout_state";
+      }
+      else if (type == 3) {
+        form['payin_distribution'] = ChangeData;
+        key = "payin_distribution";
       }
       updateMchAccConfig(form).then((response) => {
         this.$modal.msgSuccess("修改成功");

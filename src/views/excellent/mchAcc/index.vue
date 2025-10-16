@@ -24,9 +24,9 @@
       <strong>商户下发使用可用余额调整</strong>
     </div>
     <ElTable v-AutoHeight="{
-      Ref: 'DynamicTable',
+      Ref: 'DynamicTable', height: 300
     }" :loading="loading" :data="mchAccList" v-table-move="['DynamicTable']" :cellClassName="'HoverTooltipCopy'" border
-      :height="200" ref="DynamicTable" @cellDblclick="(row, column, cell, event) => {
+      :height="600" ref="DynamicTable" @cellDblclick="(row, column, cell, event) => {
         this.$util.copyToClipboard(cell.innerText);
       }" :default-sort="{ prop: 'mch_num', order: 'ascending' }">
       <!--      <el-table-column label="商户id" align="center" prop="mchId" />-->
@@ -136,7 +136,7 @@ export default {
       // 查询参数
       queryParams: {
         page: 1,
-        limit: 30,
+        limit: 50,
         mch_num: null,
         mch_name: null,
         currency: null,

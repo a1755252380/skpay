@@ -20,10 +20,11 @@
         <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
           v-hasPermi="['excellent:chnlSetting:add']">新增通道</el-button>
       </el-col>
-      <!-- <el-col :span="1.5">
-        <el-button type="success" plain icon="el-icon-edit" size="mini" :disabled="single" @click="handleUpdate"
-          v-hasPermi="['excellent:chnlSetting:edit']">修改(启用/禁用)</el-button>
-      </el-col> -->
+      <el-col :span="1.5">
+        <el-button type="primary" plain icon="el-icon-setting" size="mini" @click="AllocationPool = true"
+          v-hasPermi="['excellent:chnlSetting:add']">通道分配池</el-button>
+      </el-col>
+
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -123,6 +124,8 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+    <!-- 分配通道对话框 -->
+    <AllocationPoolVue ref="allocationPoolVue" v-model="AllocationPool"></AllocationPoolVue>
   </div>
 </template>
 
@@ -131,11 +134,13 @@ import { listChnlSetting, getChnlSetting, delChnlSetting, addChnlSetting, update
 import ChannelQuery from "../../../components/Excellent/Channel/ChannelQuery.vue";
 import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
 import moment from "moment";
+import AllocationPoolVue from './modules/AllocationPool.vue';
 
 export default {
   name: "ChnlSetting",
   data() {
     return {
+      AllocationPool: false,
       // 遮罩层
       loading: true,
       // 选中数组
@@ -332,7 +337,7 @@ export default {
 
   },
   components: {
-    ChannelQuery, dynamicTableVue
+    ChannelQuery, dynamicTableVue, AllocationPoolVue
   }
 };
 </script>

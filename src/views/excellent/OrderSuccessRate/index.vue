@@ -1,7 +1,7 @@
 <template>
   <div class="app-container fulltable_div">
-    <el-form :model="queryParams" ref="queryForm" size="mini" :inline="true" v-show="showSearch" label-width="160px">
-      <el-form-item label="统计时间（分钟）" prop="StatisticalTime">
+    <el-form :model="queryParams" ref="queryForm" size="mini" :inline="true" v-show="showSearch" label-width="80px">
+      <el-form-item label="统计时间" prop="StatisticalTime">
         <el-select v-model="queryParams.StatisticalTime" placeholder="请选择统计时间">
           <el-option v-for="item in StatisticalTimeOptions" :key="item.value" :label="item.label"
             :value="item.value"></el-option>

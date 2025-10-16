@@ -71,3 +71,20 @@ export function DynamicQueryChannel(params) {
     params: params,
   });
 }
+
+// 查询通道分配池
+export function listAllocationPool() {
+  return request({
+    url: "/chnl/distribution/get",
+    method: "get",
+  });
+}
+
+// 新增通道分配池
+export function addAllocationPool(data) {
+  return request({
+    url: "/chnl/distribution/set",
+    method: "get",
+    params: data,
+  });
+}
