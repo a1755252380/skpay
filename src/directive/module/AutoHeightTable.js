@@ -36,9 +36,9 @@ const doResize = (el, binding, vnode) => {
   if (!mainHight) {
     mainHight = document.getElementById("app-main").offsetHeight;
   }
-  console.log(mainHight);
-  console.log(parentPaddingT);
-  console.log(exitH);
+  // console.log(mainHight);
+  // console.log(parentPaddingT);
+  // console.log(exitH);
   // 计算列表高度
   const height =
     mainHight - customHeight - exitH - parentPaddingT - parentPaddingB;

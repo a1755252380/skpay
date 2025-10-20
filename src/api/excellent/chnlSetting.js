@@ -84,7 +84,17 @@ export function listAllocationPool() {
 export function addAllocationPool(data) {
   return request({
     url: "/chnl/distribution/set",
-    method: "get",
-    params: data,
+    method: "post",
+    data,
+  });
+}
+// 删除通道分配池
+export function delAllocationPool(id) {
+  return request({
+    url: "/chnl/distribution/del",
+    method: "post",
+    data: {
+      chnl_ids: [String(id)],
+    },
   });
 }

@@ -4,11 +4,12 @@
       label-width="140px">
       <div class="search_option_div">
         <slot name="search_option"></slot>
-      </div>
-      <slot class="FlexStart">
-        <slot name="search_btn"></slot>
+        <div class="btn ">
+          <slot name="search_btn"></slot>
 
-      </slot>
+        </div>
+      </div>
+
     </el-form>
 
   </div>
@@ -48,36 +49,64 @@ export default {
 <style lang="scss">
 .OrderRecords_table_search {
   padding: 0 16px 8px 16px;
-  // margin-bottom: 20px;
+
+
+
 
   .search_option_div {
     display: grid;
-    gap: 0 8px;
-    /* 行高均等 */
-    /* 强制分为两行 */
+    grid-auto-flow: dense; // 尽量回填空位
+    gap: 6px 8px; // 行间距 6px，列间距 8px
+    grid-auto-rows: minmax(20px, auto); // 高度自适应
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); // 默认大屏
 
+    // 大格子跨两列
+    .large {
+      grid-column: span 2;
 
+      @media (max-width: 767px) {
+        grid-column: span 1; // 小屏不要跨列
+      }
+    }
+
+    // 按钮跨三列，并底部对齐
+    .btn {
+      grid-column: span 3;
+      margin-bottom: 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    // 响应式断点
+    @media (max-width: 1199px) {
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    }
+
+    @media (max-width: 991px) {
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    }
+
+    @media (max-width: 767px) {
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
   }
-}
 
-.search_option_div {
-  display: grid;
-  // grid-auto-flow: column;
-  /* 按列填充，确保两行 */
-  // grid-template-columns: minmax(160px, 1fr);
-  grid-template-columns: repeat(auto-fill, minmax(150px, 16.1%));
-  // gap: 16px;
-}
 
-/* 特殊处理需要更大宽度的输入框 */
-.search_option_div .large {
-  grid-column: span 2;
-  /* 跨两列 */
+  /* 大输入框跨列 */
+  .search_option_div .large {
+    grid-column: span 2;
+
+    @media (max-width: 767px) {
+      grid-column: span 1; // 小屏不要跨列
+    }
+  }
+
 }
 </style>
 <style lang="scss" scoped>
 ::v-deep .el-form-item--mini.el-form-item {
-  margin-bottom: 8px;
+  margin-bottom: 6px !important;
 }
 
 ::v-deep .el-form--label-top .el-form-item__label {

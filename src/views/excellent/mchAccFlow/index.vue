@@ -7,10 +7,47 @@
         @RequestingDataAgain="RequestingDataAgain" :TypeParameter="queryPage" />
 
       <!-- 动态表格组件 -->
-      <dynamicTableVue :loading="loading" :tableData="paginatedItems" @cellDblclick="cellDblclick"
+      <!-- <dynamicTableVue :loading="loading" :tableData="paginatedItems" @cellDblclick="cellDblclick"
         :cellClassName="' HoverTooltipCopy'" ref="myTable">
 
-        <!-- 表格列配置 -->
+
+        <el-table-column label="商户号 " align="center" prop="mch_number" fixed="left" width="80" />
+
+        <el-table-column label="账户初期金额" align="center" prop="mch_start_balance" :formatter="Formatter.TableAmount"
+          width="120" />
+        <el-table-column label="账户末期金额" align="center" prop="mch_final_balance" :formatter="Formatter.TableAmount"
+          width="120" />
+        <el-table-column label="余额变动信息" align="center" prop="operation" :formatter="BalanceChangeInformation"
+          show-overflow-tooltip width="180" />
+        <el-table-column label="订单金额" align="center" prop="amount" :formatter="Formatter.TableAmount" />
+        <el-table-column label="订单变动金额" align="center" prop="settle_amount" :formatter="Formatter.TableAmount"
+          width="150">
+          <template slot-scope="scope">
+            <span>{{ NumFormat(scope.row.settle_amount, scope.row.msg) }}</span>
+          </template>
+</el-table-column>
+<el-table-column label="资金变动原因" align="center" prop="msg" show-overflow-tooltip min-width="150" />
+<el-table-column label="资金变动类型" align="center" prop="operation" :formatter="Formatter.typeFormatter" width="250">
+  <template slot-scope="scope">
+            <el-tag :type="Formatter.statusColorFormatter(0, 0, scope.row.operation)">{{ Formatter.typeFormatter(0, 0,
+              scope.row.operation) }}</el-tag>
+          </template>
+
+</el-table-column>
+<el-table-column label="订单号 " align="center" prop="order_id" width="100">
+</el-table-column>
+
+<el-table-column label="商户订单号" align="center" prop="merchant_order_id" width="210" show-overflow-tooltip />
+
+<el-table-column label="流水更新时间" align="center" prop="update_time" :formatter="Formatter.TableTimeSecond" width="180" />
+<el-table-column label="创建时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond" width="180" />
+</dynamicTableVue> -->
+      <el-table v-AutoHeight="{
+        Ref: 'myTable', Height: 43
+      }" v-table-move="['myTable']" :data="paginatedItems" v-loading="loading" ref="myTable" border :height="200"
+        row-key="mch_number">
+
+
         <el-table-column label="商户号 " align="center" prop="mch_number" fixed="left" width="80" />
 
         <el-table-column label="账户初期金额" align="center" prop="mch_start_balance" :formatter="Formatter.TableAmount"
@@ -44,7 +81,9 @@
           width="180" />
         <el-table-column label="创建时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond"
           width="180" />
-      </dynamicTableVue>
+
+
+      </el-table>
 
       <!-- 分页组件 -->
       <pagination ref="pagination" v-show="totalPages > 0" :total="pageData.total" :page.sync="pageData.currentPage"

@@ -163,33 +163,7 @@
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width" fixed="right"
             v-if="hasPermiVisible(['excellent:mchAccConfig:edit'])">
             <template slot-scope="scope">
-              <!-- <el-popover placement="left-start" width="380" trigger="hover">
-      <div class="table_expand_rate">
-        <div class="table_expand_rate_option">
-          <div class="table_expand_rate_title">
-            代付费率区间
-          </div>
-          <div v-for="item, index in JSON.parse(scope.row.payout_rate_interval)" :key="index"
-            class="table_expand_rate_item">
-            <span class="table_expand_rate_label"> {{ index }}：</span><span class="table_expand_rate_value">{{
-              item }}</span>
-          </div>
-        </div>
-        <div class="table_expand_rate_option">
-          <div class="table_expand_rate_title">
-            代收费率区间
-          </div>
-          <div v-for="item, index in JSON.parse(scope.row.payin_rate_interval)" :key="index"
-            class="table_expand_rate_item">
-            <span class="table_expand_rate_label"> {{ index }}：</span><span class="table_expand_rate_value">{{
-              item }}</span>
-          </div>
-        </div>
-      </div>
 
-      <el-button slot="reference" icon="el-icon-view" type="text" size="mini"
-        style="margin-right: 8px;">费率</el-button>
-    </el-popover> -->
               <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"
                 v-hasPermi="['excellent:mchAccConfig:edit']">修改</el-button>
 
@@ -199,110 +173,7 @@
           </el-table-column>
 
         </el-table>
-        <!--
-        <dynamicTableVue :loading="loading" :tableData="mchAccConfigList"
-          @handleSelectionChange="handleSelectionChange">
-          <el-table-column type="selection" width="55" align="center" fixed />
 
-
-          <el-table-column label="商户号 " align="center" prop="mch_num" fixed />
-          <el-table-column label="货币代号" align="center" prop="currency" />
-          <el-table-column label="代收通道" align="center" prop="payin_chnl_id" width="100"
-            :formatter="Formatter.MerchantChannelInNameFormatter" />
-
-          <el-table-column label="代付通道" align="center" prop="payout_chnl_id" width="100"
-            :formatter="Formatter.MerchantChannelOutNameFormatter" />
-          <el-table-column label="结算模式" align="center" prop="settle_mode">
-            <template slot-scope="scope">
-              <span v-if="scope.row.settle_mode === 0">实时结算</span>
-              <span v-else-if="scope.row.settle_mode === 1">延时结算</span>
-              <span v-else-if="scope.row.settle_mode === 2">手动结算</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="账户状态" align="center" prop="state">
-            <template slot-scope="scope">
-              <el-switch v-model="scope.row.state" active-color="#409EFF" inactive-color="#DCDFE6" :active-value="0"
-                :inactive-value="1" @change="ChangeState($event, scope.row, 0)">
-              </el-switch>
-            </template>
-          </el-table-column>
-          <el-table-column label="代收开关" align="center" prop="payin_state">
-            <template slot-scope="scope">
-              <el-switch v-model="scope.row.payin_state" active-color="#409EFF" inactive-color="#DCDFE6"
-                :active-value="0" :inactive-value="1" @change="ChangeState($event, scope.row, 1)">
-              </el-switch>
-            </template>
-          </el-table-column>
-          <el-table-column label="代付开关" align="center" prop="payout_rate">
-            <template slot-scope="scope">
-              <el-switch v-model="scope.row.payout_state" active-color="#409EFF" inactive-color="#DCDFE6"
-                :active-value="0" :inactive-value="1" @change="ChangeState($event, scope.row, 2)">
-              </el-switch>
-            </template>
-          </el-table-column>
-
-          <el-table-column label="代收费率" align="center" prop="payin_rate" width="320">
-            <template slot-scope="scope">
-              <div style="">
-                <span v-for="(item, index) in JSON.parse(scope.row.payin_rate_interval)" :key="index"
-                  class="table_expand_rate_item">
-                  <span class="table_expand_rate_label"> {{ index }}：</span><span class="table_expand_rate_value">{{
-                    item }}</span>
-                </span>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column label="代付费率" align="center" prop="payout_rate" width="320">
-            <template slot-scope="scope">
-              <div style="">
-                <span v-for="(item, index) in JSON.parse(scope.row.payout_rate_interval)" :key="index"
-                  class="table_expand_rate_item">
-                  <span class="table_expand_rate_label"> {{ index }}：</span><span class="table_expand_rate_value">{{
-                    item }}</span>
-                </span>
-              </div>
-            </template>
-
-          </el-table-column>
-          <el-table-column label="代收并发限制" align="center" prop="payin_speed_limit" width="120">
-            <template slot-scope="scope">
-              {{ (scope.row.payin_speed_limit) || '无限制' }}
-            </template>
-          </el-table-column>
-          <el-table-column label="代付并发限制" align="center" prop="payout_speed_limit" width="120">
-            <template slot-scope="scope">
-              {{ (scope.row.payout_speed_limit) || '无限制' }}
-            </template>
-          </el-table-column>
-          <el-table-column label="代收分流金额" align="center" prop="payin_over_amount" width="120"
-            :formatter="Formatter.TableAmount2" />
-          <el-table-column label="代收分流通道" align="center" prop="payin_over_chnl_id" width="120"
-            :formatter="Formatter.MerchantChannelOverInNameFormatter" />
-          <el-table-column label="代付分流金额" align="center" prop="payout_over_amount" width="120"
-            :formatter="Formatter.TableAmount2" />
-          <el-table-column label="代付分流通道" align="center" prop="payout_over_chnl_id" width="120"
-            :formatter="Formatter.MerchantChannelOverOutNameFormatter" />
-
-          <el-table-column label="单笔代收最高限额" align="center" prop="payin_max_limit" width="140"
-            :formatter="Formatter.TableAmount2" />
-          <el-table-column label="单笔代收最低限额" align="center" prop="payin_min_limit" width="140"
-            :formatter="Formatter.TableAmount2" />
-          <el-table-column label="单笔代付最高限额" align="center" prop="payout_max_limit" width="140"
-            :formatter="Formatter.TableAmount2" />
-          <el-table-column label="单笔代付最低限额" align="center" prop="payout_min_limit" width="140"
-            :formatter="Formatter.TableAmount2" />
-
-          <el-table-column label="操作" align="center" class-name="small-padding fixed-width" fixed="right"
-            v-if="hasPermiVisible(['excellent:mchAccConfig:edit'])">
-            <template slot-scope="scope">
-
-        <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"
-          v-hasPermi="['excellent:mchAccConfig:edit']">修改</el-button>
-
-
-</template>
-          </el-table-column>
-        </dynamicTableVue> -->
 
         <pagination ref="pagination" v-show="total > 0" :total="total" :page.sync="queryParams.page"
           :limit.sync="queryParams.limit" @pagination="getList" />
@@ -421,11 +292,26 @@ export default {
         return
       }
       this.$refs.myTable.clearSelection()
-
+      let errorMchList = []
       MchList.forEach(item => {
         const mchIndex = this.mchAccConfigList.find(item2 => item2.mch_num == item)
-        this.$refs.myTable.toggleRowSelection(mchIndex, true)
+        if (mchIndex) {
+          this.$refs.myTable.toggleRowSelection(mchIndex, true)
+
+        } else {
+          errorMchList.push(item)
+        }
       })
+      if (errorMchList.length > 0) {
+        this.$notify({
+          title: '错误',
+          message: `以下商户号不存在：${errorMchList.join(',')}`,
+          duration: 1000,
+          type: 'error',
+        });
+        this.$util.copyToClipboard(errorMchList.join(','));
+        return
+      }
 
     },
     //批量切换支付通道

@@ -261,8 +261,8 @@ export default {
               };
               mergedObj["big_amount"] = mergedObj["big_amount"] * -1;
               mergedObj["msg"] +=
-                "（通道：" +
-                selectData[index]["chnl_name"][0] + selectData[index]["chnl_id"] +
+                "（" +
+                selectData[index]["chnl_id"] +
                 "，结算时间：" +
                 this.Formatter.FormatTime(
                   selectData[index]["start_time"] * 1000,

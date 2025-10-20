@@ -1,4 +1,7 @@
-import { listChnlSetting } from "@/api/excellent/chnlSetting";
+import {
+  listChnlSetting,
+  listAllocationPool,
+} from "@/api/excellent/chnlSetting";
 import { listMchSetting } from "@/api/excellent/MchSetting";
 import { listMchAccConfig } from "@/api/excellent/mchAccConfig";
 const Cache = {
@@ -11,6 +14,9 @@ const Cache = {
     MchListLoading: false,
     MchNameList: [],
     MchNameLoading: false,
+    //通道池
+    channelPool: [],
+    channelPoolLoading: false,
   },
   mutations: {
     setOptions(state, options) {
@@ -31,9 +37,43 @@ const Cache = {
     setMchNameListLoading(state, loading) {
       state.MchNameLoading = loading;
     },
+    setChannelPool(state, options) {
+      state.channelPool = options;
+    },
+    setChannelPoolLoading(state, loading) {
+      state.channelPoolLoading = loading;
+    },
   },
 
   actions: {
+    //获取通道池
+    //获取通道池
+    async fetchChannelPool({ state, commit }) {
+      // 如果已有数据，不再请求
+      if (state.channelPool.length > 0 || state.channelPoolLoading) {
+        return;
+      }
+      // 设置为加载中
+      commit("setChannelPoolLoading", true);
+      listAllocationPool()
+        .then((response) => {
+          const allocationPoolList = [];
+          for (const key in response.chnl_names) {
+            allocationPoolList.push({
+              id: key,
+              chnl_name: response.chnl_names[key],
+              label: response.chnl_names[key][0] + key,
+            });
+          }
+
+          commit("setChannelPool", allocationPoolList); // 存储数据
+        })
+        .finally(() => {
+          // 请求完成后，设置加载状态为 false
+          commit("setChannelPoolLoading", false);
+        });
+    },
+
     //获取通道列表
     async fetchOptions({ state, commit }) {
       // 如果已有数据，不再请求
@@ -81,6 +121,26 @@ const Cache = {
           commit("setMchListLoading", false);
         });
     },
+    //更新商户名称列表
+    async updateMchList({ state, commit }) {
+      // 设置为加载中
+      commit("setMchListLoading", true);
+      listMchSetting({
+        page: null,
+        limit: null,
+        mch_num: null,
+        currency: null,
+        payout_chnl_id: null,
+      })
+        .then((response) => {
+          commit("setMchList", response.rows); // 存储数据
+        })
+        .finally(() => {
+          // 请求完成后，设置加载状态为 false
+          commit("setMchListLoading", false);
+        });
+    },
+
     async fetchMchNameList({ state, commit }) {
       // 如果已有数据，不再请求
       if (state.MchNameList.length > 0 || state.MchNameLoading) {

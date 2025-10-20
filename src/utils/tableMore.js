@@ -1,5 +1,3 @@
-import Vue from "vue";
-
 export const tablesMove = function (Vue) {
   // 全局添加table左右拖动效果的指令
   Vue.directive("tableMove", {

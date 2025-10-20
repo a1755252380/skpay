@@ -67,23 +67,30 @@
 
       </template>
       <template #search_btn>
-        <el-tooltip :content="BathSearchTips + '搜索'" placement="top" effect="light" v-if="BatchList.length > 0">
-          <el-button type="warning" icon="el-icon-search" size="mini" @click="handleQuery">批量搜索</el-button>
-        </el-tooltip>
-        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery" v-else>搜索</el-button>
+        <div>
+          <el-tooltip :content="BathSearchTips + '搜索'" placement="top" effect="light" v-if="BatchList.length > 0">
+            <el-button type="warning" icon="el-icon-search" size="mini" @click="handleQuery">批量搜索</el-button>
+          </el-tooltip>
+          <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery" v-else>搜索</el-button>
 
-        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-        <el-tooltip :content="BathSearchTips + '导出'" placement="top" effect="light" v-if="BatchList.length > 0">
-          <el-button type="warning" icon="el-icon-download" size="mini" @click="ConfirmBatchExport">批量导出</el-button>
-        </el-tooltip>
-        <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport" v-else>导出</el-button>
+          <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+          <el-tooltip :content="BathSearchTips + '导出'" placement="top" effect="light" v-if="BatchList.length > 0">
+            <el-button type="warning" icon="el-icon-download" size="mini" @click="ConfirmBatchExport">批量导出</el-button>
+          </el-tooltip>
+          <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport"
+            v-else>导出</el-button>
 
 
-        <el-button type="primary" icon="el-icon-search" size="mini" @click="BatchSearchOrdersShow = true"
-          v-hasPermi="['excellent:OrderRecords:edit']">批量查单</el-button>
-        <el-button type="primary" icon="el-icon-plus" size="mini" @click="AddOrderShow = true"
-          v-hasPermi="['excellent:OrderRecords:edit']">创建订单</el-button>
-        <slot name="btn"></slot>
+          <el-button type="primary" icon="el-icon-search" size="mini" @click="BatchSearchOrdersShow = true"
+            v-hasPermi="['excellent:OrderRecords:edit']">批量查单</el-button>
+          <el-button type="primary" icon="el-icon-plus" size="mini" @click="AddOrderShow = true"
+            v-hasPermi="['excellent:OrderRecords:edit']">创建订单</el-button>
+          <slot name="btn"></slot>
+
+        </div>
+
+
+
 
       </template>
 
@@ -435,13 +442,13 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-::v-deep .el-form-item--mini.el-form-item {
-  margin-bottom: 8px;
-}
+// ::v-deep .el-form-item--mini.el-form-item {
+//   margin-bottom: 8px;
+// }
 
-::v-deep .el-form--label-top .el-form-item__label {
-  padding: 0 0 6px 0;
-}
+// ::v-deep .el-form--label-top .el-form-item__label {
+//   padding: 0 0 6px 0;
+// }
 
 ::v-deep .el-date-editor--datetimerange.el-input,
 .el-date-editor--datetimerange.el-input__inner {
@@ -452,21 +459,6 @@ export default {
   font-size: 13px
 }
 
-.OrderRecords_table_search {
-  padding: 0 16px 8px 16px;
-  // margin-bottom: 20px;
-
-  //   .search_option_div {
-  //     display: grid;
-  //     grid-auto-rows: 1fr;
-  //     gap: 0 8px;
-  //     /* 行高均等 */
-  //     // grid-template-rows: repeat(2, 1fr);
-  //     /* 强制分为两行 */
-  //     grid-template-columns: repeat(auto-fill, minmax(245px, 19.5%));
-
-  //   }
-}
 
 .batch_div {
   display: flex;

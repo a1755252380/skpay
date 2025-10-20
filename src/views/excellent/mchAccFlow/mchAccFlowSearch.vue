@@ -63,20 +63,22 @@
       </template>
 
       <template #search_btn>
-        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-        <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport">导出</el-button>
-        <el-button type="warning" plain icon="el-icon-search" size="mini" v-hasPermi="['excellent:OrderRecords:edit']"
-          @click="BatchSearch">批量查单</el-button>
-        <slot name="btn"></slot>
-        <el-popover placement="bottom" width="80%" trigger="click" style="margin-left: 10px;">
-          <span class="CalculationFormula">
-            <strong>（本模块依据<span class="redcolor">代收订单更新时间</span>和<span class="redcolor">代付订单更新时间</span>）</strong>
-            <strong>账户余额=待结算金额+账户可用余额+代付余额+账户冻结金额（扣除的是账户可用余额）</strong>
-            <strong>代付余额=代付可用余额+代付冻结金额</strong>
-          </span>
-          <el-button slot="reference" icon="el-icon-s-opportunity" size="mini"></el-button>
-        </el-popover>
+        <div>
+          <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+          <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+          <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport">导出</el-button>
+          <el-button type="warning" plain icon="el-icon-search" size="mini" v-hasPermi="['excellent:OrderRecords:edit']"
+            @click="BatchSearch">批量查单</el-button>
+          <slot name="btn"></slot>
+          <el-popover placement="bottom" width="80%" trigger="click" style="margin-left: 10px;">
+            <span class="CalculationFormula">
+              <strong>（本模块依据<span class="redcolor">代收订单更新时间</span>和<span class="redcolor">代付订单更新时间</span>）</strong>
+              <strong>账户余额=待结算金额+账户可用余额+代付余额+账户冻结金额（扣除的是账户可用余额）</strong>
+              <strong>代付余额=代付可用余额+代付冻结金额</strong>
+            </span>
+            <el-button slot="reference" icon="el-icon-s-opportunity" size="mini"></el-button>
+          </el-popover>
+        </div>
 
 
       </template>

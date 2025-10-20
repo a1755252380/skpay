@@ -4,7 +4,7 @@
     <div v-loading="loading">
       <div class="FlexCenter">
         <div class="AllocationPoolLabel">通道名:</div>
-        <ChannelQuery style="padding: 0 8px;" v-model="chnl_names"></ChannelQuery><el-button type="primary"
+        <ChannelQuery style="padding: 0 8px;" v-model="SelectChnl"></ChannelQuery><el-button type="primary"
           @click="addAllocationPool" icon="el-icon-plus">添加</el-button>
       </div>
       <div class="FlexCenter" style="margin-top: 12px;width: 100%;">
@@ -26,7 +26,7 @@
 
 <script>
 import ChannelQuery from '@/components/Excellent/Channel/ChannelQuery.vue';
-import { listAllocationPool, addAllocationPool } from '@/api/excellent/chnlSetting';
+import { listAllocationPool, addAllocationPool, delAllocationPool } from '@/api/excellent/chnlSetting';
 import { mapState } from "vuex";
 export default {
   components: {
@@ -54,14 +54,14 @@ export default {
     computedVisible(val) {
       if (val) {
         this.loading = true;
-        this.chnl_names = null;
+        this.SelectChnl = null;
         this.getList();
       }
     }
   },
   data() {
     return {
-      chnl_names: null,
+      SelectChnl: null,
       loading: false,
       allocationPoolList: []
     };
@@ -75,11 +75,32 @@ export default {
   methods: {
     //删除通道分配池
     removeAllocationPool(item) {
-      this.allocationPoolList.splice(this.allocationPoolList.indexOf(item), 1);
+      const loading = this.$loading({
+        lock: true,
+        text: '删除中...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
+      delAllocationPool(item.id).then(res => {
+        this.allocationPoolList.splice(this.allocationPoolList.indexOf(item), 1);
+        this.$message({
+          message: '通道分配池已删除成功',
+          type: 'success'
+        });
+        loading.close();
+      }).finally(() => {
+        loading.close();
+      });
+
     },
     //添加通道分配池
     confirmAllocationPool() {
-      const confirmList = this.allocationPoolList.map(item => item.chnl_name).join(',')
+      const confirmList = {}
+      for (const key in this.allocationPoolList) {
+        confirmList[this.allocationPoolList[key].id] = this.allocationPoolList[key].chnl_name
+      }
+
+
       const loading = this.$loading({
         lock: true,
         text: '提交中...',
@@ -92,6 +113,8 @@ export default {
           type: 'success'
         });
         loading.close();
+        this.$store.dispatch('fetchChannelPool');
+
         this.computedVisible = false;
       }).finally(() => {
         loading.close();
@@ -101,21 +124,21 @@ export default {
 
     //新增通道分配池
     addAllocationPool() {
-      if (!this.chnl_names) {
+      if (!this.SelectChnl) {
         this.$message({
           message: '请选择通道',
           type: 'warning'
         });
         return;
       }
-      if (this.allocationPoolList.some(item => item.id == this.chnl_names)) {
+      if (this.allocationPoolList.some(item => item.id == this.SelectChnl)) {
         this.$message({
           message: '通道已存在',
           type: 'warning'
         });
         return;
       }
-      const chnl = this.ChannelQueryList.find(item => item.id == this.chnl_names)
+      const chnl = this.ChannelQueryList.find(item => item.id == this.SelectChnl)
       this.allocationPoolList.push({
         id: chnl.id,
         chnl_name: chnl.chnl_name,
@@ -125,21 +148,18 @@ export default {
     },
     //获取通道分配池
     getList() {
+      this.allocationPoolList.splice(0);
       listAllocationPool().then(res => {
-
-
         if (res.chnl_names) {
-          this.allocationPoolList = res.chnl_names.split(',').map(item => {
-            const chnl = this.ChannelQueryList.find(item2 => item2.chnl_name == item)
-            return {
-              id: chnl.id,
-              chnl_name: chnl.chnl_name,
-              label: chnl.chnl_name[0] + chnl.id
-            }
-          });
+
+          for (const key in res.chnl_names) {
+            this.allocationPoolList.push({
+              id: key,
+              chnl_name: res.chnl_names[key],
+              label: res.chnl_names[key][0] + key
+            })
+          }
         }
-
-
         this.loading = false;
       }).finally(() => {
         this.loading = false;

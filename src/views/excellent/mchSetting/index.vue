@@ -380,7 +380,7 @@ export default {
       this.reset();
       this.mchNumChange = false
       this.open = true;
-      this.DetailLoading= false
+      this.DetailLoading = false
       this.title = "添加商户";
     },
     /** 修改按钮操作 */
@@ -417,10 +417,13 @@ export default {
             updateMchSetting(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
+
+
               this.getList();
             });
           } else {
             addMchSetting(this.form).then(response => {
+              this.$store.dispatch('updateMchList');
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
