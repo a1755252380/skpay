@@ -73,10 +73,11 @@ export function DynamicQueryChannel(params) {
 }
 
 // 查询通道分配池
-export function listAllocationPool() {
+export function listAllocationPool(params) {
   return request({
     url: "/chnl/distribution/get",
     method: "get",
+    params: params,
   });
 }
 
@@ -89,12 +90,12 @@ export function addAllocationPool(data) {
   });
 }
 // 删除通道分配池
-export function delAllocationPool(id) {
+export function delAllocationPool(data) {
+  console.log(data);
+
   return request({
     url: "/chnl/distribution/del",
     method: "post",
-    data: {
-      chnl_ids: [String(id)],
-    },
+    data: data,
   });
 }

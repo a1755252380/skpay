@@ -47,7 +47,12 @@
           </el-col>
           <el-col :span="1.5">
             <el-button type="primary" plain icon="el-icon-setting" size="mini"
-              @click="BatchDistributionChannels">批量设置代收分配</el-button>
+              @click="BatchDistributionChannelsShow">批量设置分配</el-button>
+          </el-col>
+          <el-col :span="1.5">
+            <ShowChannelPoolVue></ShowChannelPoolVue>
+
+
           </el-col>
           <el-col :span="1.5" class="FlexCenter">
             <el-input v-model="selectMchList" size="mini" placeholder="请输入商户,相隔" style="width: 8.5rem;" clearable />
@@ -64,7 +69,7 @@
         <el-table v-AutoHeight="{
           Ref: 'myTable', Height: 15
         }" v-table-move="['myTable']" :data="mchAccConfigList" @selection-change="handleSelectionChange"
-          v-loading="loading" ref="myTable" border :highlight-selection-row="true" :height="200" row-key="mch_num">
+          v-loading="loading" ref="myTable" border :height="200" row-key="mch_num">
           <el-table-column type="selection" width="55" align="center" fixed />
           <el-table-column label="商户号 " align="center" prop="mch_num" fixed />
           <el-table-column label="货币代号" align="center" prop="currency" />
@@ -101,14 +106,27 @@
               </el-switch>
             </template>
           </el-table-column>
-          <el-table-column label="分配状态" align="center" prop="payin_distribution">
+          <el-table-column label="代收分配1" align="center" prop="payin_first_distribution" width="100">
             <template slot-scope="scope">
-              <el-switch v-model="scope.row.payin_distribution" active-color="#409EFF" inactive-color="#DCDFE6"
-                :active-value="0" :inactive-value="1" @change="ChangeState($event, scope.row, 3)">
+              <el-switch v-model="scope.row.payin_first_distribution" inactive-color="#DCDFE6" :active-value="0"
+                :inactive-value="1" @change="ChangeState($event, scope.row, 3)">
               </el-switch>
             </template>
           </el-table-column>
-
+          <el-table-column label="代收分配2" align="center" prop="payin_second_distribution" width="100">
+            <template slot-scope="scope">
+              <el-switch v-model="scope.row.payin_second_distribution" inactive-color="#DCDFE6" :active-value="0"
+                :inactive-value="1" @change="ChangeState($event, scope.row, 5)">
+              </el-switch>
+            </template>
+          </el-table-column>
+          <el-table-column label="代付分配" align="center" prop="payout_distribution">
+            <template slot-scope="scope">
+              <el-switch v-model="scope.row.payout_distribution" active-color="#409EFF" inactive-color="#DCDFE6"
+                :active-value="0" :inactive-value="1" @change="ChangeState($event, scope.row, 4)">
+              </el-switch>
+            </template>
+          </el-table-column>
           <el-table-column label="代收费率" align="center" prop="payin_rate" width="320">
             <template slot-scope="scope">
               <div style="">
@@ -195,6 +213,24 @@
     </BatchSpeedLimit>
     <!-- 进度条弹窗 -->
     <ProgressDialog v-model="progressVisible" ref="ProgressDialog"></ProgressDialog>
+    <!-- 选择代收还是代付 -->
+    <el-dialog title="选择代收还是代付" :visible.sync="dialogAllocateVisible" width="500px" center>
+      <div class="FlexCenter">
+        <el-radio-group v-model="dialogAllocateType" class="DistributionSwitch">
+          <el-radio label="payout" border>打开代付分配</el-radio>
+          <el-radio label="payoutclose" border>关闭代付分配</el-radio>
+          <el-radio label="payin" border>打开代收分配1</el-radio>
+          <el-radio label="payinclose" border>关闭代收分配1</el-radio>
+          <el-radio label="payin2" border>打开代收分配2</el-radio>
+          <el-radio label="payin2close" border>关闭代收分配2</el-radio>
+        </el-radio-group>
+      </div>
+      <div class="FlexCenter" style="margin-top: 12px;">
+        <el-button type="primary" @click="BatchDistributionChannels()">确定</el-button>
+
+        <el-button type="primary" plain @click="dialogAllocateVisible = false">取消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -216,6 +252,7 @@ import ChannelQueryVue from '@/components/Excellent/Channel/ChannelQuery.vue';
 import { mapState } from 'vuex';
 import EditInfo from "./modules/EditInfo.vue";
 import BatchSpeedLimit from "./modules/BatchSpeedLimit.vue";
+import ShowChannelPoolVue from '@/components/dialog/showChannelPool.vue';
 export default {
   name: "MchAccConfig",
   computed: {
@@ -231,6 +268,10 @@ export default {
 
 
     return {
+      // 选择代收还是代付弹窗
+      dialogAllocateVisible: false,
+      dialogAllocateType: 'payin',
+
       selectMchList: '',
       // 遮罩层
       loading: true,
@@ -395,31 +436,78 @@ export default {
       })
 
     },
+
     //批量设置分配通道
-    BatchDistributionChannels() {
+    BatchDistributionChannelsShow() {
       if (this.ids.length == 0) {
         this.$message.error("请选择要设置的商户");
         return
       }
-      this.$confirm('确认批量设置商户使用代收分配池吗？', '提示', {
+      this.dialogAllocateVisible = true;
+    },
+    BatchDistributionChannels() {
+
+      if (this.ids.length == 0) {
+        this.$message.error("请选择要设置的商户");
+        return
+      }
+
+      let allocationPoolType
+      let label
+
+      if (this.dialogAllocateType == 'payin' || this.dialogAllocateType == 'payinclose') {
+        allocationPoolType = 'payin_first_distribution'
+      } else if (this.dialogAllocateType == 'payin2' || this.dialogAllocateType == 'payin2close') {
+        allocationPoolType = 'payin_second_distribution'
+      } else if (this.dialogAllocateType == 'payout' || this.dialogAllocateType == 'payoutclose') {
+        allocationPoolType = 'payout_distribution'
+      } else {
+        this.$message.error("请选择要设置的分配类型");
+        return
+      }
+
+      if (this.dialogAllocateType == 'payin' || this.dialogAllocateType == 'payinclose') {
+        label = '30代收分配池'
+      } else if (this.dialogAllocateType == 'payin2' || this.dialogAllocateType == 'payin2close') {
+        label = '100代收分配池'
+      } else if (this.dialogAllocateType == 'payout' || this.dialogAllocateType == 'payoutclose') {
+        label = '代付分配池'
+      } else {
+        this.$message.error("请选择要设置的分配类型");
+        return
+      }
+      const close = this.dialogAllocateType == 'payinclose' || this.dialogAllocateType == 'payoutclose' || this.dialogAllocateType == 'payin2close'
+      this.$confirm(`确认批量设置商户${close ? '关闭' : '使用'}${label}吗？`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning',
       }).then(() => {
         this.progressVisible = true;
         const confirmList = this.ids.map(item => {
-          return {
+          const confirm = {
             mch_num: item.mch_num,
-            payin_distribution: item.payin_distribution ? 0 : 1,
           }
+          if (close) {
+            confirm[allocationPoolType] = 1;
+          } else {
+            if (this.dialogAllocateType == 'payin' && item['payin_second_distribution'] == 0) {
+              confirm['payin_second_distribution'] = 1
+            }
+            if (this.dialogAllocateType == 'payin2' && item['payin_first_distribution'] == 0) {
+              confirm['payin_first_distribution'] = 1
+            }
+            confirm[allocationPoolType] = 0;
+          }
+          return confirm
         })
         this.$refs.ProgressDialog.batchRequest(confirmList, updateMchAccConfig).then((res) => {
           this.$message({
-            message: '批量设置代收分配池成功',
+            message: `批量设置${label}成功`,
             type: 'success',
           });
           this.ids.splice(0, this.ids.length);
           this.getList();
+          this.dialogAllocateVisible = false;
         })
       })
     },
@@ -476,7 +564,7 @@ export default {
 
     //代付代收通道下拉框数据监听
     payoutProductChange(value) {
-      console.log(value);
+      // console.log(value);
     },
     SeekNumApi() {
       this.$store.dispatch('fetchMchList');
@@ -504,22 +592,48 @@ export default {
         key = "payout_state";
       }
       else if (type == 3) {
-        form['payin_distribution'] = ChangeData;
-        key = "payin_distribution";
+
+        form['payin_first_distribution'] = ChangeData;
+        key = "payin_first_distribution";
+
+        form['payin_second_distribution'] = ChangeData ? 0 : 1
+      }
+      else if (type == 4) {
+        form['payout_distribution'] = ChangeData;
+        key = "payout_distribution";
+      }
+      else if (type == 5) {
+        form['payin_second_distribution'] = ChangeData;
+        key = "payin_second_distribution";
+        form['payin_first_distribution'] = ChangeData ? 0 : 1;
       }
       updateMchAccConfig(form).then((response) => {
-        this.$modal.msgSuccess("修改成功");
-        this.$set(this.mchAccConfigList[index], key, ChangeData);
+        for (const key in form) {
+          this.$set(this.mchAccConfigList[index], key, form[key]);
+        }
+        this
+          .$nextTick(() => {
+            this.$modal.msgSuccess("修改成功");
+          })
+
       });
     },
 
   },
 
-  components: { dynamicTableVue, MchNumSelect, BatchChangeChannels, BatchDiversionVue, ProgressDialog, ChannelQueryVue, EditInfo, BatchSpeedLimit },
+  components: { dynamicTableVue, MchNumSelect, BatchChangeChannels, BatchDiversionVue, ProgressDialog, ChannelQueryVue, EditInfo, BatchSpeedLimit, ShowChannelPoolVue },
 };
 </script>
 
 <style lang="scss" scoped>
+.DistributionSwitch {
+  padding: 0 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 3px;
+  text-align: center;
+}
+
 .table_expand_rate {
   display: flex;
   align-items: flex-start;

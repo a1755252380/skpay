@@ -21,10 +21,17 @@
           v-hasPermi="['excellent:chnlSetting:add']">新增通道</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button type="primary" plain icon="el-icon-setting" size="mini" @click="AllocationPool = true"
-          v-hasPermi="['excellent:chnlSetting:add']">通道分配池</el-button>
+        <el-button type="primary" plain icon="el-icon-setting" size="mini" @click="openAllocationPoolDialog('payin1')"
+          v-hasPermi="['excellent:chnlSetting:add']">代收分配池1</el-button>
       </el-col>
-
+      <el-col :span="1.5">
+        <el-button type="primary" plain icon="el-icon-setting" size="mini" @click="openAllocationPoolDialog('payin2')"
+          v-hasPermi="['excellent:chnlSetting:add']">代收分配池2</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button type="primary" plain icon="el-icon-setting" size="mini" @click="openAllocationPoolDialog('payout')"
+          v-hasPermi="['excellent:chnlSetting:add']">代付分配池</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -125,7 +132,8 @@
       </div>
     </el-dialog>
     <!-- 分配通道对话框 -->
-    <AllocationPoolVue ref="allocationPoolVue" v-model="AllocationPool"></AllocationPoolVue>
+    <AllocationPoolVue ref="allocationPoolVue" v-model="AllocationPool" :AllocationPoolType="AllocationPoolType">
+    </AllocationPoolVue>
   </div>
 </template>
 
@@ -140,6 +148,7 @@ export default {
   name: "ChnlSetting",
   data() {
     return {
+      AllocationPoolType: 'payin1',
       AllocationPool: false,
       // 遮罩层
       loading: true,
@@ -171,18 +180,6 @@ export default {
       form: {},
       // 表单校验
       rules: {
-        // chnl_name: [
-        //   { required: true, message: "通道名称不能为空", trigger: "blur" }
-        // ],
-        // state: [
-        //   { required: true, message: "状态 0.启用 1.禁用不能为空", trigger: "change" }
-        // ],
-        // payout_state: [
-        //   { required: true, message: "代付状态 0.启用 1.禁用不能为空", trigger: "change" }
-        // ],
-        // payin_state: [
-        //   { required: true, message: "代收状态 0.启用 1.禁用不能为空", trigger: "change" }
-        // ],
         payinMode: [
           { required: true, message: "请选择代收模式", trigger: "change" }
         ]
@@ -193,6 +190,11 @@ export default {
     this.getList();
   },
   methods: {
+    // 打开分配通道对话框
+    openAllocationPoolDialog(type) {
+      this.AllocationPoolType = type;
+      this.AllocationPool = true;
+    },
     /** 查询支付通道列表 */
     getList() {
       this.loading = true;
@@ -329,8 +331,12 @@ export default {
         key = "payin_state"
       }
       updateChnlSetting(form).then(response => {
-        this.$modal.msgSuccess("修改成功");
+        this.$message({
+          message: '修改成功',
+          type: 'success'
+        })
         this.$set(this.chnlSettingList[index], key, ChangeData);
+        this.$store.dispatch('fetchOptions', { isUpdate: true });
       });
     },
 

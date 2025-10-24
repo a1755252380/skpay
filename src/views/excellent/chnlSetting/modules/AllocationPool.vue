@@ -1,25 +1,26 @@
 <template>
-  <el-dialog title="通道分配池" :visible="computedVisible" width="600px" center @close="computedVisible = false"
-    :close-on-click-modal="false">
+  <el-dialog :title="allocationPoolTypeLabel" :visible="computedVisible" width="600px" center
+    @close="computedVisible = false" :close-on-click-modal="false">
     <div v-loading="loading">
       <div class="FlexCenter">
         <div class="AllocationPoolLabel">通道名:</div>
-        <ChannelQuery style="padding: 0 8px;" v-model="SelectChnl"></ChannelQuery><el-button type="primary"
-          @click="addAllocationPool" icon="el-icon-plus">添加</el-button>
+        <ChannelQuery style="padding: 0 8px;" v-model="SelectChnl" :showType="allocationPoolType"></ChannelQuery>
+        <el-button :type="allocationPoolTypeColor" @click="addAllocationPool" icon="el-icon-plus">添加</el-button>
       </div>
       <div class="FlexCenter" style="margin-top: 12px;width: 100%;">
         <div class="AllocationPoolLabel"> 通道池:</div>
         <div style="flex: 1;">
-          <el-tag type="primary" v-for="item in allocationPoolList" :key="item.label" closable style="margin: 3px;"
-            @close="removeAllocationPool(item)">{{ item.label
+          <el-tag :type="allocationPoolTypeColor" v-for="item in allocationPoolList" :key="item.label" closable
+            style="margin: 3px;" @close="removeAllocationPool(item)">{{ item.label
             }}</el-tag>
         </div>
       </div>
     </div>
     <template #footer>
-      <el-button type="primary" @click="confirmAllocationPool" :disabled="!allocationPoolList.length">确定</el-button>
+      <el-button :type="allocationPoolTypeColor" @click="confirmAllocationPool"
+        :disabled="!allocationPoolList.length">确定</el-button>
 
-      <el-button type="primary" plain @click="computedVisible = false">取消</el-button>
+      <el-button :type="allocationPoolTypeColor" plain @click="computedVisible = false">取消</el-button>
     </template>
   </el-dialog>
 </template>
@@ -34,7 +35,8 @@ export default {
   },
   name: 'AllocationPool',
   props: {
-    value: Boolean // 父组件 v-model
+    value: Boolean, // 父组件 v-model
+    AllocationPoolType: String, // 分配池类型 payin/payout
   },
   computed: {
     computedVisible: {
@@ -45,6 +47,24 @@ export default {
       get() {
         return this.value;
       }
+    },
+    // 分配池类型 payin/payout
+    allocationPoolType() {
+      return this.AllocationPoolType;
+    },
+    allocationPoolTypeLabel() {
+      //判断是什么类型的分配池
+      //判断是什么类型的分配池 30/100
+      if (this.allocationPoolType === 'payin1') {
+        return '代收分配池1';
+      } else if (this.allocationPoolType === 'payin2') {
+        return '代收分配池2';
+      }
+      return '代付分配池';
+      // return this.allocationPoolType === 'payin' ? '代收分配池' : '代付分配池';
+    },
+    allocationPoolTypeColor() {
+      return this.allocationPoolType === 'payin1' || this.allocationPoolType === 'payin2' ? 'primary' : 'warning';
     },
     ...mapState({
       ChannelQueryList: state => state.Cache.channelList,
@@ -68,8 +88,7 @@ export default {
   },
 
   mounted() {
-    // 请求数据，若已有数据或正在加载中，则不会重复请求
-    this.$store.dispatch('fetchOptions');
+
   },
 
   methods: {
@@ -81,8 +100,15 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       });
-      delAllocationPool(item.id).then(res => {
+      delAllocationPool({
+        type: this.allocationPoolType,
+        chnl_ids: [String(item.id)]
+      }).then(res => {
         this.allocationPoolList.splice(this.allocationPoolList.indexOf(item), 1);
+        this.$store.dispatch('fetchChannelPool', {
+          type: this.allocationPoolType,
+          isUpdate: true,
+        });
         this.$message({
           message: '通道分配池已删除成功',
           type: 'success'
@@ -107,13 +133,19 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       });
-      addAllocationPool({ chnl_names: confirmList }).then(res => {
+      addAllocationPool({
+        type: this.allocationPoolType,
+        chnl_names: confirmList
+      }).then(res => {
         this.$message({
-          message: '通道分配池列表已更新成功',
+          message: this.allocationPoolTypeLabel + '列表已更新成功',
           type: 'success'
         });
         loading.close();
-        this.$store.dispatch('fetchChannelPool');
+        this.$store.dispatch('fetchChannelPool', {
+          type: this.allocationPoolType,
+          isUpdate: true,
+        });
 
         this.computedVisible = false;
       }).finally(() => {
@@ -149,7 +181,7 @@ export default {
     //获取通道分配池
     getList() {
       this.allocationPoolList.splice(0);
-      listAllocationPool().then(res => {
+      listAllocationPool({ type: this.allocationPoolType }).then(res => {
         if (res.chnl_names) {
 
           for (const key in res.chnl_names) {
@@ -160,11 +192,14 @@ export default {
             })
           }
         }
-        this.loading = false;
       }).finally(() => {
-        this.loading = false;
+        setTimeout(() => {
+          this.loading = false;
+
+        }, 300);
       });
     },
+
   },
 };
 </script>

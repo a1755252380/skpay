@@ -79,8 +79,6 @@
           </el-tooltip>
           <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport"
             v-else>导出</el-button>
-
-
           <el-button type="primary" icon="el-icon-search" size="mini" @click="BatchSearchOrdersShow = true"
             v-hasPermi="['excellent:OrderRecords:edit']">批量查单</el-button>
           <el-button type="primary" icon="el-icon-plus" size="mini" @click="AddOrderShow = true"

@@ -1,7 +1,7 @@
 import { MessageBox, Notification } from "element-ui";
 
-let lastVersion = null; // 保存上一次版本号
-const CHECK_INTERVAL = 1000 * 10; // 每 10 秒检查一次
+let lastVersion = null;
+const CHECK_INTERVAL = 1000 * 10;
 
 // 获取当前版本
 async function getVersion() {
@@ -18,10 +18,9 @@ async function getVersion() {
   }
 }
 
-// 判断是否需要更新
 async function needUpdate() {
   const version = await getVersion();
-  if (!version) return false; // 获取失败不更新
+  if (!version) return false;
   if (!lastVersion) {
     lastVersion = version;
     return false;
@@ -33,12 +32,9 @@ async function needUpdate() {
   return false;
 }
 
-// 自动检测版本并提示
 async function autoRefresh() {
   if (process.env.NODE_ENV === "development") return;
-
   if (!window.navigator.onLine) {
-    // 离线状态，延迟下一轮检查
     setTimeout(autoRefresh, CHECK_INTERVAL);
     return;
   }
@@ -46,12 +42,12 @@ async function autoRefresh() {
   const willUpdate = await needUpdate();
 
   if (willUpdate) {
+    localStorage.setItem("NEED_RELOAD", Date.now());
     MessageBox.confirm(
       "新版本发布！为了确保数据准确性，请尽快刷新页面，否则可能会导致数据异常。",
       "更新提示",
       {
         confirmButtonText: "立即刷新",
-        cancelButtonText: "稍后手动刷新",
         type: "warning",
         showCancelButton: false,
         showClose: false,
@@ -61,7 +57,7 @@ async function autoRefresh() {
       }
     )
       .then(() => {
-        location.reload(true); // 强制刷新
+        window.location.reload();
       })
       .catch(() => {
         Notification({
@@ -73,9 +69,14 @@ async function autoRefresh() {
       });
   }
 
-  // 下一轮检查
   setTimeout(autoRefresh, CHECK_INTERVAL);
 }
 
-// 启动自动检测
-autoRefresh();
+// 同步其他标签页刷新
+window.addEventListener("storage", (e) => {
+  if (e.key === "NEED_RELOAD") {
+    window.location.reload();
+  }
+});
+
+window.addEventListener("load", autoRefresh);

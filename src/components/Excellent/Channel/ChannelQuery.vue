@@ -24,7 +24,11 @@ export default {
     emitKey: {
       type: [String],  // 可以是 String, Number 或 null
       default: 'id'
-    }
+    },
+    showType: {
+      type: [String],  // 可以是 String, Number 或 null
+      default: 'chnl'
+    },
   },
   data() {
     return {
@@ -35,14 +39,30 @@ export default {
   },
   computed: {
     ...mapState({
-      ChannelQueryList: state => state.Cache.channelList,
+      ChannelQueryListCache: state => state.Cache.channelList,
       Loading: state => state.Cache.loading, // 获取加载状态
     }),
+    ChannelQueryList() {
+      if (this.showType == 'payout') {
+        return this.ChannelQueryListCache.filter(item => item.payout_state == 0)
+      }
+      if (this.showType == 'payin') {
+        return this.ChannelQueryListCache.filter(item => item.payin_state == 0)
+      }
+      return this.ChannelQueryListCache
+    }
   },
 
   mounted() {
 
   },
+  // 缓存重新加载时，更新通道列表
+  activated() {
+    // 请求数据，若已有数据或正在加载中，则不会重复请求
+    this.$store.dispatch('fetchOptions');
+  },
+
+
   created() {
     // 请求数据，若已有数据或正在加载中，则不会重复请求
     this.$store.dispatch('fetchOptions');

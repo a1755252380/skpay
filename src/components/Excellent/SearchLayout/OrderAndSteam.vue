@@ -71,7 +71,7 @@ export default {
 
     // 按钮跨三列，并底部对齐
     .btn {
-      grid-column: span 3;
+      grid-column: span 4;
       margin-bottom: 6px;
       display: flex;
       flex-direction: column;
@@ -80,15 +80,27 @@ export default {
 
     // 响应式断点
     @media (max-width: 1199px) {
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+
+      .btn {
+        grid-column: span 4 !important;
+      }
     }
 
     @media (max-width: 991px) {
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+
+      .btn {
+        grid-column: span 5 !important;
+      }
     }
 
     @media (max-width: 767px) {
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+
+      .btn {
+        grid-column: span 5 !important;
+      }
     }
   }
 

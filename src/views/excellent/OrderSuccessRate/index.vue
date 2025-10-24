@@ -29,14 +29,8 @@
             <el-button type="primary" size="mini" @click="copyMch('payin')">代收</el-button>
             <el-button type="primary" size="mini" @click="copyMch('payout')">代付</el-button>
           </el-button-group>
-          <el-popover style="margin-left: 6px;" v-if="hasPermiVisible(['excellent:OrderRecords:platform'])"
-            placement="bottom" width="200" trigger="hover">
-            <el-button slot="reference" type="primary" size="mini">通道池</el-button>
-            <template>
-              <el-tag v-for="item in channelPool" :key="item.id" :type="item.type" style="margin: 3px;">{{ item.label
-              }}</el-tag>
-            </template>
-          </el-popover>
+
+          <ShowChannelPoolVue style="margin-left: 6px;"></ShowChannelPoolVue>
         </div>
       </el-form-item>
 
@@ -57,11 +51,11 @@
         :formatter="Formatter.SettingChannelNameFormatter" width="80">
       </el-table-column>
 
-      <el-table-column label="通道分配" align="center" width="80"
+      <el-table-column label="代收分配" align="center" width="90"
         v-if="routeFlag == 'order' && hasPermiVisible(['excellent:OrderRecords:platform'])">
         <template slot-scope="scope">
-          <el-tag v-if="routeFlag == 'order'" :type="AllocationMethod(scope.row).type">{{
-            AllocationMethod(scope.row).label }}</el-tag>
+          <el-tag v-if="routeFlag == 'order'" :type="AllocationMethod(scope.row, 'payin').type">{{
+            AllocationMethod(scope.row, 'payin').label }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column label="代收通道" align="center" width="80"
@@ -111,6 +105,13 @@
         v-if="routeFlag == 'order' && hasPermiVisible(['excellent:OrderRecords:platform'])"
         :formatter="Formatter.MerchantChannelOverOutNameFormatter">
       </el-table-column>
+      <el-table-column label="代付分配" align="center" width="80"
+        v-if="routeFlag == 'order' && hasPermiVisible(['excellent:OrderRecords:platform'])">
+        <template slot-scope="scope">
+          <el-tag v-if="routeFlag == 'order'" :type="AllocationMethod(scope.row, 'payout').type">{{
+            AllocationMethod(scope.row, 'payout').label }}</el-tag>
+        </template>
+      </el-table-column>
       <!-- <el-table-column prop="payout_success_service_charge" label="代付成功手续费" align="center"
         :formatter="Formatter.TableAmount">
 
@@ -145,14 +146,14 @@
 
 <script>
 import { listOrderSuccessRate, listChnlSuccessRate } from "@/api/excellent/OrderSuccessRate";
-
+import ShowChannelPoolVue from '@/components/dialog/showChannelPool.vue';
 import { listMchAccConfig } from "@/api/excellent/mchAccConfig";
 import { listChnlSetting } from "@/api/excellent/chnlSetting";
 import ChannelQueryVue from '@/components/Excellent/Channel/ChannelQuery.vue';
 import { mapState } from 'vuex'
 export default {
   name: "OrderSuccessRate",
-  components: { ChannelQueryVue },
+  components: { ChannelQueryVue, ShowChannelPoolVue },
   data() {
     return {
       tableKey: 0,//表格key值，用于刷新表格
@@ -175,14 +176,42 @@ export default {
   },
   computed: {
     ...mapState({
-      channelPool: state => state.Cache.channelPool,
+      payInChannelPool: state => state.Cache.PayInChannelPool,
+      payInChannelPool2: state => state.Cache.PayInChannelPool2,
+      payOutChannelPool: state => state.Cache.PayOutChannelPool,
     }),
 
+  },
+  watch: {
+    payInChannelPool: {
+      handler(newVal, oldVal) {
+        if (newVal.length === 0) {
+          this.$store.dispatch('fetchChannelPool', { type: 'payin1' });
+        }
+      },
+      deep: true
+    },
+    payInChannelPool2: {
+      handler(newVal, oldVal) {
+        if (newVal.length === 0) {
+          this.$store.dispatch('fetchChannelPool', { type: 'payin2' });
+        }
+      },
+      deep: true
+    },
+    payOutChannelPool: {
+      handler(newVal, oldVal) {
+        if (newVal.length === 0) {
+          this.$store.dispatch('fetchChannelPool', { type: 'payout' });
+        }
+      },
+      deep: true
+    },
   },
   created() {
     this.routeFlag = this.$route.meta.flag;
     this.loading = true;
-    this.$store.dispatch('fetchChannelPool');
+
   },
   mounted() {
     this.routeFlag = this.$route.meta.flag;
@@ -486,12 +515,39 @@ export default {
     }
     ,
     //分配方式
-    AllocationMethod(row) {
-      if (row.payin_distribution == 0 && this.channelPool.find(item => item.id == row.payin_chnl_id)) {
-        return {
-          type: 'warning',
-          label: '分配中'
+    AllocationMethod(row, type) {
+      //payin_second_distribution payin_first_distribution
+      const payinType = (row.payin_first_distribution == 0 ? 'payin_first_distribution' : 'payin_second_distribution')
+      const key = (type == 'payin' ? 'payin_distribution' : 'payout_distribution')
+      const chnlKey = (type == 'payin' ? 'payin_chnl_id' : 'payout_chnl_id')
+      let channelPool
+      if (type == 'payin' && payinType == 'payin_first_distribution') {
+        channelPool = this.payInChannelPool
+      } else if (type == 'payin' && payinType == 'payin_second_distribution') {
+        channelPool = this.payInChannelPool2
+      } else if (type == 'payout') {
+        channelPool = this.payOutChannelPool
+      }
+      if (row[key === 'payin_distribution' ? payinType : key] == 0 && channelPool.find(item => item.id == row[chnlKey])) {
+        if (type == 'payin' && payinType == 'payin_first_distribution') {
+          return {
+            type: 'danger',
+            label: '代收池1'
+          }
+        } else if (type == 'payin' && payinType == 'payin_second_distribution') {
+          return {
+            type: 'warning',
+            label: '代收池2'
+          }
+        } else {
+          return {
+            type: 'warning',
+            label: '分配中'
+
+          }
         }
+
+
       }
       return {
         type: 'info',

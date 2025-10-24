@@ -423,7 +423,7 @@ export default {
             });
           } else {
             addMchSetting(this.form).then(response => {
-              this.$store.dispatch('updateMchList');
+              this.$store.dispatch('fetchMchList', { isUpdate: true });
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();

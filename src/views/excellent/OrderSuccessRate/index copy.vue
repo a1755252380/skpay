@@ -34,7 +34,7 @@
             <el-button slot="reference" type="primary" size="mini">通道池</el-button>
             <template>
               <el-tag v-for="item in channelPool" :key="item.id" :type="item.type" style="margin: 3px;">{{ item.label
-              }}</el-tag>
+                }}</el-tag>
             </template>
           </el-popover>
         </div>
@@ -182,7 +182,6 @@ export default {
   created() {
     this.routeFlag = this.$route.meta.flag;
     this.loading = true;
-    this.$store.dispatch('fetchChannelPool');
   },
   mounted() {
     this.routeFlag = this.$route.meta.flag;
