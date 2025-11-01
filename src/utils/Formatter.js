@@ -99,6 +99,9 @@ export function MerchantChannelOverInNameFormatter(
   cellValue,
   index
 ) {
+  if (row.payin_over_amount === 0) {
+    return "-";
+  }
   return (
     (row.payin_over_chnl_name ? row.payin_over_chnl_name[0] : "") +
     (row.payin_over_chnl_id ? row.payin_over_chnl_id : "")
@@ -110,6 +113,9 @@ export function MerchantChannelOverOutNameFormatter(
   cellValue,
   index
 ) {
+  if (row.payout_over_amount === 0) {
+    return "-";
+  }
   return (
     (row.payout_over_chnl_name ? row.payout_over_chnl_name[0] : "") +
     (row.payout_over_chnl_id ? row.payout_over_chnl_id : "")

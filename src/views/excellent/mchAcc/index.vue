@@ -23,12 +23,12 @@
       <strong>代付余额=代付可用余额+代付冻结金额</strong>
       <strong>商户下发使用可用余额调整</strong>
     </div>
-    <ElTable v-AutoHeight="{
-      Ref: 'DynamicTable', height: 300
-    }" :loading="loading" :data="mchAccList" v-table-move="['DynamicTable']" :cellClassName="'HoverTooltipCopy'" border
-      :height="600" ref="DynamicTable" @cellDblclick="(row, column, cell, event) => {
+    <el-table v-AutoHeight="{
+      Ref: 'myTable',
+    }" v-table-move="['myTable']" v-loading="loading" :data="mchAccList" :cellClassName="'HoverTooltipCopy'" border
+      :height="600" ref="myTable" @cell-dblclick="(row, column, cell, event) => {
         this.$util.copyToClipboard(cell.innerText);
-      }" :default-sort="{ prop: 'mch_num', order: 'ascending' }">
+      }" :default-sort="{ prop: 'mch_num', order: 'ascending' }" row-key="mch_num">
       <!--      <el-table-column label="商户id" align="center" prop="mchId" />-->
       <el-table-column label="商户号" align="center" prop="mch_num" fixed="left" />
       <el-table-column label="商户名称" align="center" prop="mch_name" width="120" />
@@ -79,7 +79,7 @@
           > -->
         </template>
       </el-table-column>
-    </ElTable>
+    </el-table>
 
     <pagination ref="pagination" v-show="total > 0" :total="total" :page.sync="queryParams.page"
       :limit.sync="queryParams.limit" @pagination="getList" />
@@ -104,13 +104,12 @@ import {
 } from "@/api/excellent/mchAcc";
 import { listMchSetting } from "@/api/excellent/MchSetting";
 import AdjustmentsToFunds from "./AdjustmentsToFunds.vue";
-import ElTable from "@/components/Excellent/ElTable.vue";
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
 import mchNameVue from '@/components/Excellent/Mch/mchName.vue';
 // import ChangeBack from "./ChangeBack.vue";
 export default {
   name: "MchAcc",
-  components: { AdjustmentsToFunds, ElTable, MchNumSelect, mchNameVue },
+  components: { AdjustmentsToFunds, MchNumSelect, mchNameVue },
   data() {
     return {
       // 遮罩层
@@ -340,6 +339,9 @@ export default {
         }, 500);
       });
     },
+    cellDblclick(row, column, cell, event) {
+      this.$util.copyToClipboard(cell.innerText);
+    }
   },
 };
 </script>

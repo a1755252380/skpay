@@ -58,8 +58,7 @@ export default {
       },
     },
     radioList() {
-
-      return [
+      const typeList = [
         // {
         //   name: "标记成功",
         //   value: 0,
@@ -81,6 +80,14 @@ export default {
           show: "history",
         },
       ]
+      if (Number(this.$route.query.type) == 0) {
+        typeList.unshift({
+          name: "标记成功",
+          value: 0,
+          show: "history",
+        })
+      }
+      return typeList
     }
   },
 

@@ -45,9 +45,7 @@
       <el-table v-AutoHeight="{
         Ref: 'myTable', Height: 43
       }" v-table-move="['myTable']" :data="paginatedItems" v-loading="loading" ref="myTable" border :height="200"
-        row-key="mch_number">
-
-
+        row-key="_id" @cell-dblclick="cellDblclick">
         <el-table-column label="商户号 " align="center" prop="mch_number" fixed="left" width="80" />
 
         <el-table-column label="账户初期金额" align="center" prop="mch_start_balance" :formatter="Formatter.TableAmount"

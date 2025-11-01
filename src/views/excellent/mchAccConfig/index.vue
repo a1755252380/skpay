@@ -467,9 +467,9 @@ export default {
       }
 
       if (this.dialogAllocateType == 'payin' || this.dialogAllocateType == 'payinclose') {
-        label = '30代收分配池'
+        label = '代收分配池1'
       } else if (this.dialogAllocateType == 'payin2' || this.dialogAllocateType == 'payin2close') {
-        label = '100代收分配池'
+        label = '代收分配池2'
       } else if (this.dialogAllocateType == 'payout' || this.dialogAllocateType == 'payoutclose') {
         label = '代付分配池'
       } else {

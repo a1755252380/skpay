@@ -182,32 +182,32 @@ export default {
     }),
 
   },
-  watch: {
-    payInChannelPool: {
-      handler(newVal, oldVal) {
-        if (newVal.length === 0) {
-          this.$store.dispatch('fetchChannelPool', { type: 'payin1' });
-        }
-      },
-      deep: true
-    },
-    payInChannelPool2: {
-      handler(newVal, oldVal) {
-        if (newVal.length === 0) {
-          this.$store.dispatch('fetchChannelPool', { type: 'payin2' });
-        }
-      },
-      deep: true
-    },
-    payOutChannelPool: {
-      handler(newVal, oldVal) {
-        if (newVal.length === 0) {
-          this.$store.dispatch('fetchChannelPool', { type: 'payout' });
-        }
-      },
-      deep: true
-    },
-  },
+  // watch: {
+  //   payInChannelPool: {
+  //     handler(newVal, oldVal) {
+  //       if (newVal.length === 0) {
+  //         this.$store.dispatch('fetchChannelPool', { type: 'payin1' });
+  //       }
+  //     },
+  //     deep: true
+  //   },
+  //   payInChannelPool2: {
+  //     handler(newVal, oldVal) {
+  //       if (newVal.length === 0) {
+  //         this.$store.dispatch('fetchChannelPool', { type: 'payin2' });
+  //       }
+  //     },
+  //     deep: true
+  //   },
+  //   payOutChannelPool: {
+  //     handler(newVal, oldVal) {
+  //       if (newVal.length === 0) {
+  //         this.$store.dispatch('fetchChannelPool', { type: 'payout' });
+  //       }
+  //     },
+  //     deep: true
+  //   },
+  // },
   created() {
     this.routeFlag = this.$route.meta.flag;
     this.loading = true;
@@ -224,48 +224,146 @@ export default {
       if (this.routeFlag !== 'order') {
         return
       }
-      if (!this.channelQuery) {
-        this.$notify({
-          title: "请选择" + (type === 'payin' ? '代收' : '代付') + "通道",
-          customClass: "NotificationMessage",
-          duration: 1000,
-          type: "warning",
-        });
-        return;
-      }
-
       const textMch = [888888, 999999, 1234567]
-      let mchNumbers
+      let mchNumbers = []
       let sortList
+      if (!this.channelQuery) {
+        if (type === 'payin') {
+          this.$msgbox({
+            title: '请选择代收池',
+            message: `
+    <div style="text-align:center;">
+      <button id="pool1" style="margin-right:10px" class="el-button el-button--primary">代收池1</button>
+      <button id="pool2" class="el-button el-button--success">代收池2</button>
+    </div>
+  `,
+            dangerouslyUseHTMLString: true,
+            showCancelButton: false,
+            showConfirmButton: false
+          })
 
-      if (type === 'payin') {
-        this.SelectType = 'payin'
-        mchNumbers = this.OrderSuccessRateListSort
-          .filter(item => item.payin_total_count > 0 && !textMch.includes(Number(item.mch_num)) && item.payin_chnl_id === this.channelQuery)
-          .map(item => item.mch_num);
-        sortList = this.sortByTypeAndCount(this.OrderSuccessRateListSort, { typeKey: 'payin_chnl_id', countKey: 'payin_total_count', filterType: this.channelQuery })
+
+          this.$nextTick(() => {
+            document.getElementById('pool1').onclick = () => {
+              this.SelectType = 'payinPool1'
+
+              for (let index = 0; index < this.payInChannelPool.length; index++) {
+                mchNumbers = mchNumbers.concat(this.OrderSuccessRateListSort
+                  .filter(item => item.payin_total_count > 0 && !textMch.includes(Number(item.mch_num)) && Number(item.payin_chnl_id) === Number(this.payInChannelPool[index].id))
+                  .map(item => item.mch_num))
+              }
+
+              this.copyMchList(mchNumbers, type)
+              this.$msgbox.close()
+            }
+            document.getElementById('pool2').onclick = () => {
+              console.log('✅ 用户选择：代收池2')
+              this.SelectType = 'payinPool2'
+              for (let index = 0; index < this.payInChannelPool2.length; index++) {
+                mchNumbers = mchNumbers.concat(this.OrderSuccessRateListSort
+                  .filter(item => item.payin_total_count > 0 && !textMch.includes(Number(item.mch_num)) && Number(item.payin_chnl_id) === Number(this.payInChannelPool2[index].id))
+                  .map(item => item.mch_num))
+              }
+
+              this.copyMchList(mchNumbers, type)
+              this.$msgbox.close()
+            }
+          })
+        }
+        if (type === 'payout') {
+          console.log('✅ 用户选择：代付池')
+          this.SelectType = 'payoutPool'
+          for (let index = 0; index < this.payOutChannelPool.length; index++) {
+            mchNumbers = mchNumbers.concat(this.OrderSuccessRateListSort
+              .filter(item => item.payout_total_count > 0 && !textMch.includes(Number(item.mch_num)) && Number(item.payout_chnl_id) === Number(this.payOutChannelPool[index].id))
+              .map(item => item.mch_num))
+          }
+
+          this.copyMchList(mchNumbers, type)
+        }
+
+
+
+
+
+      } else {
+
+        if (type === 'payin') {
+          this.SelectType = 'payin'
+          mchNumbers = this.OrderSuccessRateListSort
+            .filter(item => item.payin_total_count > 0 && !textMch.includes(Number(item.mch_num)) && item.payin_chnl_id === this.channelQuery)
+            .map(item => item.mch_num);
+          sortList = this.sortByTypeAndCount(this.OrderSuccessRateListSort, { typeKey: 'payin_chnl_id', countKey: 'payin_total_count', filterType: this.channelQuery })
+        }
+        if (type === 'payout') {
+          this.SelectType = 'payout'
+          mchNumbers = this.OrderSuccessRateListSort
+            .filter(item => item.payout_total_count > 0 && !textMch.includes(Number(item.mch_num)) && item.payout_chnl_id === this.channelQuery)
+            .map(item => item.mch_num)
+          sortList = this.sortByTypeAndCount(this.OrderSuccessRateListSort, { typeKey: 'payout_chnl_id', countKey: 'payout_total_count', filterType: this.channelQuery })
+        }
+        this.copyMchList(mchNumbers, type)
+        this.OrderSuccessRateListSort = sortList;
+
       }
-      if (type === 'payout') {
-        this.SelectType = 'payout'
-        mchNumbers = this.OrderSuccessRateListSort
-          .filter(item => item.payout_total_count > 0 && !textMch.includes(Number(item.mch_num)) && item.payout_chnl_id === this.channelQuery)
-          .map(item => item.mch_num)
-        sortList = this.sortByTypeAndCount(this.OrderSuccessRateListSort, { typeKey: 'payout_chnl_id', countKey: 'payout_total_count', filterType: this.channelQuery })
-      }
+
+
+
+    },
+    copyMchList(mchNumbers, type) {
+
       if (mchNumbers.length === 0) {
-        this.$notify({
-          title: "暂无" + (type === 'payin' ? '代收' : '代付') + "中的商户",
-          customClass: "NotificationMessage",
-          duration: 1000,
-          type: "warning",
-        });
+        switch (this.SelectType) {
+          case 'payinPool1':
+            this.$notify({
+              title: "暂无代收池1中的商户",
+              customClass: "NotificationMessage", type: "warning",
+              duration: 1000,
+            });
+            break;
+          case 'payinPool2':
+            this.$notify({
+              title: "暂无代收池2中的商户",
+              customClass: "NotificationMessage", type: "warning",
+              duration: 1000,
+            });
+            break;
+          case 'payoutPool':
+            this.$notify({
+              title: "暂无代付池中的商户",
+              customClass: "NotificationMessage", type: "warning",
+              duration: 1000,
+            });
+            break;
+          case 'payin':
+            this.$notify({
+              title: "暂无代收中的商户",
+              customClass: "NotificationMessage",
+              duration: 1000,
+              type: "warning",
+            });
+            break;
+          case 'payout':
+            this.$notify({
+              title: "暂无代付中的商户",
+              customClass: "NotificationMessage",
+              duration: 1000,
+              type: "warning",
+            });
+            break;
+        }
+        // this.$notify({
+        //   title: "暂无" + (type === 'payin' ? '代收' : '代付') + "中的商户",
+        //   customClass: "NotificationMessage",
+        //   duration: 1000,
+        //   type: "warning",
+        // });
         return;
 
       }
       this.loading = true
 
       this.$util.copyToClipboard(mchNumbers.join(','));
-      this.OrderSuccessRateListSort = sortList;
       this.$nextTick(() => {
         this.loading = false
       })
@@ -348,6 +446,7 @@ export default {
     async fetchMchSettings(add = true) {
       this.loading = true;
       if (this.routeFlag == "order") {
+        this.fetchChannelPool();
         listMchAccConfig().then((res) => {
           this.mch_list = res.rows;
           if (add) {
@@ -400,6 +499,13 @@ export default {
 
 
 
+    },
+
+    //获取通道池信息
+    fetchChannelPool() {
+      this.$store.dispatch('fetchChannelPool', { type: 'payin1', isUpdate: true });
+      this.$store.dispatch('fetchChannelPool', { type: 'payin2', isUpdate: true });
+      this.$store.dispatch('fetchChannelPool', { type: 'payout', isUpdate: true });
     },
     //合并配置信息和成功率数据
     /**
@@ -558,6 +664,21 @@ export default {
     },
     //高亮选择的通道
     rowClassName({ row, rowIndex }) {
+      if (this.SelectType == 'payinPool1' || this.SelectType == 'payinPool2' || this.SelectType == 'payoutPool') {
+        const key = (this.SelectType === 'payinPool1' || this.SelectType === 'payinPool2' ? 'payin_chnl_id' : 'payout_chnl_id')
+        const countKey = (this.SelectType === 'payinPool1' || this.SelectType === 'payinPool2' ? 'payin_total_count' : 'payout_total_count')
+        if (this.SelectType == 'payinPool1' && this.payInChannelPool.find(item => item.id == row[key]) && row[countKey] > 0) {
+          return 'selectRow';
+        }
+        if (this.SelectType == 'payinPool2' && this.payInChannelPool2.find(item => item.id == row[key]) && row[countKey] > 0) {
+          return 'selectRow';
+        }
+        if (this.SelectType == 'payoutPool' && this.payOutChannelPool.find(item => item.id == row[key]) && row[countKey] > 0) {
+          return 'selectRow';
+        }
+
+        return '';
+      }
       const key = (this.SelectType === 'payin' ? 'payin_chnl_id' : 'payout_chnl_id')
       const countKey = (this.SelectType === 'payin' ? 'payin_total_count' : 'payout_total_count')
       if (row[key] == this.channelQuery && this.channelQuery && row[countKey] > 0) {
