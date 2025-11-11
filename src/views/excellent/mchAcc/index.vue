@@ -2,11 +2,11 @@
   <div class="app-container fulltable_div">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="商户号" prop="mch_num" v-if="checkRole(['admin'])">
-        <MchNumSelect v-model="queryParams.mch_num" @change="handleQuery"></MchNumSelect>
+        <MchNumSelect v-model="queryParams.mch_num"></MchNumSelect>
 
       </el-form-item>
       <el-form-item label="商户名称" prop="mch_name">
-        <mchNameVue v-model="queryParams.mch_name" @change="handleQuery"></mchNameVue>
+        <MchNumSelect v-model="queryParams.mch_name" :valueKey="'mch_name'" :placeholder="'请选择商户名称'"></MchNumSelect>
       </el-form-item>
       <el-form-item label="货币代号" prop="currency">
         <el-input v-model="queryParams.currency" placeholder="请输入货币代号" clearable @keyup.enter.native="handleQuery" />
@@ -105,11 +105,10 @@ import {
 import { listMchSetting } from "@/api/excellent/MchSetting";
 import AdjustmentsToFunds from "./AdjustmentsToFunds.vue";
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
-import mchNameVue from '@/components/Excellent/Mch/mchName.vue';
 // import ChangeBack from "./ChangeBack.vue";
 export default {
   name: "MchAcc",
-  components: { AdjustmentsToFunds, MchNumSelect, mchNameVue },
+  components: { AdjustmentsToFunds, MchNumSelect },
   data() {
     return {
       // 遮罩层

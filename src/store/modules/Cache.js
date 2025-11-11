@@ -12,8 +12,9 @@ const Cache = {
     //商户列表
     MchList: [],
     MchListLoading: false,
-    MchNameList: [],
-    MchNameLoading: false,
+    //商户配置列表
+    MchConfigList: [],
+    MchConfigLoading: false,
     //通道池
     PayInChannelPool: [],
     PayInChannelLoading: false,
@@ -35,11 +36,11 @@ const Cache = {
     setMchListLoading(state, loading) {
       state.MchListLoading = loading;
     },
-    setMchNameList(state, options) {
-      state.MchNameList = options;
+    setMchConfigList(state, options) {
+      state.MchConfigList = options;
     },
-    setMchNameListLoading(state, loading) {
-      state.MchNameLoading = loading;
+    setMchConfigListLoading(state, loading) {
+      state.MchConfigLoading = loading;
     },
     setPayInChannelPool(state, options) {
       state.PayInChannelPool = options;
@@ -54,8 +55,6 @@ const Cache = {
       state.PayOutChannelLoading = loading;
     },
     setPayInChannelPool2(state, options) {
-      console.log(options);
-
       state.PayInChannelPool2 = options;
     },
     setPayInChannelPool2Loading(state, loading) {
@@ -215,26 +214,30 @@ const Cache = {
         });
     },
 
-    async fetchMchNameList({ state, commit }) {
-      // 如果已有数据，不再请求
-      if (state.MchNameList.length > 0 || state.MchNameLoading) {
-        return;
+    async fetchMchConfigList({ state, commit }, params) {
+      const isUpdate = params && params.isUpdate ? true : false;
+      if (!isUpdate) {
+        // 如果已有数据，不再请求
+        if (state.MchConfigList.length > 0 || state.MchConfigListLoading) {
+          return;
+        }
       }
+
       // 设置为加载中
-      commit("setMchNameListLoading", true);
-      listMchSetting({
+      commit("setMchConfigListLoading", true);
+      listMchAccConfig({
         page: null,
-        limit: null,
+        limit: 500,
         mch_num: null,
         currency: null,
         payout_chnl_id: null,
       })
         .then((response) => {
-          commit("setMchNameList", response.rows); // 存储数据
+          commit("setMchConfigList", response.rows); // 存储数据
         })
         .finally(() => {
           // 请求完成后，设置加载状态为 false
-          commit("setMchNameListLoading", false);
+          commit("setMchConfigListLoading", false);
         });
     },
   },

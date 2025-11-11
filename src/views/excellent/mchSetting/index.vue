@@ -2,11 +2,12 @@
   <div class="app-container fulltable_div">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="商户号" prop="mch_num" v-if="checkRole(['admin'])">
-        <MchNumSelect v-model="queryParams.mch_num" @change="handleQuery" :configName="'setting'"></MchNumSelect>
+        <MchNumSelect v-model="queryParams.mch_num" :configName="'setting'"></MchNumSelect>
         <!-- <el-input v-model="queryParams.mch_num" placeholder="请输入商户号" clearable @keyup.enter.native="handleQuery" /> -->
       </el-form-item>
       <el-form-item label="商户名称" prop="mch_name">
-        <mchNameVue v-model="queryParams.mch_name" @change="handleQuery"></mchNameVue>
+        <MchNumSelect v-model="queryParams.mch_name" :configName="'setting'" :valueKey="'mch_name'"
+          :placeholder="'请选择商户名称'"></MchNumSelect>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -151,11 +152,10 @@
 import { listMchSetting, getMchSetting, delMchSetting, addMchSetting, updateMchSetting } from "@/api/excellent/MchSetting";
 import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
-import mchNameVue from '@/components/Excellent/Mch/mchName.vue';
 export default {
   name: "MchSetting",
 
-  components: { dynamicTableVue, MchNumSelect, mchNameVue },
+  components: { dynamicTableVue, MchNumSelect },
   data() {
 
     return {
@@ -328,6 +328,13 @@ export default {
         this.MchSettingList = response.rows;
         this.total = response.total;
         this.loading = false;
+        this.$nextTick(() => {
+          if (response.total != this.$store.state.Cache.MchList.length && this.$store.state.Cache.MchList.length > 0) {
+            this.$store.dispatch('fetchMchList', {
+              isUpdate: this.$store.state.Cache.MchList.length > 0 ? true : false,
+            });
+          }
+        });
       });
     },
     // 取消按钮

@@ -22,8 +22,12 @@
       </el-form-item>
       <el-form-item label="业务中:" v-if="hasPermiVisible(['excellent:OrderRecords:platform']) && routeFlag == 'order'">
         <div class="FlexCenter">
-          <div style="width: 150px;">
-            <ChannelQueryVue v-model="channelQuery"></ChannelQueryVue>
+          <div style="width: 100px;">
+            <mchNumSelectVue v-model="mchNumSelect" :placeholder='"商户"' @change="handleChangeMchNum"></mchNumSelectVue>
+          </div>
+          <div style="width: 100px;margin-left: 6px;">
+            <ChannelQueryVue v-model="channelQuery" :placeholder='"通道"'>
+            </ChannelQueryVue>
           </div>
           <el-button-group style="margin-left: 6px;">
             <el-button type="primary" size="mini" @click="copyMch('payin')">代收</el-button>
@@ -42,7 +46,7 @@
     </dynamicTableVue> -->
     <el-table :key="tableKey" v-AutoHeight="{
       Ref: tableKey
-    }" v-table-move="[tableKey]" :data="OrderSuccessRateListSort" @cell-dbclick="cellDblclick" v-loading="loading"
+    }" v-table-move="[tableKey]" :data="OrderSuccessRateListMchSelect" @cell-dbclick="cellDblclick" v-loading="loading"
       :ref="tableKey" border :height="200" :cell-class-name="'HoverTooltipCopy'"
       :row-key="routeFlag == 'order' ? 'mch_num' : 'chnl_id'" :row-class-name="rowClassName">
       <el-table-column prop="mch_num" label="商户号" align="center" width="70" fixed="left" v-if="routeFlag == 'order'">
@@ -62,7 +66,7 @@
         v-if="routeFlag == 'order' && hasPermiVisible(['excellent:OrderRecords:platform'])"
         :formatter="Formatter.MerchantChannelInNameFormatter">
       </el-table-column>
-      <el-table-column label="代收分流通道" align="center" width="110"
+      <el-table-column label="代收分流" align="center" width="80"
         v-if="routeFlag == 'order' && hasPermiVisible(['excellent:OrderRecords:platform'])"
         :formatter="Formatter.MerchantChannelOverInNameFormatter">
       </el-table-column>
@@ -101,7 +105,7 @@
         v-if="routeFlag == 'order' && hasPermiVisible(['excellent:OrderRecords:platform'])"
         :formatter="Formatter.MerchantChannelOutNameFormatter">
       </el-table-column>
-      <el-table-column label="代付分流通道" align="center" width="110"
+      <el-table-column label="代付分流" align="center" width="80"
         v-if="routeFlag == 'order' && hasPermiVisible(['excellent:OrderRecords:platform'])"
         :formatter="Formatter.MerchantChannelOverOutNameFormatter">
       </el-table-column>
@@ -131,8 +135,7 @@
         :formatter="Formatter.TableAmount">
 
       </el-table-column>
-      <el-table-column prop="payout_pending_amount" label="代付在途金额
-" align="center" :formatter="Formatter.TableAmount">
+      <el-table-column prop="payout_pending_amount" label="代付在途金额" align="center" :formatter="Formatter.TableAmount">
 
       </el-table-column>
       <el-table-column prop="payout_pending_count" label="代付在途总数" align="center">
@@ -147,19 +150,22 @@
 <script>
 import { listOrderSuccessRate, listChnlSuccessRate } from "@/api/excellent/OrderSuccessRate";
 import ShowChannelPoolVue from '@/components/dialog/showChannelPool.vue';
-import { listMchAccConfig } from "@/api/excellent/mchAccConfig";
-import { listChnlSetting } from "@/api/excellent/chnlSetting";
+// import { listMchAccConfig } from "@/api/excellent/mchAccConfig";
+// import { listChnlSetting } from "@/api/excellent/chnlSetting";
 import ChannelQueryVue from '@/components/Excellent/Channel/ChannelQuery.vue';
+
 import { mapState } from 'vuex'
+import mchNumSelectVue from '@/components/Excellent/Mch/mchNumSelect.vue';
 export default {
   name: "OrderSuccessRate",
-  components: { ChannelQueryVue, ShowChannelPoolVue },
+  components: { ChannelQueryVue, ShowChannelPoolVue, mchNumSelectVue },
   data() {
     return {
       tableKey: 0,//表格key值，用于刷新表格
       routeFlag: 'order', //路由标识
-      SelectType: 'payin',//选择的类型，默认代收
-      channelQuery: null,
+      SelectType: null,//选择的类型，默认代收
+      channelQuery: null,//通道查询
+      mchNumSelect: null,//商户选择
       loading: false,
       showSearch: true,
       queryParams: { StatisticalTime: "five" },
@@ -171,7 +177,7 @@ export default {
       ],
       OrderSuccessRateList: [],
       OrderSuccessRateListSort: [],
-      mch_list: [],
+      // mch_list: [],
     };
   },
   computed: {
@@ -180,38 +186,25 @@ export default {
       payInChannelPool2: state => state.Cache.PayInChannelPool2,
       payOutChannelPool: state => state.Cache.PayOutChannelPool,
     }),
-
+    OrderSuccessRateListMchSelect() {
+      if (this.mchNumSelect) {
+        const filterIndex = this.OrderSuccessRateListSort.indexOf(this.OrderSuccessRateListSort.find(item => item.mch_num == this.mchNumSelect))
+        return this.OrderSuccessRateListSort.slice(filterIndex, filterIndex + 1)
+      }
+      return this.OrderSuccessRateListSort
+    },
+    mch_list() {
+      if (this.routeFlag == "order") {
+        return this.$store.state.Cache.MchConfigList || []
+      }
+      return this.$store.state.Cache.channelList || []
+    },
   },
-  // watch: {
-  //   payInChannelPool: {
-  //     handler(newVal, oldVal) {
-  //       if (newVal.length === 0) {
-  //         this.$store.dispatch('fetchChannelPool', { type: 'payin1' });
-  //       }
-  //     },
-  //     deep: true
-  //   },
-  //   payInChannelPool2: {
-  //     handler(newVal, oldVal) {
-  //       if (newVal.length === 0) {
-  //         this.$store.dispatch('fetchChannelPool', { type: 'payin2' });
-  //       }
-  //     },
-  //     deep: true
-  //   },
-  //   payOutChannelPool: {
-  //     handler(newVal, oldVal) {
-  //       if (newVal.length === 0) {
-  //         this.$store.dispatch('fetchChannelPool', { type: 'payout' });
-  //       }
-  //     },
-  //     deep: true
-  //   },
-  // },
+
+
   created() {
     this.routeFlag = this.$route.meta.flag;
     this.loading = true;
-
   },
   mounted() {
     this.routeFlag = this.$route.meta.flag;
@@ -226,6 +219,10 @@ export default {
       }
       const textMch = [888888, 999999, 1234567]
       let mchNumbers = []
+      if (this.SelectType) {
+        this.SelectType = null
+        return
+      }
       let sortList
       if (!this.channelQuery) {
         if (type === 'payin') {
@@ -246,7 +243,6 @@ export default {
           this.$nextTick(() => {
             document.getElementById('pool1').onclick = () => {
               this.SelectType = 'payinPool1'
-
               for (let index = 0; index < this.payInChannelPool.length; index++) {
                 mchNumbers = mchNumbers.concat(this.OrderSuccessRateListSort
                   .filter(item => item.payin_total_count > 0 && !textMch.includes(Number(item.mch_num)) && Number(item.payin_chnl_id) === Number(this.payInChannelPool[index].id))
@@ -257,7 +253,6 @@ export default {
               this.$msgbox.close()
             }
             document.getElementById('pool2').onclick = () => {
-              console.log('✅ 用户选择：代收池2')
               this.SelectType = 'payinPool2'
               for (let index = 0; index < this.payInChannelPool2.length; index++) {
                 mchNumbers = mchNumbers.concat(this.OrderSuccessRateListSort
@@ -271,7 +266,6 @@ export default {
           })
         }
         if (type === 'payout') {
-          console.log('✅ 用户选择：代付池')
           this.SelectType = 'payoutPool'
           for (let index = 0; index < this.payOutChannelPool.length; index++) {
             mchNumbers = mchNumbers.concat(this.OrderSuccessRateListSort
@@ -281,11 +275,6 @@ export default {
 
           this.copyMchList(mchNumbers, type)
         }
-
-
-
-
-
       } else {
 
         if (type === 'payin') {
@@ -411,16 +400,11 @@ export default {
       }
 
     },
+    //更新数据
     async UpdateData(list) {
-
-
       let key = this.routeFlag === 'order' ? "mch_number" : "chnl_id"
       let FindKey = this.routeFlag === 'order' ? "mch_num" : "id"
-
-
-
       const resultList = this.mergeListsByTwoKeys(list, this.mch_list, key, FindKey)
-
       for (const newItem of resultList) {
         // 查找 this.OrderSuccessRateList 中是否有匹配的项
         const index = this.OrderSuccessRateList.findIndex(
@@ -443,37 +427,66 @@ export default {
 
       })
     },
+    // 判断是否需要加载商户或通道列表
+    // 判断是否需要加载商户或通道列表
+    async isEmptyArray() {
+      // 1. 判断目标列表
+      const targetList = this.routeFlag === "order" ? "MchConfigList" : "channelList";
+
+      // 2. 如果已有数据，直接返回
+      if (this.$store.state.Cache[targetList]?.length > 0) {
+        return true;
+      }
+
+      // 3. 发起异步请求
+      const actionName = this.routeFlag === "order" ? "fetchMchConfigList" : "fetchOptions";
+      this.$store.dispatch(actionName);
+
+      // 4. 等待数据加载完成
+      return new Promise((resolve) => {
+        const unwatch = this.$watch(
+          () => this.$store.state.Cache[targetList]?.length,
+          (val) => {
+            if (val > 0) {
+              unwatch(); // 数据来了之后取消监听
+              resolve(true);
+            }
+          }
+        );
+      });
+    }
+    ,
+
+
+
+    // 获取商户配置信息
     async fetchMchSettings(add = true) {
       this.loading = true;
-      if (this.routeFlag == "order") {
-        this.fetchChannelPool();
-        listMchAccConfig().then((res) => {
-          this.mch_list = res.rows;
+      try {
+        // 先确保数据已加载
+        await this.isEmptyArray();
+
+        // 再次等待 Vue 响应式更新（确保 this.mch_list 已变更）
+        await this.$nextTick();
+
+        if (this.routeFlag === "order") {
+          this.fetchChannelPool();
           if (add) {
-            this.AddData(res.rows).then(res => {
-              this.getList();
-            })
-          } else {
-            this.getList();
+            await this.AddData(this.mch_list);
           }
-
-
-        });
-      }
-      if (this.routeFlag == "chnl") {
-        if (add) {
-          listChnlSetting().then((res) => {
-            this.mch_list = res.rows;
-            this.AddData(res.rows).then(res => {
-              this.getList();
-            })
-          });
-        } else {
-          this.getList();
+          await this.getList();
+        } else if (this.routeFlag === "chnl") {
+          if (add) {
+            await this.AddData(this.mch_list);
+          }
+          await this.getList();
         }
-
+      } catch (err) {
+        console.error("fetchMchSettings 执行失败:", err);
       }
     },
+
+
     async getList() {
 
 
@@ -503,9 +516,18 @@ export default {
 
     //获取通道池信息
     fetchChannelPool() {
-      this.$store.dispatch('fetchChannelPool', { type: 'payin1', isUpdate: true });
-      this.$store.dispatch('fetchChannelPool', { type: 'payin2', isUpdate: true });
-      this.$store.dispatch('fetchChannelPool', { type: 'payout', isUpdate: true });
+      if (!this.$store.state.Cache.PayInChannelLoading) {
+        this.$store.dispatch('fetchChannelPool', { type: 'payin1', isUpdate: true });
+
+      }
+      if (!this.$store.state.Cache.PayInChannelPool2Loading) {
+        this.$store.dispatch('fetchChannelPool', { type: 'payin2', isUpdate: true });
+
+      }
+      if (!this.$store.state.Cache.PayOutChannelLoading) {
+        this.$store.dispatch('fetchChannelPool', { type: 'payout', isUpdate: true });
+
+      }
     },
     //合并配置信息和成功率数据
     /**
@@ -662,6 +684,12 @@ export default {
 
 
     },
+    handleChangeMchNum() {
+      if (this.mchNumSelect) {
+        this.channelQuery = null
+      }
+
+    },
     //高亮选择的通道
     rowClassName({ row, rowIndex }) {
       if (this.SelectType == 'payinPool1' || this.SelectType == 'payinPool2' || this.SelectType == 'payoutPool') {
@@ -686,6 +714,7 @@ export default {
       }
       return '';
     },
+
     cellDblclick(row, column, cell, event) {
       this.$util.copyToClipboard(cell.innerText);
     }

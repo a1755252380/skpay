@@ -767,24 +767,15 @@ export default {
         if (row.payout_settle_status != 0) {
           return false;
         }
-        //子项所有金额大于0
-        const allZero = row.children.every((selectStatusItem) => {
-          return selectStatusItem.payin_success_amount_count <= 0
-        })
-        if (allZero) {
-          return false
-        }
-        //所有都是结算过的状态
-        const allSelect = row.children.every((selectStatusItem) => {
-          return selectStatusItem.payout_settle_status != 0
-        });
+        const hasPositiveAmount = row.children.some(
+          item => item.payin_success_amount_count > 0
+        );
+        const hasUnsettled = row.children.some(
+          item => item.payout_settle_status === 0
+        );
 
-        if (allSelect) {
-          return false
-        }
-
-
-        return true;
+        // 只有同时存在金额大于 0 且有未结算的子项才返回 true
+        return hasPositiveAmount && hasUnsettled;
       } else {
 
         //未结算状态 以及且父级为未结算状态 结算金额小于0 则返回false  不给选择

@@ -171,7 +171,7 @@ export default {
       // 查询参数
       queryParams: {
         page: 1,
-        limit: 30,
+        limit: 100,
         chnl_id: null,
         terraceSymbol: null,
         state: null,

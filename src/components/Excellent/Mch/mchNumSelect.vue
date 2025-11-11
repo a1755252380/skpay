@@ -1,8 +1,8 @@
 <template>
   <el-select v-model="modelValue" clearable ref="ClientSearch" :loading="ClientSearchLoading"
-    :remote-method="mchNumSearch" placeholder="请选择商户号" @change="handleChange" @clear="handleClear" v-bind="$attrs"
-    :filterable="!('multiple' in $attrs)" v-on="$listeners">
-    <el-option v-for="item in ClientSearchList" :key="item.id" :label="item.mch_num" :value="item.mch_num" />
+    :remote-method="mchNumSearch" :placeholder="('placeholder' in $attrs) ? $attrs.placeholder : '请选择商户号'"
+    @change="handleChange" @clear="handleClear" v-bind="$attrs" :filterable="!('multiple' in $attrs)" v-on="$listeners">
+    <el-option v-for="item in ClientSearchList" :key="item.id" :label="item[valueKey]" :value="item[valueKey]" />
   </el-select>
 </template>
 
@@ -21,6 +21,10 @@ export default {
     configName: {
       type: String,
       default: 'config'
+    },
+    valueKey: {
+      type: String,
+      default: 'mch_num'
     }
   },
 
@@ -47,18 +51,16 @@ export default {
     ClientSearchList() {
       return this.configName === 'setting'
         ? this.$store.state.Cache.MchList
-        : this.$store.state.Cache.MchNameList;
+        : this.$store.state.Cache.MchConfigList;
     },
 
     ClientSearchLoading() {
       return this.configName === 'setting'
         ? this.$store.state.Cache.MchListLoading
-        : this.$store.state.Cache.MchNameLoading;
+        : this.$store.state.Cache.MchConfigLoading;
     },
 
-    ...mapState({
-      PassageList: state => state.Cache.channelList
-    })
+
   },
 
   created() {
@@ -78,7 +80,7 @@ export default {
     mchSearchType(query) {
       return this.configName === 'setting'
         ? this.$store.dispatch('fetchMchList')
-        : this.$store.dispatch('fetchMchNameList');
+        : this.$store.dispatch('fetchMchConfigList');
     },
 
     mchNumSearch(value) {

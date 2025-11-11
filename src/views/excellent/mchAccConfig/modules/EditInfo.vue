@@ -268,6 +268,7 @@ export default {
     })
   },
   created() {
+    this.$store.dispatch('fetchMchList');
     this.$store.dispatch('fetchOptions');
     this.reset();
   },

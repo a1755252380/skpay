@@ -1,7 +1,7 @@
 import { MessageBox, Notification } from "element-ui";
 
-let lastVersion = null;
-const CHECK_INTERVAL = 1000 * 10;
+let lastVersion = localStorage.getItem("APP_LAST_VERSION"); // 从 localStorage 恢复版本
+const CHECK_INTERVAL = 1000 * 10; // 每 10 秒检查一次
 
 // 获取当前版本
 async function getVersion() {
@@ -21,14 +21,24 @@ async function getVersion() {
 async function needUpdate() {
   const version = await getVersion();
   if (!version) return false;
-  if (!lastVersion) {
+
+  const savedVersion = localStorage.getItem("APP_LAST_VERSION");
+
+  // 如果首次加载（没有记录），保存版本号
+  if (!savedVersion) {
+    localStorage.setItem("APP_LAST_VERSION", version);
     lastVersion = version;
     return false;
   }
-  if (lastVersion !== version) {
+
+  // 版本不同则需要更新
+  if (savedVersion !== version) {
+    localStorage.setItem("APP_LAST_VERSION", version);
     lastVersion = version;
     return true;
   }
+
+  lastVersion = version;
   return false;
 }
 
@@ -57,7 +67,7 @@ async function autoRefresh() {
       }
     )
       .then(() => {
-        window.location.reload();
+        window.location.reload(true); // 强制重新加载
       })
       .catch(() => {
         Notification({
@@ -75,7 +85,7 @@ async function autoRefresh() {
 // 同步其他标签页刷新
 window.addEventListener("storage", (e) => {
   if (e.key === "NEED_RELOAD") {
-    window.location.reload();
+    window.location.reload(true);
   }
 });
 

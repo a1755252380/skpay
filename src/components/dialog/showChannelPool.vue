@@ -20,6 +20,8 @@
           item.label
           }}</el-tag>
       </div>
+      <el-button type="text" @click="handleRefresh" style="text-align: center;width: 100%;"
+        icon="el-icon-refresh">Refresh</el-button>
     </template>
 
   </el-popover>
@@ -59,7 +61,20 @@ export default {
 
   },
   methods: {
+    handleRefresh() {
+      if (!this.$store.state.Cache.PayInChannelLoading) {
+        this.$store.dispatch('fetchChannelPool', { type: 'payin1', isUpdate: true });
 
+      }
+      if (!this.$store.state.Cache.PayInChannelPool2Loading) {
+        this.$store.dispatch('fetchChannelPool', { type: 'payin2', isUpdate: true });
+
+      }
+      if (!this.$store.state.Cache.PayOutChannelLoading) {
+        this.$store.dispatch('fetchChannelPool', { type: 'payout', isUpdate: true });
+
+      }
+    }
   }
 };
 </script>

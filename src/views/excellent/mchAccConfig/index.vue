@@ -67,7 +67,7 @@
         </el-row>
 
         <el-table v-AutoHeight="{
-          Ref: 'myTable', Height: 15
+          Ref: 'myTable', Height: 35
         }" v-table-move="['myTable']" :data="mchAccConfigList" @selection-change="handleSelectionChange"
           v-loading="loading" ref="myTable" border :height="200" row-key="mch_num">
           <el-table-column type="selection" width="55" align="center" fixed />
@@ -321,7 +321,6 @@ export default {
   created() {
     this.loading = true;
     this.getList()
-    this.SeekNumApi()
 
   },
   methods: {
@@ -517,9 +516,16 @@ export default {
       return new Promise((resolve) => {
         listMchAccConfig(this.queryParams).then((response) => {
           this.loading = false;
-
           this.mchAccConfigList = response.rows;
           this.total = response.total;
+
+          this.$nextTick(() => {
+            if (response.total != this.$store.state.Cache.MchConfigList.length && this.$store.state.Cache.MchConfigList.length > 0) {
+              this.$store.dispatch('fetchMchConfigList', {
+                isUpdate: this.$store.state.Cache.MchConfigList.length > 0 ? true : false,
+              });
+            }
+          });
           resolve(response.code);
         });
       });
@@ -566,9 +572,7 @@ export default {
     payoutProductChange(value) {
       // console.log(value);
     },
-    SeekNumApi() {
-      this.$store.dispatch('fetchMchList');
-    },
+
 
     //状态修改按钮
     ChangeState(ChangeData, data, type) {
