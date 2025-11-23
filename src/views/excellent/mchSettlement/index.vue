@@ -1,31 +1,30 @@
 <template>
   <div class="app-container fulltable_div" ref="container">
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="90px">
+    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="90px"
+      label-position="top">
       <el-form-item label="商户号 " prop="mchNum">
-        <MchNumSelect v-model="queryParams.mchNum" @change="MchChange" @clear="() => {
+        <MchNumSelect v-model="queryParams.mchNum" style="width: 150px;" @change="MchChange" @clear="() => {
           this.queryParams.mchNum = null; this.SearchIndex = -1
         }"></MchNumSelect>
       </el-form-item>
       <el-form-item label="查询时间" prop="create_time">
-        <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'"
-          :shortcuts="shortcuts">
+        <TimeFrameVue v-model="timedata.create_time" style="width: 280px;" @parseTime="parseTime"
+          :ParameterIndex="'create_time'" :shortcuts="shortcuts">
         </TimeFrameVue>
       </el-form-item>
-      <el-form-item>
+      <el-form-item class="NoShowLabel" label="查询时间">
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-
         <el-button type="primary" icon="el-icon-s-claim" size="mini" @click="Settlement">结算</el-button>
-        <!-- <el-button  icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button> -->
-
-        <!-- <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :search="false"></right-toolbar> -->
-      </el-form-item>
-      <el-form-item>
-        <div style="display: flex;">
+        <div style="display: inline-flex;margin-left: 6px;">
           <el-input v-model="checkListInput" placeholder="请输入商户号,用逗号分隔" clearable size="mini"
             style=" margin-right: 6px;"></el-input>
           <el-button type="primary" icon="el-icon-download" size="mini" @click="CheckChoose">选择</el-button>
         </div>
+        <!-- <el-button  icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button> -->
+
+        <!-- <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :search="false"></right-toolbar> -->
       </el-form-item>
+
     </el-form>
     <div class="CalculationFormula">
 

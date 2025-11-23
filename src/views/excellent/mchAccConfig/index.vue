@@ -395,7 +395,11 @@ export default {
         });
         this.ids.splice(0, this.ids.length);
         this.getList();
-      })
+      }).finally(() => {
+        this.$store.dispatch("fetchMchConfigList", {
+          isUpdate: true
+        });
+      });
 
     },
     //批量设置分流数据
@@ -411,12 +415,11 @@ export default {
         this.ids.splice(0, this.ids.length);
         this.getList();
 
-      })
-
-
-
-
-
+      }).finally(() => {
+        this.$store.dispatch("fetchMchConfigList", {
+          isUpdate: true
+        });
+      });
     },
     //批量设置并发限制
     batchSpeedLimit(confirmList) {

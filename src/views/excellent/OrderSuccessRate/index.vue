@@ -8,8 +8,11 @@
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" icon="el-icon-search" size="mini" @click="fetchMchSettings(false)">查询</el-button>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="QuerySearch">查询</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+        <el-button type="primary" icon="el-icon-refresh" size="mini" @click="AutoQuerySearch">{{ this.AutoQuery ?
+          `${this.AutoQueryInterval}s` : 'AUTO'
+        }}</el-button>
         <el-button icon="el-icon-refresh" type="warning" size="mini"
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" @click="changeRate">{{ this.routeFlag ===
             'order'
@@ -135,7 +138,8 @@
         :formatter="Formatter.TableAmount">
 
       </el-table-column>
-      <el-table-column prop="payout_pending_amount" label="代付在途金额" align="center" :formatter="Formatter.TableAmount">
+      <el-table-column prop="payout_pending_amount" label="代付在途金额" align="center" :formatter="Formatter.TableAmount"
+        width="100">
 
       </el-table-column>
       <el-table-column prop="payout_pending_count" label="代付在途总数" align="center">
@@ -161,6 +165,11 @@ export default {
   components: { ChannelQueryVue, ShowChannelPoolVue, mchNumSelectVue },
   data() {
     return {
+      AutoQuery: false,//是否自动查询
+      AutoQueryIntervalDefault: 15,//自动查询时间间隔，默认1分钟
+      AutoQueryInterval: 15,//自动查询时间间隔，默认1分钟
+      AutoTimer: null,//自动查询定时器
+      isFetching: false,//是否正在请求，用来防止重复触发
       tableKey: 0,//表格key值，用于刷新表格
       routeFlag: 'order', //路由标识
       SelectType: null,//选择的类型，默认代收
@@ -181,6 +190,7 @@ export default {
     };
   },
   computed: {
+
     ...mapState({
       payInChannelPool: state => state.Cache.PayInChannelPool,
       payInChannelPool2: state => state.Cache.PayInChannelPool2,
@@ -200,15 +210,41 @@ export default {
       return this.$store.state.Cache.channelList || []
     },
   },
+  activated() {
+    document.addEventListener("visibilitychange", this.handleVisibilityChange)
 
+    // 页面恢复 → 如果 AutoQuery 开启则启动自动查询
+    if (this.AutoQuery) {
+      this.startAutoQuery()
+    }
+    this.channelQuery = null
+    this.mchNumSelect = null
+    this.SelectType = null
+    this.fetchChannelPool();
+    this.fetchMchSettings();
+  },
 
+  deactivated() {
+    // 离开缓存页面 → 停止自动查询
+    this.stopAutoQuery()
+    document.removeEventListener("visibilitychange", this.handleVisibilityChange)
+  },
+  beforeDestroy() {
+    // 清理
+    document.removeEventListener("visibilitychange", this.handleVisibilityChange)
+    this.stopAutoQuery()
+  },
   created() {
+    // 监听页面可见性变化
+    document.addEventListener("visibilitychange", this.handleVisibilityChange)
     this.routeFlag = this.$route.meta.flag;
     this.loading = true;
   },
   mounted() {
     this.routeFlag = this.$route.meta.flag;
-    this.fetchMchSettings();
+    this.$nextTick(() => {
+      this.fetchMchSettings();
+    })
   },
   methods: {
 
@@ -245,7 +281,7 @@ export default {
               this.SelectType = 'payinPool1'
               for (let index = 0; index < this.payInChannelPool.length; index++) {
                 mchNumbers = mchNumbers.concat(this.OrderSuccessRateListSort
-                  .filter(item => item.payin_total_count > 0 && !textMch.includes(Number(item.mch_num)) && Number(item.payin_chnl_id) === Number(this.payInChannelPool[index].id))
+                  .filter(item => item.payin_total_count > 5 && !textMch.includes(Number(item.mch_num)) && Number(item.payin_chnl_id) === Number(this.payInChannelPool[index].id))
                   .map(item => item.mch_num))
               }
 
@@ -369,6 +405,9 @@ export default {
         this.queryParams.StatisticalTime = "five"
         this.routeFlag = 'order'
       }
+      this.resetQuery()
+      this.stopAutoQuery()
+      this.AutoQuery = false
       this.fetchMchSettings();
     },
     //添加数据
@@ -444,20 +483,34 @@ export default {
 
       // 4. 等待数据加载完成
       return new Promise((resolve) => {
+
         const unwatch = this.$watch(
           () => this.$store.state.Cache[targetList]?.length,
           (val) => {
             if (val > 0) {
               unwatch(); // 数据来了之后取消监听
               resolve(true);
+              console.log("数据加载完成");
             }
           }
         );
       });
     }
     ,
-
-
+    //查询通道或商户缓存数据
+    fetchCacheMch() {
+      const actionName = this.routeFlag === "order" ? "fetchMchConfigList" : "fetchOptions";
+      this.$store.dispatch(actionName, {
+        isUpdate: true
+      });
+    },
+    //查询按钮
+    //查询按钮点击事件
+    QuerySearch() {
+      this.AutoQuery = false
+      this.stopAutoQuery();
+      this.fetchMchSettings(false);
+    },
 
     // 获取商户配置信息
     async fetchMchSettings(add = true) {
@@ -470,14 +523,17 @@ export default {
         await this.$nextTick();
 
         if (this.routeFlag === "order") {
-          this.fetchChannelPool();
           if (add) {
             await this.AddData(this.mch_list);
+          } else {
+            this.fetchCacheMch()
           }
           await this.getList();
         } else if (this.routeFlag === "chnl") {
           if (add) {
             await this.AddData(this.mch_list);
+          } else {
+            this.fetchCacheMch()
           }
           await this.getList();
         }
@@ -570,7 +626,15 @@ export default {
       return Array.from(map.values());
     },
     resetQuery() {
-      this.queryParams.StatisticalTime = "today";
+      this.SelectType = null//选择的类型，默认代收
+      this.channelQuery = null//通道查询
+      this.mchNumSelect = null//商户选择
+      if (this.routeFlag === 'order') {
+        this.queryParams.StatisticalTime = "five";
+      } else {
+        this.queryParams.StatisticalTime = "today";
+
+      }
       this.getList();
     },
     FormatAmount(value) {
@@ -717,6 +781,85 @@ export default {
 
     cellDblclick(row, column, cell, event) {
       this.$util.copyToClipboard(cell.innerText);
+    },
+
+    //自动挂机查询
+    // 开启 / 关闭自动查询
+    AutoQuerySearch() {
+
+      if (!this.AutoQuery) {
+
+        this.startAutoQuery()
+      } else {
+        this.stopAutoQuery()
+        this.AutoQuery = false                     // 关闭自动查询开关
+
+      }
+    },
+
+    // 启动自动查询
+    startAutoQuery() {
+      // 避免重复开启
+      this.stopAutoQuery()
+
+      this.AutoQuery = true
+      this.AutoQueryInterval = this.AutoQueryIntervalDefault
+      this.isFetching = false // 是否正在请求，用来防止重复触发
+
+      this.AutoTimer = setInterval(async () => {
+        if (document.hidden) return
+
+        // 正在请求中 → 暂停倒计时递减
+        if (this.isFetching) {
+          console.log('正在请求中 → 暂停倒计时递减');
+          return
+        }
+        this.AutoQueryInterval--
+
+        if (this.AutoQueryInterval <= 0) {
+          this.isFetching = true
+
+          try {
+            await this.fetchMchSettings(false)
+          } catch (e) {
+            console.error("自动查询失败：", e)
+          }
+
+          // 请求完成 → 重置倒计时
+          this.AutoQueryInterval = this.AutoQueryIntervalDefault
+          this.isFetching = false
+          return
+        }
+
+      }, 1000)
+    },
+
+    // 停止定时器
+    stopAutoQuery() {
+      // 清除定时器
+      if (this.AutoTimer) {
+        clearInterval(this.AutoTimer)
+        this.AutoTimer = null
+      }
+      // 重置所有参数
+      this.AutoQueryInterval = this.AutoQueryIntervalDefault  // 倒计时恢复默认
+    },
+
+    // 页面变为隐藏时暂停
+    handleVisibilityChange() {
+      if (document.hidden) {
+        // 页面变为隐藏 → 暂停定时器
+        console.log('页面隐藏 → 暂停定时器');
+
+        this.stopAutoQuery()
+      } else {
+        console.log('页面恢复 → 重新开启并重置倒计时');
+
+        // 页面恢复 → 重新开启并重置倒计时
+        if (this.AutoQuery) {
+          this.startAutoQuery()
+        }
+      }
     }
   },
 };

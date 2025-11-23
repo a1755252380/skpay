@@ -62,14 +62,14 @@
           <template slot-scope="scope">
             <el-tag :type="formatStatus(scope.row.status).type">{{
               formatStatus(scope.row.status).name
-              }}</el-tag>
+            }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="回调状态" align="center" prop="callback_status" width="100" class-name="NoTooltip">
           <template slot-scope="scope">
             <el-tag :type="formatCallbackStatus(scope.row.callback_status).type">{{
               formatCallbackStatus(scope.row.callback_status).name
-              }}</el-tag>
+            }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="pan码" align="center" prop="pan" v-if="parseInt(this.$route.query.type) == 1" />
@@ -496,11 +496,8 @@ export default {
         this.queryPage["last_id"] = response["last_id"];
         this.OrderRecordsList = [...this.OrderRecordsList, ...response.results];
         this.pageData.total = this.OrderRecordsList.length;
-
-      }).finally(() => {
         this.loading = false;
       })
-        ;
     },
 
     //分页处理

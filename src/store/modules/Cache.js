@@ -4,18 +4,22 @@ import {
 } from "@/api/excellent/chnlSetting";
 import { listMchSetting } from "@/api/excellent/MchSetting";
 import { listMchAccConfig } from "@/api/excellent/mchAccConfig";
+
+// Promise 缓存对象，模块外部维护
+const _promises = {};
+
 const Cache = {
   state: {
-    //通道列表
+    // 通道列表
     channelList: [],
     loading: false,
-    //商户列表
+    // 商户列表
     MchList: [],
     MchListLoading: false,
-    //商户配置列表
+    // 商户配置列表
     MchConfigList: [],
     MchConfigLoading: false,
-    //通道池
+    // 通道池
     PayInChannelPool: [],
     PayInChannelLoading: false,
     PayInChannelPool2: [],
@@ -61,125 +65,91 @@ const Cache = {
       state.PayInChannelPool2Loading = loading;
     },
   },
-
   actions: {
-    //获取通道池
-    //获取通道池
     async fetchChannelPool({ state, commit }, params) {
-      const paramsType = params && params.type ? params.type : "payin1";
-      //是否为更新状态
+      const paramsType = params?.type || "payin1";
+      const isUpdate = !!params?.isUpdate;
 
-      const isUpdate = params && params.isUpdate ? true : false;
-
-      if (!isUpdate) {
-        if (paramsType === "payin") {
-          // 如果已有数据，不再请求
-          if (state.PayInChannelPool.length > 0 || state.PayInChannelLoading) {
-            return;
-          }
-        } else if (paramsType === "payin2") {
-          // 如果已有数据，不再请求
-          if (
-            state.PayInChannelPool2.length > 0 ||
-            state.PayInChannelPool2Loading
-          ) {
-            return;
-          }
-        } else {
-          // 如果已有数据，不再请求
-          if (
-            state.PayOutChannelPool.length > 0 ||
-            state.PayOutChannelLoading
-          ) {
-            return;
-          }
-        }
+      const promiseKey = `fetchChannelPool_${paramsType}`;
+      const listMap = {
+        payin1: state.PayInChannelPool,
+        payin2: state.PayInChannelPool2,
+        payout: state.PayOutChannelPool,
+      };
+      if (!isUpdate && listMap[paramsType].length > 0) {
+        return Promise.resolve(listMap[paramsType]);
       }
 
-      // 设置为加载中
+      if (_promises[promiseKey]) return _promises[promiseKey];
 
-      if (paramsType === "payin2") {
-        commit("setPayInChannelPool2Loading", true); // 存储数据
-      } else if (paramsType === "payin1") {
-        commit("setPayInChannelLoading", true); // 存储数据
-      } else if (paramsType === "payout") {
-        commit("setPayOutChannelLoading", true); // 存储数据
-      }
+      const loadingMap = {
+        payin1: "setPayInChannelLoading",
+        payin2: "setPayInChannelPool2Loading",
+        payout: "setPayOutChannelLoading",
+      };
+      commit(loadingMap[paramsType], true);
 
-      listAllocationPool({
-        type: paramsType,
-      })
+      _promises[promiseKey] = listAllocationPool({ type: paramsType })
         .then((response) => {
-          const allocationPoolList = [];
-          for (const key in response.chnl_names) {
-            allocationPoolList.push({
-              id: key,
-              chnl_name: response.chnl_names[key],
-              label: response.chnl_names[key][0] + key,
-            });
-          }
-          if (paramsType === "payin2") {
-            commit("setPayInChannelPool2", allocationPoolList); // 存储数据
-          } else if (paramsType === "payin1") {
-            commit("setPayInChannelPool", allocationPoolList); // 存储数据
-          } else if (paramsType === "payout") {
-            commit("setPayOutChannelPool", allocationPoolList); // 存储数据
-          }
+          const list = Object.keys(response.chnl_names).map((key) => ({
+            id: key,
+            chnl_name: response.chnl_names[key],
+            label: response.chnl_names[key][0] + key,
+          }));
+          const commitMap = {
+            payin1: "setPayInChannelPool",
+            payin2: "setPayInChannelPool2",
+            payout: "setPayOutChannelPool",
+          };
+          commit(commitMap[paramsType], list);
+          return list;
         })
         .finally(() => {
-          // 设置为加载中
-
-          if (paramsType === "payin2") {
-            commit("setPayInChannelPool2Loading", false); // 存储数据
-          } else if (paramsType === "payin1") {
-            commit("setPayInChannelLoading", false); // 存储数据
-          } else if (paramsType === "payout") {
-            commit("setPayOutChannelLoading", false); // 存储数据
-          }
+          commit(loadingMap[paramsType], false);
+          _promises[promiseKey] = null;
         });
+
+      return _promises[promiseKey];
     },
 
-    //获取通道列表
     async fetchOptions({ state, commit }, params) {
-      const isUpdate = params && params.isUpdate ? true : false;
-
-      if (!isUpdate) {
-        // 如果已有数据，不再请求
-        if (state.channelList.length > 0 || state.loading) {
-          return;
-        }
+      const isUpdate = !!params?.isUpdate;
+      if (!isUpdate && state.channelList.length > 0) {
+        return Promise.resolve(state.channelList);
       }
 
-      // 设置为加载中
+      if (_promises.fetchOptions) return _promises.fetchOptions;
+
       commit("setLoading", true);
-      listChnlSetting({
+      _promises.fetchOptions = listChnlSetting({
         pageNum: null,
         pageSize: null,
         terraceSymbol: null,
         state: null,
       })
         .then((response) => {
-          commit(
-            "setOptions",
-            response.rows.sort((a, b) => a.id - b.id)
-          ); // 存储数据
+          const result = response.rows.sort((a, b) => a.id - b.id);
+          commit("setOptions", result);
+          return result;
         })
         .finally(() => {
-          // 请求完成后，设置加载状态为 false
           commit("setLoading", false);
+          _promises.fetchOptions = null;
         });
+
+      return _promises.fetchOptions;
     },
+
     async fetchMchList({ state, commit }, params) {
-      const isUpdate = params && params.isUpdate ? true : false;
-      if (!isUpdate) {
-        // 如果已有数据，不再请求
-        if (state.MchList.length > 0 || state.MchListLoading) {
-          return;
-        }
+      const isUpdate = !!params?.isUpdate;
+      if (!isUpdate && state.MchList.length > 0) {
+        return Promise.resolve(state.MchList);
       }
-      // 设置为加载中
+
+      if (_promises.fetchMchList) return _promises.fetchMchList;
+
       commit("setMchListLoading", true);
-      listMchSetting({
+      _promises.fetchMchList = listMchSetting({
         page: null,
         limit: null,
         mch_num: null,
@@ -187,45 +157,41 @@ const Cache = {
         payout_chnl_id: null,
       })
         .then((response) => {
-          commit("setMchList", response.rows); // 存储数据
+          commit("setMchList", response.rows);
+          return response.rows;
         })
         .finally(() => {
-          // 请求完成后，设置加载状态为 false
           commit("setMchListLoading", false);
+          _promises.fetchMchList = null;
         });
+
+      return _promises.fetchMchList;
     },
-    //更新商户名称列表
-    async updateMchList({ state, commit }) {
-      // 设置为加载中
+
+    async updateMchList({ commit }) {
       commit("setMchListLoading", true);
-      listMchSetting({
+      const result = await listMchSetting({
         page: null,
         limit: null,
         mch_num: null,
         currency: null,
         payout_chnl_id: null,
-      })
-        .then((response) => {
-          commit("setMchList", response.rows); // 存储数据
-        })
-        .finally(() => {
-          // 请求完成后，设置加载状态为 false
-          commit("setMchListLoading", false);
-        });
+      });
+      commit("setMchList", result.rows);
+      commit("setMchListLoading", false);
+      return result.rows;
     },
 
     async fetchMchConfigList({ state, commit }, params) {
-      const isUpdate = params && params.isUpdate ? true : false;
-      if (!isUpdate) {
-        // 如果已有数据，不再请求
-        if (state.MchConfigList.length > 0 || state.MchConfigListLoading) {
-          return;
-        }
+      const isUpdate = !!params?.isUpdate;
+      if (!isUpdate && state.MchConfigList.length > 0) {
+        return Promise.resolve(state.MchConfigList);
       }
 
-      // 设置为加载中
+      if (_promises.fetchMchConfigList) return _promises.fetchMchConfigList;
+
       commit("setMchConfigListLoading", true);
-      listMchAccConfig({
+      _promises.fetchMchConfigList = listMchAccConfig({
         page: null,
         limit: 500,
         mch_num: null,
@@ -233,12 +199,15 @@ const Cache = {
         payout_chnl_id: null,
       })
         .then((response) => {
-          commit("setMchConfigList", response.rows); // 存储数据
+          commit("setMchConfigList", response.rows);
+          return response.rows;
         })
         .finally(() => {
-          // 请求完成后，设置加载状态为 false
           commit("setMchConfigListLoading", false);
+          _promises.fetchMchConfigList = null;
         });
+
+      return _promises.fetchMchConfigList;
     },
   },
 };

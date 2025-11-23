@@ -22,7 +22,8 @@
         row-key="id" :key="tableId" :empty-text="!ReadyRequest ? '请先选择通道再进行查询' : '暂无数据'
           " :highlight-current-row="false" ref="multipleTable" :row-class-name="rowClassNameFun" @select="selectFun"
         @select-all="selectAllFun" :header-row-class-name="headerRowClassName" :tree-props="{ children: 'children' }"
-        :default-sort="{ prop: 'PendingSettlementAmount', order: 'descending' }" :height="350">
+        :default-sort="{ prop: 'PendingSettlementAmount', order: 'descending' }" :height="550" show-summary
+        :summary-method="getSummaries">
         <el-table-column type="selection" width="55" align="center" :selectable="readyselectable" />
         <el-table-column label="商户号 " align="center" prop="mch_number" width="150" />
         <el-table-column label="通道ID" align="center" prop="chnl_id" width="80"
@@ -156,9 +157,18 @@ export default {
     },
     //查询商户结算详情
     QueryDetailedContentList() {
-      return this.ChooseRows.map((row) => {
-        return row.mch_number;
-      });
+      const mchNumbers = []
+      for (let index = 0; index < this.ChooseRows.length; index++) {
+        const element = this.ChooseRows[index];
+        const chnlIndex = element.children.findIndex(item => item.chnl_id === this.DetailedContentListQueryParams.chnl_id)
+        if (chnlIndex !== -1) {
+          mchNumbers.push(element.mch_number);
+        }
+      }
+      return mchNumbers
+      // return this.ChooseRows.map((row) => {
+      //   return row.mch_number;
+      // });
     },
 
   },
@@ -364,21 +374,35 @@ export default {
       let confirmList = [];
       let listMchAccList = [];
 
-      for (
-        let index = 0;
-        index < this.QueryDetailedContentList.length;
-        index++
-      ) {
-        let query = {
-          start_time: this.queryParams.start_time, // 开始时间
-          end_time: this.queryParams.end_time, // 结束时间
-          last_id: null, // 上一次查询的id
-          mch_number: this.QueryDetailedContentList[index],
-          chnl_id: this.DetailedContentListQueryParams.chnl_id,
-        };
-        confirmList.push(query);
-
+      for (let index = 0; index < this.ChooseRows.length; index++) {
+        const element = this.ChooseRows[index];
+        const chnlIndex = element.children.findIndex(item => item.chnl_id === this.DetailedContentListQueryParams.chnl_id)
+        if (chnlIndex !== -1) {
+          let query = {
+            start_time: this.queryParams.start_time, // 开始时间
+            end_time: this.queryParams.end_time, // 结束时间
+            last_id: null, // 上一次查询的id
+            mch_number: element.mch_number,
+            chnl_id: this.DetailedContentListQueryParams.chnl_id,
+          };
+          confirmList.push(query);
+        }
       }
+      // for (
+      //   let index = 0;
+      //   index < this.QueryDetailedContentList.length;
+      //   index++
+      // ) {
+      //   let query = {
+      //     start_time: this.queryParams.start_time, // 开始时间
+      //     end_time: this.queryParams.end_time, // 结束时间
+      //     last_id: null, // 上一次查询的id
+      //     mch_number: this.QueryDetailedContentList[index],
+      //     chnl_id: this.DetailedContentListQueryParams.chnl_id,
+      //   };
+      //   confirmList.push(query);
+
+      // }
       this.DetailedContentList.splice(0);
       this.$refs.ProgressDialog.MoveBatchRequest(
         {
@@ -804,7 +828,31 @@ export default {
         return "/";
       }
       return (data / 100).toFixed(2);
-    }
+    },
+    getSummaries({ columns, data }) {
+      console.log(columns, data);
+
+      const sums = [];
+      columns.forEach((column, index) => {
+        if (index === 1) {
+          sums[index] = '合计';
+          return;
+        }
+        if (index === 4 || index === 6) {
+          const values = data.map(item => Number(item[column.property]));
+          if (!values.every(value => isNaN(value))) {
+            sums[index] = (values.reduce((prev, curr) => prev + Number(curr), 0) / 100).toFixed(2);
+          } else {
+            sums[index] = '/';
+          }
+
+        } else {
+          sums[index] = '';
+        }
+
+      });
+      return sums;
+    },
   },
   components: {
     dynamicTableVue,

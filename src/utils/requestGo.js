@@ -5,7 +5,7 @@ import { getToken } from "@/utils/auth";
 import errorCode from "@/utils/errorCode";
 import { tansParams, blobValidate } from "@/utils/ruoyi";
 import cache from "@/plugins/cache";
-import router from "@/router";
+
 let downloadLoadingInstance;
 // 是否显示重新登录
 export let isRelogin = { show: false };
@@ -82,6 +82,7 @@ serviceOrder.interceptors.request.use(
         }
       }
     }
+
     return config;
   },
   (error) => {

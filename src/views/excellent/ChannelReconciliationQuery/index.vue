@@ -1,7 +1,6 @@
 <template>
   <div class="app-container fulltable_div" ref="container">
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" label-width="90px"
-      :label-position="'top'">
+    <el-form :model="queryParams" ref="queryForm" size="mini" :inline="true" label-width="90px" :label-position="'top'">
 
       <el-form-item label="通道名" prop="mch_num">
         <ChannelQuery v-model="queryParams.chnl_id"></ChannelQuery>
