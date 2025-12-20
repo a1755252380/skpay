@@ -60,6 +60,12 @@
       </el-table-column>
 
       <el-table-column label="货币代号" align="center" prop="currency" width="100" />
+      <el-table-column label="结算模式" align="center" prop="settle_mode" width="100">
+        <template slot-scope="scope">
+          <el-tag v-if="scope.row.settle_mode === 0" type="success">实时结算</el-tag>
+          <el-tag v-else type="warning">延时结算</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="备注" align="center" prop="chnl_symbol" />
 
 
@@ -78,7 +84,7 @@
     <!-- 添加或修改支付通道对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="680px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px" class="Breakdown-el-form"
-        label-position="top">
+        v-loading="UpdateLoading" label-position="top">
         <el-form-item label="通道ID" prop="id" v-if="form.id">
           <el-input v-model="form.id" placeholder="请输入通道名称" disabled />
         </el-form-item>
@@ -121,6 +127,12 @@
           <el-input-number v-model="form.payout_max_limit" placeholder="请输入单笔代付最大限额" :min="0" class="w100_input" />
           <!-- <el-input v-model="form.payout_max_limit" placeholder="请输入单笔代付最大限额" /> -->
         </el-form-item>
+        <el-form-item label="结算模式" prop="settle_mode">
+          <el-select v-model="form.settle_mode" placeholder="请选择通道结算模式" class="w100_input">
+            <el-option v-for="item in settleModeList" :key="item.value" :label="item.label"
+              :value="item.value"></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="通道备注" prop="chnl_symbol">
           <el-input type="textarea" :rows="4" v-model="form.chnl_symbol" placeholder="请输入通道备注" class="w100_input" />
           <!-- <el-input v-model="form.payout_max_limit" placeholder="请输入单笔代付最大限额" /> -->
@@ -150,6 +162,7 @@ export default {
     return {
       AllocationPoolType: 'payin1',
       AllocationPool: false,
+      UpdateLoading: false,
       // 遮罩层
       loading: true,
       // 选中数组
@@ -178,6 +191,16 @@ export default {
       },
       // 表单参数
       form: {},
+      settleModeList: [
+        {
+          label: '实时结算',
+          value: 0
+        },
+        {
+          label: '延时结算',
+          value: 1
+        },
+      ],
       // 表单校验
       rules: {
         payinMode: [
@@ -235,6 +258,7 @@ export default {
         updateBy: null,
         updateTime: null,
         chnl_symbol: null,
+        settle_mode: null
       };
       this.resetForm("form");
     },
@@ -263,25 +287,31 @@ export default {
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
+      this.UpdateLoading = true;
+      this.open = true;
       const id = row.chnl_name || this.ids
+      this.title = "修改支付通道";
+
       getChnlSetting(id).then(response => {
         for (const key in this.form) {
           this.form[key] = response.rows[0][key] != null ? response.rows[0][key] : this.form[key]
         }
         // this.form = response.data;
-        this.open = true;
-        this.title = "修改支付通道";
+        this.UpdateLoading = false;
       });
     },
     /** 提交按钮 */
     submitForm() {
       this.$refs["form"].validate(valid => {
+        this.UpdateLoading = true;
         if (valid) {
           if (this.form.id != null) {
             updateChnlSetting(this.form).then(response => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
+            }).finally(() => {
+              this.UpdateLoading = false;
             });
           } else {
             this.form['chnl_name'] = String(moment().format('YYYY-MM-DD/HH:mm:ss'));
@@ -289,6 +319,8 @@ export default {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
+            }).finally(() => {
+              this.UpdateLoading = false;
             });
           }
         }

@@ -353,9 +353,7 @@ export default {
             //代收费率区间
             const payinRateInterval = JSON.parse(response.rows[0].payin_rate_interval);
             this.payinRange = Object.keys(payinRateInterval).map(key => {
-
               const [min, max] = key.split('-').map(Number); // 将key拆分为min和max
-
               return {
                 min,
                 max,
@@ -364,7 +362,6 @@ export default {
               };
             });
           }
-
           if (response.rows[0].payout_rate_interval !== null) {
             const payoutRateInterval = JSON.parse(response.rows[0].payout_rate_interval);
             this.payoutRange = Object.keys(payoutRateInterval).map(key => {
@@ -378,8 +375,6 @@ export default {
               };
             });
           }
-
-
           this.FormBackup = { ...response.rows[0] };
           this.form = response.rows[0];
           setTimeout(() => {
@@ -449,19 +444,14 @@ export default {
         //提交内容
         let form = this.form;
         if (valid) {
-
           if (this.form.id != null) {
             let submitForm = {}
             submitForm["mch_num"] = form.mch_num;
             for (const key in this.FormBackup) {
               if (form[key] != this.FormBackup[key]) {
-                console.log(form[key] + " " + this.FormBackup[key]);
-
                 submitForm[key] = form[key]
               }
             }
-
-            console.log(submitForm);
             updateMchAccConfig(submitForm).then((response) => {
               this.$modal.msgSuccess("修改成功");
               this.$emit("submit");
@@ -469,7 +459,6 @@ export default {
           } else {
             form["mch_id"] = this.ClientSearchList[UserIndex]["id"];
             form["mch_num"] = this.ClientSearchList[UserIndex]["mch_num"];
-            console.log(form);
             addMchAccConfig(form).then((response) => {
               this.$modal.msgSuccess("新增成功");
               this.$emit("submit");

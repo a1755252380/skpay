@@ -1,6 +1,7 @@
 <template>
+
   <el-dialog :title="'历史数据'" :visible.sync="DetailedContentShowData" width="90%" :close-on-click-modal="false">
-    <div class="fulltable_div" style="height: 650px;margin-bottom: 26px;">
+    <div class="fulltable_div" style="height: 600px;margin-bottom: 26px;">
       <el-form ref="DetailedContentSearch" :inline="true" label-width="80px" size="small">
 
         <el-form-item label="通道ID" prop="chnl_id">
@@ -19,10 +20,10 @@
         （<span class="todayText">蓝色部分</span>表示今日数据，<span class="secondText">浅蓝色部分</span>表示昨日数据）
       </div>
       <el-table v-if="!DetailedContentLoading" :data="treeTableData" :class="!ReadyRequest ? 'SettlementForm' : ''"
-        row-key="id" :key="tableId" :empty-text="!ReadyRequest ? '请先选择通道再进行查询' : '暂无数据'
+        row-key="id" :empty-text="!ReadyRequest ? '请先选择通道再进行查询' : '暂无数据'
           " :highlight-current-row="false" ref="multipleTable" :row-class-name="rowClassNameFun" @select="selectFun"
         @select-all="selectAllFun" :header-row-class-name="headerRowClassName" :tree-props="{ children: 'children' }"
-        :default-sort="{ prop: 'PendingSettlementAmount', order: 'descending' }" :height="550" show-summary
+        :default-sort="{ prop: 'PendingSettlementAmount', order: 'descending' }" :height="450" show-summary
         :summary-method="getSummaries">
         <el-table-column type="selection" width="55" align="center" :selectable="readyselectable" />
         <el-table-column label="商户号 " align="center" prop="mch_number" width="150" />
@@ -76,10 +77,6 @@
     <ProxyChangeDialogVue :Change="ProxyChange" ref="ProxyChangeDialogVue" :show="ProxyChangeDialogShow"
       @CloseProxyChangeDialog="CloseProxyChangeDialog" @UpdateProxyChangeDialog="UpdateProxyChangeDialog">
     </ProxyChangeDialogVue>
-    <!-- 进度条 -->
-    <ProgressDialog ref="ProgressDialog" v-model="progressShow"></ProgressDialog>
-    <!-- 展示批量结果 -->
-    <ShowResult :Result="errorList" :dialogVisible="showResult" @updateDialogVisible="updateDialogVisible"></ShowResult>
   </el-dialog>
 </template>
 
@@ -93,9 +90,9 @@ import dynamicTableVue from "@/components/Excellent/dynamicTable.vue";
 import ProxyChangeDialogVue from "./DetailedContent/ProxyChangeDialog.vue";
 import { updateMchAcc } from "@/api/excellent/mchAcc";
 import ChannelQuery from "@/components/Excellent/Channel/ChannelQuery.vue";
-import ProgressDialog from "@/components/dialog/ProgressDialog.vue";
 import moment from "moment-timezone";
-import ShowResult from "./DetailedContent/ShowResult.vue";
+import { mockRequest, PollingRequest, MultiPollingRequest } from "@/utils/ProgressRequest";
+
 export default {
   name: "WorkspaceJsonDetailedContent",
   props: ["DetailedContentShow", "ChooseRows", "MchTotal", "queryParams"],
@@ -103,7 +100,6 @@ export default {
   data() {
     return {
 
-      tableId: "one",
       selectedRows: [], // 用于保存选中的行
       DetailedContentList: [], //原有数据
       treeTableData: [], //树形表格数据
@@ -130,9 +126,7 @@ export default {
       SelectValue: null,
       SelectOptions: [],
 
-      //批量结算失败的列表
-      showResult: false,
-      errorList: [],
+
     };
   },
   computed: {
@@ -189,10 +183,8 @@ export default {
         this.$message.error("请选择通道，再进行查询");
         return;
       }
-      this.progressShow = true;
       this.DetailedContentLoading = true;
       this.expandRowKeys = [];
-      this.tableId = Math.random().toString(36).substr(2, 8);
       this.getList();
     },
     //重置请求参数
@@ -246,6 +238,7 @@ export default {
         });
         return;
       }
+
       this.$prompt("请输入备注信息", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
@@ -290,17 +283,12 @@ export default {
           updateMchAcc(confirmList).then((res) => {
             loading.close();
 
-            if (res.code < 0) {
 
-              this.showResult = true;
-              this.errorList = res.errors
-            } else {
-              this.$message({
-                type: "success",
-                message: "批量结算成功",
-              });
-              this.EmptyQuery();
-            }
+            this.$message({
+              type: "success",
+              message: "批量结算成功",
+            });
+            this.EmptyQuery();
 
             // this.EmptyQuery();
             return;
@@ -309,18 +297,7 @@ export default {
 
           })
           return;
-          // const { successList, errorList } = await this.$refs.ProgressDialog.batchRequest(
-          //   confirmList,
-          //   updateMchAcc, 100
-          // )
-          // this.$message({
-          //   type: "success",
-          //   message: "批量结算成功",
-          // });
-          // this.EmptyQuery();
-          // console.log(successList, errorList);
 
-          // return;
         })
         .catch(() => {
           this.$message({
@@ -368,7 +345,6 @@ export default {
     },
     /** 查询商户结算列表 */
     async getList() {
-      this.$refs.ProgressDialog.isClose = false;
       this.DetailedContentLoading = true;
 
       let confirmList = [];
@@ -388,42 +364,32 @@ export default {
           confirmList.push(query);
         }
       }
-      // for (
-      //   let index = 0;
-      //   index < this.QueryDetailedContentList.length;
-      //   index++
-      // ) {
-      //   let query = {
-      //     start_time: this.queryParams.start_time, // 开始时间
-      //     end_time: this.queryParams.end_time, // 结束时间
-      //     last_id: null, // 上一次查询的id
-      //     mch_number: this.QueryDetailedContentList[index],
-      //     chnl_id: this.DetailedContentListQueryParams.chnl_id,
-      //   };
-      //   confirmList.push(query);
+      console.log(confirmList);
 
-      // }
+      if (confirmList.length === 0) {
+        this.$message.warning("暂无该通道的结算记录");
+        return;
+      }
       this.DetailedContentList.splice(0);
-      this.$refs.ProgressDialog.MoveBatchRequest(
-        {
-          "listMchSettlement": {
-            requestFn: listMchSettlement,
-            requestList: confirmList,
+      MultiPollingRequest(
+        [
+          {
+            method: listMchSettlement,
+            params: confirmList,
           },
-          "listMchAcc": {
-            requestFn: listMchAcc,
-            requestList: [{
+          {
+            method: listMchAcc,
+            params: [{
               page: 1,
               limit: 500,
             }],
           },
-        },
-        100
+        ]
       )
         .then(async (response) => {
 
-          const results = response['listMchSettlement'].successList.map((item) => {
-            return item.response.results;
+          const results = response['listMchSettlement'].map((item) => {
+            return item.results;
           });
           for (let index = 0; index < results.length; index++) {
             this.DetailedContentList = this.DetailedContentList.concat(
@@ -434,7 +400,7 @@ export default {
 
           //查询商户总余额结果
           let ListMchResults = {}
-          response['listMchAcc'].successList[0].response.rows.map((item) => {
+          response['listMchAcc'][0].rows.map((item) => {
             ListMchResults[item.mch_num] = item
             return;
           });
@@ -495,6 +461,30 @@ export default {
         acc[item.mch_number].push(item);
         return acc;
       }, {});
+      // 是否可以选择当前行
+      function isSelectable(row, index) {
+
+        if (index == 0) {
+          // 至少有一个未结算 → PendingSettlementAmount > 0
+          const hasUnsettled = Number(row.PendingSettlementAmount) > 0;
+
+          const children = row.children || [];
+
+          const allAmountsZero = children.length > 0 ? children.every(
+            c => Number(c.payin_success_amount_count) === 0
+          ) : false;
+
+          return hasUnsettled && !allAmountsZero;
+        } else {
+
+          //未结算状态 以及且父级为未结算状态 结算金额小于0 则返回false  不给选择
+          if (row.payout_settle_status != 0 || row.payin_success_amount_count <= 0) {
+            return false;
+          } else {
+            return true;
+          }
+        }
+      }
       // 转换为树形结构
       let q = Object.keys(groupedData).map((date, index) => {
         const children = groupedData[date];
@@ -563,7 +553,6 @@ export default {
           })),
           hasChildren: children.length <= 0, // 标记为有子节点
         };
-
         return parentNode;
       });
       //初始化数据
@@ -571,7 +560,7 @@ export default {
         data.forEach((item) => {
 
           item.isSelect = false; //默认为不选中
-
+          item.isSelectable = isSelectable(item, item.parentId)
           if (item.children && item.children.length) {
             initData(item.children);
           }
@@ -588,12 +577,17 @@ export default {
     },
     // 复选框点击事件
     setRowIsSelect(row) {
-      //当点击父级点复选框时，当前的状态可能为未知状态，所以当前行状态设为false并选中，即可实现子级点全选效果
 
+      //判断是否可选择
+      function isSelectable(row) {
+        //row.payout_settle_status == 0 &&
+        //row.payin_success_amount_count > 0
+        return row.isSelectable;
+      }
+      //当点击父级点复选框时，当前的状态可能为未知状态，所以当前行状态设为false并选中，即可实现子级点全选效果
       if (row.isSelect === "") {
         if (
-          row.payout_settle_status == 0 &&
-          row.payin_success_amount_count > 0
+          isSelectable(row)
         ) {
           row.isSelect = false;
           this.$refs.multipleTable.toggleRowSelection(row, true);
@@ -604,6 +598,7 @@ export default {
       let that = this;
 
       function selectAllChildrens(data) {
+
         data.forEach((item) => {
           if (
             item.payout_settle_status == 0 &&
@@ -737,9 +732,11 @@ export default {
     // 表格全选事件
     selectAllFun(selection) {
       let isAllSelect = this.checkIsAllSelect();
-
+      // item.payout_settle_status == 0 &&
+      //     item.payin_success_amount_count > 0
       this.treeTableData.forEach((item) => {
         if (
+          item.isSelectable &&
           item.payout_settle_status == 0 &&
           item.payin_success_amount_count > 0
         ) {
@@ -783,23 +780,24 @@ export default {
 
       return "";
     },
+    //是否可以选择当前行
     readyselectable(row, index) {
       //
-
+      return row.isSelectable
       if (row.parentId == 0) {
 
         if (row.payout_settle_status != 0) {
           return false;
         }
-        const hasPositiveAmount = row.children.some(
-          item => item.payin_success_amount_count > 0
-        );
-        const hasUnsettled = row.children.some(
-          item => item.payout_settle_status === 0
+        // 至少有一个未结算 → PendingSettlementAmount > 0
+        const hasUnsettled = Number(row.PendingSettlementAmount) > 0;
+
+        const children = row.children || [];
+        const allAmountsZero = children.every(
+          c => Number(c.payin_success_amount_count) === 0
         );
 
-        // 只有同时存在金额大于 0 且有未结算的子项才返回 true
-        return hasPositiveAmount && hasUnsettled;
+        return hasUnsettled && !allAmountsZero;
       } else {
 
         //未结算状态 以及且父级为未结算状态 结算金额小于0 则返回false  不给选择
@@ -810,11 +808,9 @@ export default {
         }
       }
     },
-    updateDialogVisible(value) {
-      this.showResult = false
-      this.EmptyQuery();
-    }
-    ,  //结算后金额‘
+
+
+    //结算后金额‘
     SettlementAmount(data) {
       // account_available_balance payin_success_amount_count
       if (data.account_available_balance == "/") {
@@ -830,7 +826,6 @@ export default {
       return (data / 100).toFixed(2);
     },
     getSummaries({ columns, data }) {
-      console.log(columns, data);
 
       const sums = [];
       columns.forEach((column, index) => {
@@ -858,7 +853,7 @@ export default {
     dynamicTableVue,
     ProxyChangeDialogVue,
     ChannelQuery,
-    ProgressDialog, ShowResult
+
   },
 };
 </script>

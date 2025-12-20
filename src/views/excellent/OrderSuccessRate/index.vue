@@ -540,6 +540,10 @@ export default {
       } catch (err) {
         console.error("fetchMchSettings 执行失败:", err);
       }
+
+      return new Promise((resolve, reject) => {
+        resolve()
+      })
     },
 
 
@@ -635,7 +639,7 @@ export default {
         this.queryParams.StatisticalTime = "today";
 
       }
-      this.getList();
+      this.fetchMchSettings(false);
     },
     FormatAmount(value) {
       return (value / 100).toFixed(2);
@@ -801,6 +805,7 @@ export default {
     startAutoQuery() {
       // 避免重复开启
       this.stopAutoQuery()
+      this.fetchMchSettings(false)
 
       this.AutoQuery = true
       this.AutoQueryInterval = this.AutoQueryIntervalDefault
@@ -818,17 +823,16 @@ export default {
 
         if (this.AutoQueryInterval <= 0) {
           this.isFetching = true
+          this.fetchMchSettings(false).then(() => {
 
-          try {
-            await this.fetchMchSettings(false)
-          } catch (e) {
-            console.error("自动查询失败：", e)
-          }
+            this.isFetching = false
 
-          // 请求完成 → 重置倒计时
-          this.AutoQueryInterval = this.AutoQueryIntervalDefault
-          this.isFetching = false
-          return
+          }).finally(() => {
+            // 请求完成 → 重置倒计时
+            this.AutoQueryInterval = this.AutoQueryIntervalDefault
+            return
+          })
+
         }
 
       }, 1000)

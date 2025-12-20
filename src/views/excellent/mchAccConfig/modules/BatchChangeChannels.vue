@@ -5,7 +5,7 @@
         <el-tag v-for="item in ChangeListData" :key="item" style="margin: 3px;">{{ item }}</el-tag>
       </el-form-item>
       <el-form-item label="代收通道">
-        <el-select v-model="form.payin_chnl_id" placeholder="请选择代收通道" class="w100_input">
+        <el-select v-model="form.payin_chnl_id" placeholder="请选择代收通道" class="w100_input" filterable>
           <el-option v-for="item in ChnlOptions" :key="'payin_' + item.id"
             :label="(item.chnl_name == '默认' ? '' : (item.chnl_name == '' ? '' : item.chnl_name[0])) + item.id"
             :value="item.id"></el-option>
@@ -13,7 +13,7 @@
 
       </el-form-item>
       <el-form-item label="代付通道">
-        <el-select v-model="form.payout_chnl_id" placeholder="请选择代付通道" class="w100_input">
+        <el-select v-model="form.payout_chnl_id" placeholder="请选择代付通道" class="w100_input" filterable>
           <el-option v-for="item in ChnlOptions" :key="'payin_' + item.id"
             :label="(item.chnl_name == '默认' ? '' : (item.chnl_name == '' ? '' : item.chnl_name[0])) + item.id"
             :value="item.id"></el-option>
@@ -134,17 +134,17 @@ export default {
 
       //选择了代付通道
       if (this.form.payout_chnl_id != '默认') {
-        console.log(this.form.payout_chnl_id, this.ChnlOptions);
+
 
         const payoutIndex = this.ChnlOptions.findIndex(item => item.id == this.form.payout_chnl_id)
-        console.log(payoutIndex, this.ChnlOptions[payoutIndex]);
+
 
         confirmList = confirmList.map(item => {
           item.payout_chnl_id = this.ChnlOptions[payoutIndex].id
           item.payout_chnl_name = this.ChnlOptions[payoutIndex].chnl_name
           return item
         })
-        message = message + '，代付通道切换为 ' + this.ChnlOptions[payoutIndex].chnl_name[0] + this.ChnlOptions[payoutIndex].id
+        message = message + ' 代付通道切换为 ' + this.ChnlOptions[payoutIndex].chnl_name[0] + this.ChnlOptions[payoutIndex].id
 
       }
       this.$confirm(

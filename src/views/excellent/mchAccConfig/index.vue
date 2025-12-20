@@ -211,8 +211,6 @@
     <!-- 批量设置并发限制 -->
     <BatchSpeedLimit v-model="BatchSpeedLimitVisible" @submit="batchSpeedLimit" :ChangeList="ChangeList">
     </BatchSpeedLimit>
-    <!-- 进度条弹窗 -->
-    <ProgressDialog v-model="progressVisible" ref="ProgressDialog"></ProgressDialog>
     <!-- 选择代收还是代付 -->
     <el-dialog title="选择代收还是代付" :visible.sync="dialogAllocateVisible" width="500px" center>
       <div class="FlexCenter">
@@ -253,6 +251,7 @@ import { mapState } from 'vuex';
 import EditInfo from "./modules/EditInfo.vue";
 import BatchSpeedLimit from "./modules/BatchSpeedLimit.vue";
 import ShowChannelPoolVue from '@/components/dialog/showChannelPool.vue';
+import { mockRequest, PollingRequest, MultiPollingRequest } from "@/utils/ProgressRequest";
 export default {
   name: "MchAccConfig",
   computed: {
@@ -312,8 +311,6 @@ export default {
       batchChangeChannelsVisible: false,
       //批量设置分流
       BatchDiversionVisible: false,
-      //进度条弹窗
-      progressVisible: false,
       //批量设置并发限制
       BatchSpeedLimitVisible: false
     };
@@ -386,9 +383,8 @@ export default {
 
     //批量提交修改通道
     batchSubmit(confirmList) {
-      this.progressVisible = true;
       this.batchChangeChannelsVisible = false;
-      this.$refs.ProgressDialog.batchRequest(confirmList, updateMchAccConfig).then((res) => {
+      PollingRequest(updateMchAccConfig, confirmList).then((res) => {
         this.$message({
           message: '批量切换成功',
           type: 'success',
@@ -404,9 +400,8 @@ export default {
     },
     //批量设置分流数据
     batchDiversion(confirmList) {
-      this.progressVisible = true;
       this.BatchDiversionVisible = false;
-      this.$refs.ProgressDialog.batchRequest(confirmList, updateMchAccConfig).then((res) => {
+      PollingRequest(updateMchAccConfig, confirmList).then((res) => {
         this.$message({
           message: '批量设置分流成功',
           type: 'success',
@@ -424,8 +419,7 @@ export default {
     //批量设置并发限制
     batchSpeedLimit(confirmList) {
       this.BatchSpeedLimitVisible = false;
-      this.progressVisible = true;
-      this.$refs.ProgressDialog.batchRequest(confirmList, updateMchAccConfig).then(res => {
+      PollingRequest(updateMchAccConfig, confirmList).then(res => {
         this.BatchSpeedLimitVisible = false;
 
         this.$message({
@@ -484,7 +478,6 @@ export default {
         cancelButtonText: '取消',
         type: 'warning',
       }).then(() => {
-        this.progressVisible = true;
         const confirmList = this.ids.map(item => {
           const confirm = {
             mch_num: item.mch_num,
@@ -502,7 +495,7 @@ export default {
           }
           return confirm
         })
-        this.$refs.ProgressDialog.batchRequest(confirmList, updateMchAccConfig).then((res) => {
+        PollingRequest(updateMchAccConfig, confirmList).then((res) => {
           this.$message({
             message: `批量设置${label}成功`,
             type: 'success',

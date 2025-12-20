@@ -1,5 +1,167 @@
+/* 直线进度条 */
+/* 外层玻璃容器 */
+/* 外层玻璃容器 */
+.LinearProgressBar_div{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.LinearProgressBar_model .glass-progress {
+  width: 280px;
+  height: 30px;
 
+  /* 更亮更干净的玻璃底 */
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(18px);
 
+  border-radius: 12px;
+
+  /* 柔和亮边提升玻璃质感 */
+  border: 1px solid rgba(255, 255, 255, 0.45);
+
+  /* 更轻、更干净的阴影 */
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+
+  overflow: hidden;
+}
+
+/* 内部进度条 */
+.LinearProgressBar_model .glass-bar {
+  height: 100%;
+  width: 0;
+
+  /* 改成更清新的蓝白渐变玻璃光泽 */
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.8),
+    rgba(180, 220, 255, 0.45),
+    rgba(255, 255, 255, 0.7)
+  );
+
+  backdrop-filter: blur(6px);
+
+  border-radius: 12px;
+
+  /* 更柔和、更顺滑的进度动画 */
+  transition: width 0.35s ease-out;
+}
+/* 文本 */
+.LinearProgressBar_model .progress-text {
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  pointer-events: none; /* 避免遮挡点击 */
+}
+
+.LinearProgressBar_model{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 99999999999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.LinearProgressBar_model.show {
+  opacity: 1;
+  visibility: visible;
+}
+/* // 环形进度条 */
+.PollingRequest_model {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 99999999999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.PollingRequest_model.show {
+  opacity: 1;
+  visibility: visible;
+}
+.PollingRequest_model .PollingRequest_model_content {
+  width: 450px;
+  height: 400px;
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-sizing: border-box;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+.PollingRequest_model .PollingRequest_model_content_title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #000;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.PollingRequest_model .PollingRequest_model_content_circle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.PollingRequest_model .progress-container {
+  position: relative;
+  width: 250px;
+  height: 250px;
+}
+
+.PollingRequest_model .progress-ring {
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+
+}
+
+.PollingRequest_model .progress-ring-circle {
+  fill: none;
+  stroke-width: 25;
+  stroke-linecap: round;
+}
+
+.PollingRequest_model .progress-ring-bg {
+  stroke: #f0f0f0;
+}
+
+.PollingRequest_model .progress-ring-fill {
+  stroke: #3498db;
+
+  transition:  stroke-dashoffset 0.35s ,stroke 0.3s ease ;
+}
+.PollingRequest_model .progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+.PollingRequest_model .PollingRequest_model_content_footer {
+  margin-top: 12px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .CalculationFormula {
   padding-bottom: 8px;
 

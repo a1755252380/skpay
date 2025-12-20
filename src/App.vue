@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+
     <router-view />
     <theme-picker v-show="false" />
     <!-- 弹窗绑定二维码 -->
@@ -67,7 +68,7 @@ export default {
 </script>
 
 
-<style scoped>
+<style scoped lang="scss">
 #app .theme-picker {
   display: none;
 }

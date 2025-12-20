@@ -3,105 +3,122 @@ import {
   removeResizeListener,
 } from "element-ui/src/utils/resize-event";
 import { throttle } from "@/utils/util.js";
-let mainHight = 0;
-// 设置表格高度
-const doResize = (el, binding, vnode) => {
-  if (!el || !el.parentNode) return; // 检查 el 和 parent 是否有效
-  const bindRef = binding.value && binding.value.Ref;
-  let childrenList = [];
-  var children = el && el.parentNode.children; //获取父级的所有子节点
-  const parent = el && el.parentNode;
-  const parentPaddingT = isNaN(parseInt(parent.style.paddingTop))
-    ? 0
-    : parseInt(parent.style.paddingTop);
-  const parentPaddingB = isNaN(parseInt(parent.style.paddingBottom))
-    ? 0
-    : parseInt(parent.style.paddingBottom);
-  for (var i = 0; i < children.length; i++) {
-    //循环
-    if (children[i].nodeType == 1 && children[i] != el) {
-      //如果该节点是元素节点与不是这个节点本身
-      childrenList.push(children[i]); // 添加到兄弟节点里
-    }
-  }
-  let exitH = 0;
-  childrenList.forEach((el) => {
-    exitH += el.getBoundingClientRect().height;
-  });
-  // 获取调用传递过来的数据
-  const { Height } = binding.value;
 
-  // 获取距底部距离（用于展示页码等信息，51为页码盒子高度）
+let mainHeight = 0;
+
+// 高度计算函数
+const doResize = (el, binding, vnode) => {
+  if (!el || !el.parentNode) return;
+
+  const bindRef = binding.value && binding.value.Ref;
+  const { Height } = binding.value || {};
   const customHeight = Height || 61;
-  if (!mainHight) {
-    mainHight = document.getElementById("app-main").offsetHeight;
+
+  const parent = el.parentNode;
+  const parentPaddingT = parseInt(parent.style.paddingTop) || 0;
+  const parentPaddingB = parseInt(parent.style.paddingBottom) || 0;
+
+  let childrenHeight = 0;
+  Array.from(parent.children).forEach((child) => {
+    if (child.nodeType === 1 && child !== el) {
+      childrenHeight += child.getBoundingClientRect().height;
+    }
+  });
+
+  if (!mainHeight) {
+    const appMain = document.getElementById("app-main");
+    mainHeight = appMain ? appMain.offsetHeight : window.innerHeight;
   }
-  // console.log(mainHight);
-  // console.log(parentPaddingT);
-  // console.log(exitH);
-  // 计算列表高度
+
   const height =
-    mainHight - customHeight - exitH - parentPaddingT - parentPaddingB;
-  // 设置高度
-  // **避免无意义的重复赋值，减少 Vue 重新渲染的机会**
-  if (
-    el.style.height !== height + "px" ||
-    el.style.minHeight !== height + "px" ||
-    el.style.maxHeight !== height + "px"
-  ) {
+    mainHeight -
+    customHeight -
+    childrenHeight -
+    parentPaddingT -
+    parentPaddingB;
+
+  if (el.style.height !== height + "px") {
     el.style.height = height + "px";
     el.style.minHeight = height + "px";
     el.style.maxHeight = height + "px";
   }
 
-  if (el.getElementsByClassName("el-table__empty-block").length > 0) {
-    el.getElementsByClassName("el-table__empty-block")[0].style.height =
-      height - 100 + "px";
+  const emptyBlock = el.querySelector(".el-table__empty-block");
+  if (emptyBlock) {
+    emptyBlock.style.height = height - 100 + "px";
   }
 
-  // **只有当表格真的需要重新布局时才调用 `doLayout`**
-  if (vnode.context.$refs[bindRef].$el.offsetHeight !== height) {
-    vnode.context.$refs[bindRef].doLayout();
+  if (
+    bindRef &&
+    vnode.context &&
+    vnode.context.$refs[bindRef] &&
+    vnode.context.$refs[bindRef].$el
+  ) {
+    const table = vnode.context.$refs[bindRef];
+    if (
+      table.$el.offsetHeight !== height &&
+      typeof table.doLayout === "function"
+    ) {
+      table.doLayout();
+    }
   }
 };
 
+// 轮询检测 $refs
+const waitForRef = (
+  vnode,
+  refName,
+  callback,
+  maxTime = 2000,
+  interval = 50
+) => {
+  let elapsed = 0;
+  const timer = setInterval(() => {
+    const table = vnode.context && vnode.context.$refs[refName];
+    if (table && table.$el) {
+      clearInterval(timer);
+      callback();
+    } else {
+      elapsed += interval;
+      if (elapsed >= maxTime) clearInterval(timer); // 超时停止
+    }
+  }, interval);
+};
+
 export default {
-  // 初始化设置
   bind(el, binding, vnode) {
-    // 设置resize监听方法
-    // el.parentNode.addEventListener(
-    //   "resize",
-    //   throttle(() => {
-    //     doResize(el, binding);
-    //   }, 150)
-    // );
-    // 设置resize监听方法
-    let resizeTimer = null; // 定时器
+    let resizeTimer = null;
     el.resizeListener = throttle(() => {
-      if (resizeTimer) {
-        cancelAnimationFrame(resizeTimer);
-      }
+      if (resizeTimer) cancelAnimationFrame(resizeTimer);
       resizeTimer = requestAnimationFrame(() => {
-        mainHight = 0;
-        // 赋值计算后的高度
-        el.style.height = "200px";
-        el.style.minHeight = "200px";
-        el.style.maxHeight = "200px";
+        mainHeight = 0;
+        el.style.height = "200px"; // 临时占位
         doResize(el, binding, vnode);
       });
     }, 50);
-    // 绑定监听方法到addResizeListener
-    addResizeListener(window.document.body, el.resizeListener);
+
+    // 监听 body 尺寸变化
+    addResizeListener(document.body, el.resizeListener);
+
+    // 初始执行一次，等待 $refs 可用
+    const bindRef = binding.value && binding.value.Ref;
+    if (bindRef) {
+      waitForRef(vnode, bindRef, () => doResize(el, binding, vnode));
+    } else {
+      vnode.context.$nextTick(() => doResize(el, binding, vnode));
+    }
   },
-  // 所在组件的 VNode 更新时设置
-  // 页面上搜索表单是可以展开收起的，当展开更多表单搜索时，表格高度没变（展开收起需要将表格数据重新赋值，内容变化则会重新计算高度）
+
   update(el, binding, vnode) {
-    doResize(el, binding, vnode);
+    const bindRef = binding.value && binding.value.Ref;
+    if (bindRef) {
+      waitForRef(vnode, bindRef, () => doResize(el, binding, vnode));
+    } else {
+      vnode.context.$nextTick(() => doResize(el, binding, vnode));
+    }
   },
-  // 销毁时设置
+
   unbind(el) {
-    // 移除resize监听
-    removeResizeListener(window.document.body, el.resizeListener);
-    // el.parentNode.removeEventListener("resize", () => {});
+    removeResizeListener(document.body, el.resizeListener);
   },
 };

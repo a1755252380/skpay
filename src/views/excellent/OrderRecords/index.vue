@@ -16,10 +16,10 @@
         <el-button type="primary" icon="el-icon-refresh-left" size="mini" @click="OpenBatchCallBack"
           v-hasPermi="['excellent:OrderRecords:edit']" slot="btn"
           v-if="queryPage.time_type == 'history'">批量回调</el-button>
-
         <!-- <el-button type="primary" icon="el-icon-refresh-left" size="mini" @click="BatchSearchOrdersShow = true"
           v-if="queryPage.time_type == 'history'" slot="btn">批量补单</el-button> -->
         <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+
       </OrderSearch>
 
       <dynamicTableVue :loading="loading" :tableData="paginatedItems" ref="myTable" @cellDblclick="(row, column, cell, event) => {
@@ -62,14 +62,14 @@
           <template slot-scope="scope">
             <el-tag :type="formatStatus(scope.row.status).type">{{
               formatStatus(scope.row.status).name
-            }}</el-tag>
+              }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="回调状态" align="center" prop="callback_status" width="100" class-name="NoTooltip">
           <template slot-scope="scope">
             <el-tag :type="formatCallbackStatus(scope.row.callback_status).type">{{
               formatCallbackStatus(scope.row.callback_status).name
-            }}</el-tag>
+              }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="pan码" align="center" prop="pan" v-if="parseInt(this.$route.query.type) == 1" />
@@ -112,12 +112,12 @@
     <!-- 大数据修改订单 -->
 
     <BatchChangeState :BatchShow.sync="BatchInputShow" @submit="BatchInputSubmit"></BatchChangeState>
-    <ProgressDialog v-model="progressShow" ref="ProgressDialog"></ProgressDialog>
   </div>
 </template>
 
 <script>
 import {
+  cancelTokenSource,
   listOrderRecords,
   getOrderRecords,
   delOrderRecords,
@@ -131,7 +131,6 @@ import OrderSearch from "./modules/OrderSearch.vue";
 import dynamicTableVue from "@/components/Excellent/dynamicTable.vue";
 import moment from "moment-timezone";
 import BatchModification from "./modules/BatchModification.vue";
-import ProgressDialog from "@/components/dialog/ProgressDialog.vue";
 
 import OrderDetail from "./modules/OrderDetail.vue";
 import BatchChangeState from "./modules/BatchChangeState.vue";
@@ -183,7 +182,7 @@ export default {
     AdjustOrderStatus,
     dynamicTableVue,
     BatchChangeState,
-    BatchModification, ProgressDialog, OrderDetail,
+    BatchModification, OrderDetail,
   },
   computed: {
     // 计算当前页显示的数据
@@ -197,7 +196,11 @@ export default {
       return Math.ceil(this.pageData.total / this.pageData.pageSize);
     },
   },
-
+  beforeDestroy() {
+    if (cancelTokenSource) {
+      cancelTokenSource.cancel("离开模块，自动取消请求");
+    }
+  },
   data() {
     return {
       // 遮罩层
@@ -248,8 +251,7 @@ export default {
       BatchModificationShow: false,
       BatchModificationList: [],
       BatchInputShow: false,
-      //进度条显示
-      progressShow: false,
+
     };
   },
   created() {
@@ -258,6 +260,7 @@ export default {
   },
   mounted() { },
   methods: {
+
     //关闭修改状态弹窗
     CloseBatchModification(value) {
       this.BatchModificationShow = value;
@@ -292,30 +295,7 @@ export default {
         merchant_order_id_list: this.BatchModificationList.map((item) => item.merchant_order_id),
         operation: value.operation
       };
-      // this.progressShow = true
-      // let promise = [];
-      // for (let index = 0; index < this.BatchModificationList.length; index++) {
-      //   let query = {
-      //     merchant_order_id: this.BatchModificationList[index].merchant_order_id,
-      //     mch_number: this.BatchModificationList[index].mch_number,
-      //     order_type: parseInt(this.queryPage.order_type),
-      //   };
 
-      //   //在超时状态选择回调状态时不给通过，不修改
-      //   //在超时状态是只能选择同步状态
-      //   if (
-      //     this.BatchModificationList[index].status == 2 &&
-      //     value.operation == 3
-      //   ) {
-      //     continue;
-      //   }
-      //   query["operation"] =
-      //     this.BatchModificationList[index].status == 0
-      //       ? (this.$route.query.type == 1 && value.operation == 1 ? value.operation : this.BatchModificationList[index].status)
-      //       : value.operation;
-
-      //   promise.push(query);
-      // }
       ModifyOrderStatus(query).then((response) => {
         this.$refs.myTable.clearSelection();
         this.BatchModificationList.splice(0);
@@ -441,25 +421,6 @@ export default {
             loading.close();
           })
 
-          // this.progressShow = true;
-          // let confirmList = []
-          // for (let index = 0; index < this.BatchModificationList.length; index++) {
-          //   confirmList.push({
-          //     merchant_order_id_list: this.BatchModificationList[index].merchant_order_id,
-          //     mch_number: this.BatchModificationList[index].mch_number,
-          //     order_type: parseInt(this.queryPage.order_type),
-          //     operation: 3,
-          //   })
-          // }
-          // this.$refs.ProgressDialog.batchRequest(confirmList, ModifyOrderStatus).then(res => {
-
-          //   this.$message.success("批量回调成功");
-          //   this.$refs.myTable.clearSelection();
-          //   this.BatchModificationList.splice(0);
-
-          //   this.$refs.search.handleQuery();//重新搜索一次
-
-          // })
 
 
         })
@@ -471,9 +432,17 @@ export default {
     //返回搜索条件
     ReturnSearch(Params) {
       this.resetSearch();
+      if (cancelTokenSource) {
+        cancelTokenSource.cancel("切换模块或重复搜索，自动取消旧请求");
+      }
+
       this.getList(Params);
     },
     RequestingDataAgain(Params) {
+      if (cancelTokenSource) {
+        cancelTokenSource.cancel("切换模块或重复搜索，自动取消旧请求");
+      }
+
       this.getList(Params);
     },
     /** 查询订单列表 */
@@ -483,7 +452,6 @@ export default {
         return JSON.stringify(obj1) === JSON.stringify(obj2);
       }
 
-      // this.loading = true;
       let query = { ...queryParams, ...this.queryPage };
 
       if (this.lastQueryParams && isObjectsEqual(query, this.lastQueryParams) && this.loading) {
@@ -497,6 +465,7 @@ export default {
         this.OrderRecordsList = [...this.OrderRecordsList, ...response.results];
         this.pageData.total = this.OrderRecordsList.length;
         this.loading = false;
+
       })
     },
 

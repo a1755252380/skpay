@@ -34,7 +34,7 @@
           <div class="SelectChnlContent">
             <el-tag v-for="item in changeChnlItem" :key="item" style="margin: 3px;" :type="allocationPoolTypeColor">{{
               item
-              }}</el-tag>
+            }}</el-tag>
           </div>
         </div>
         <div class="SelectChnl">
@@ -66,6 +66,7 @@ import {
   listMchAccConfig,
   updateMchAccConfig,
 } from "@/api/excellent/mchAccConfig";
+import { mockRequest, PollingRequest, MultiPollingRequest } from "@/utils/ProgressRequest";
 import { mapState } from "vuex";
 export default {
   components: {
@@ -146,12 +147,6 @@ export default {
 
     confirmChannelQuery() {
 
-      const loading = this.$loading({
-        lock: true,
-        text: '切换中...',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
       const chnl = this.ChannelQueryList.find(item => item.id == this.changeChnl)
 
       if (!chnl) {
@@ -161,25 +156,22 @@ export default {
         });
         return;
       }
+
       // {"mch_num":8801,"payin_chnl_id":30,"payin_chnl_name":"1s_4"}
       const promiselist = this.changeChnlItem.map((mch_num, index) => {
-        return new Promise((resolve, reject) => {
-          setTimeout(() => {
-            updateMchAccConfig({
-              mch_num: Number(mch_num),
-              [this.allocationPoolType === 'payin1' || this.allocationPoolType === 'payin2'
-                ? 'payin_chnl_id'
-                : 'payout_chnl_id']: Number(chnl.id),
-              [this.allocationPoolType === 'payin1' || this.allocationPoolType === 'payin2'
-                ? 'payin_chnl_name'
-                : 'payout_chnl_name']: chnl.chnl_name,
-            })
-              .then(resolve)
-              .catch(reject)
-          }, index * 400)
-        })
+        return {
+          mch_num: Number(mch_num),
+          [this.allocationPoolType === 'payin1' || this.allocationPoolType === 'payin2'
+            ? 'payin_chnl_id'
+            : 'payout_chnl_id']: Number(chnl.id),
+          [this.allocationPoolType === 'payin1' || this.allocationPoolType === 'payin2'
+            ? 'payin_chnl_name'
+            : 'payout_chnl_name']: chnl.chnl_name,
+        }
+
       })
-      Promise.all(promiselist).then(res => {
+
+      PollingRequest(updateMchAccConfig, promiselist).then(res => {
         this.$message({
           type: 'success',
           message: '切换成功!'
@@ -192,7 +184,6 @@ export default {
       }).finally(() => {
         this.channelQueryVisible = false;
         this.changeChnl = null;
-        loading.close();
       });
     },
     //检测是否有商户在使用该通道
@@ -235,7 +226,14 @@ export default {
               return !isIgnore && isOpen
               // return !isIgnore && item[type === 'payin1' || type === 'payin2' ? 'payin_chnl_id' : 'payout_chnl_id'] === 0
             }).map(item => item.mch_num);
-            this.channelQueryVisible = true;
+            if (this.changeChnlItem.length) {
+              this.$message({
+                type: 'info',
+                message: `该通道下有${this.changeChnlItem.length}个商户在使用`
+              });
+              this.channelQueryVisible = true;
+              return
+            }
             return
           }
           this.$message({

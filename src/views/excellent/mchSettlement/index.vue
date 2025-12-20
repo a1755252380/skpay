@@ -1,5 +1,6 @@
 <template>
   <div class="app-container fulltable_div" ref="container">
+
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="90px"
       label-position="top">
       <el-form-item label="商户号 " prop="mchNum">
@@ -31,6 +32,7 @@
       <strong>（本模块依据订单更新时间）</strong>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :search="false"
         v-if="!checkRole(['admin'])"></right-toolbar>
+
     </div>
 
     <el-table v-AutoHeight="{
@@ -80,7 +82,6 @@
 <script>
 
 import { listMchSettlementList, getMchSettlementDay, delMchSettlement, addMchSettlement, updateMchSettlement, QueryChannelSettlementAmount } from "@/api/excellent/mchSettlement";
-
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
 import DetailedContentVue from "./DetailedContent.vue";
 import TimeFrameVue from "@/components/Excellent/SearchOption/TimeFrame.vue";
@@ -262,6 +263,7 @@ export default {
   mounted() {
   },
   methods: {
+
     CheckChoose() {
       if (this.checkListInput == "") {
         return this.$message.warning("请输入商户号");
