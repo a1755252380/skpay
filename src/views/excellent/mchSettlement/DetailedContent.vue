@@ -19,9 +19,8 @@
       <div class="tableTip">
         （<span class="todayText">蓝色部分</span>表示今日数据，<span class="secondText">浅蓝色部分</span>表示昨日数据）
       </div>
-      <el-table v-if="!DetailedContentLoading" :data="treeTableData" :class="!ReadyRequest ? 'SettlementForm' : ''"
-        row-key="id" :empty-text="!ReadyRequest ? '请先选择通道再进行查询' : '暂无数据'
-          " :highlight-current-row="false" ref="multipleTable" :row-class-name="rowClassNameFun" @select="selectFun"
+      <el-table :data="treeTableData" :class="!ReadyRequest ? 'SettlementForm' : ''" row-key="id" :empty-text="!ReadyRequest ? '请先选择通道再进行查询' : '暂无数据'
+        " :highlight-current-row="false" ref="multipleTable" :row-class-name="rowClassNameFun" @select="selectFun"
         @select-all="selectAllFun" :header-row-class-name="headerRowClassName" :tree-props="{ children: 'children' }"
         :default-sort="{ prop: 'PendingSettlementAmount', order: 'descending' }" :height="450" show-summary
         :summary-method="getSummaries">
@@ -56,7 +55,6 @@
         <el-table-column label="操作" align="center" width="100" fixed="right">
           <template slot-scope="scope">
             <div v-if="scope.row.parentId != 0">
-              <!-- <el-button type="text" size="small" @click="Settlement(scope.row)" icon="el-icon-refresh">代付结算</el-button> -->
               <el-button type="text" size="small" @click="Settlement(scope.row)" icon="el-icon-refresh" v-if="
                 scope.row.payout_settle_status == 0 &&
                 scope.row.payin_success_amount_count > 0
@@ -288,7 +286,7 @@ export default {
               type: "success",
               message: "批量结算成功",
             });
-            this.EmptyQuery();
+            this.DetailedContentShowData = false
 
             // this.EmptyQuery();
             return;
@@ -374,10 +372,12 @@ export default {
       MultiPollingRequest(
         [
           {
+            name: "listMchSettlement",
             method: listMchSettlement,
             params: confirmList,
           },
           {
+            name: "listMchAcc",
             method: listMchAcc,
             params: [{
               page: 1,
@@ -387,6 +387,7 @@ export default {
         ]
       )
         .then(async (response) => {
+          console.log(response);
 
           const results = response['listMchSettlement'].map((item) => {
             return item.results;
@@ -405,10 +406,10 @@ export default {
             return;
           });
           this.treeTableData = await this.processData(ListMchResults);
+          this.DetailedContentLoading = false;
 
           this.$nextTick(() => {
-            this.DetailedContentLoading = false;
-
+            this.$refs.multipleTable.doLayout();
             this.$forceUpdate();
           });
         });

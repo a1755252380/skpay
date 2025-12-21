@@ -1,92 +1,117 @@
 import { MessageBox, Notification } from "element-ui";
 
-let lastVersion = localStorage.getItem("APP_LAST_VERSION"); // 从 localStorage 恢复版本
-const CHECK_INTERVAL = 1000 * 10; // 每 10 秒检查一次
+const CHECK_INTERVAL = 1000 * 60 * 3; // 3 分钟
+const VERSION_KEY = "APP_LAST_VERSION";
+const NOTIFIED_KEY = "APP_UPDATE_NOTIFIED";
+const RELOAD_KEY = "APP_NEED_RELOAD";
 
-// 获取当前版本
-async function getVersion() {
-  try {
-    const res = await fetch(`/version.json?_=${Date.now()}`, {
-      cache: "no-store",
+let timer = null;
+let isChecking = false;
+
+/** 获取远程版本号 */
+function getVersion() {
+  return fetch(`/version.json?_=${Date.now()}`, {
+    cache: "no-store",
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error(res.status);
+      return res.json();
+    })
+    .then((data) => data.version)
+    .catch((err) => {
+      console.warn("获取 version.json 失败:", err);
+      return null;
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    return data.version;
-  } catch (err) {
-    console.warn("获取 version.json 失败:", err);
-    return null;
-  }
 }
 
+/** 判断是否需要更新 */
 async function needUpdate() {
-  const version = await getVersion();
-  if (!version) return false;
+  if (isChecking) return false;
+  isChecking = true;
 
-  const savedVersion = localStorage.getItem("APP_LAST_VERSION");
+  const remoteVersion = await getVersion();
+  isChecking = false;
 
-  // 如果首次加载（没有记录），保存版本号
-  if (!savedVersion) {
-    localStorage.setItem("APP_LAST_VERSION", version);
-    lastVersion = version;
+  if (!remoteVersion) return false;
+
+  const localVersion = localStorage.getItem(VERSION_KEY);
+
+  // 首次进入
+  if (!localVersion) {
+    localStorage.setItem(VERSION_KEY, remoteVersion);
     return false;
   }
 
-  // 版本不同则需要更新
-  if (savedVersion !== version) {
-    localStorage.setItem("APP_LAST_VERSION", version);
-    lastVersion = version;
+  // 版本变化
+  if (localVersion !== remoteVersion) {
+    localStorage.setItem(VERSION_KEY, remoteVersion);
     return true;
   }
 
-  lastVersion = version;
   return false;
 }
 
-async function autoRefresh() {
-  if (process.env.NODE_ENV === "development") return;
-  if (!window.navigator.onLine) {
-    setTimeout(autoRefresh, CHECK_INTERVAL);
-    return;
-  }
+/** 提示更新（只弹一次） */
+function notifyUpdate() {
+  if (localStorage.getItem(NOTIFIED_KEY)) return;
 
-  const willUpdate = await needUpdate();
+  localStorage.setItem(NOTIFIED_KEY, "1");
+  localStorage.setItem(RELOAD_KEY, Date.now());
 
-  if (willUpdate) {
-    localStorage.setItem("NEED_RELOAD", Date.now());
-    MessageBox.confirm(
-      "新版本发布！为了确保数据准确性，请尽快刷新页面，否则可能会导致数据异常。",
-      "更新提示",
-      {
-        confirmButtonText: "立即刷新",
-        type: "warning",
-        showCancelButton: false,
-        showClose: false,
-        closeOnClickModal: false,
-        closeOnPressEscape: false,
-        closeOnHashChange: false,
-      }
-    )
-      .then(() => {
-        window.location.reload(true); // 强制重新加载
-      })
-      .catch(() => {
-        Notification({
-          title: "更新提示",
-          type: "warning",
-          message: "请尽快手动刷新页面，以防止旧版本网页导致数据异常！",
-          duration: 0,
-        });
-      });
-  }
+  MessageBox.confirm(
+    "检测到系统已发布新版本，为避免数据异常，请立即刷新页面。",
+    "系统更新提示",
+    {
+      confirmButtonText: "立即刷新",
+      showCancelButton: false,
+      showClose: false,
+      closeOnClickModal: false,
+      closeOnPressEscape: false,
+      type: "warning",
+    }
+  ).then(() => {
+    window.location.reload(true);
+  });
 
-  setTimeout(autoRefresh, CHECK_INTERVAL);
+  Notification({
+    title: "更新提示",
+    type: "warning",
+    message: "系统已更新，请尽快刷新页面",
+    duration: 0,
+  });
 }
 
-// 同步其他标签页刷新
+/** 启动检测 */
+function startUpdateCheck() {
+  if (process.env.NODE_ENV === "development") return;
+
+  if (timer) clearInterval(timer);
+
+  timer = setInterval(async () => {
+    if (document.visibilityState !== "visible") return;
+    if (!navigator.onLine) return;
+
+    const update = await needUpdate();
+    if (update) notifyUpdate();
+  }, CHECK_INTERVAL);
+}
+
+/** Tab 切回时立即检测 */
+document.addEventListener("visibilitychange", async () => {
+  if (document.visibilityState === "visible") {
+    const update = await needUpdate();
+    if (update) notifyUpdate();
+  }
+});
+
+/** 多 Tab 同步刷新 */
 window.addEventListener("storage", (e) => {
-  if (e.key === "NEED_RELOAD") {
+  if (e.key === RELOAD_KEY) {
     window.location.reload(true);
   }
 });
 
-window.addEventListener("load", autoRefresh);
+/** 入口 */
+window.addEventListener("load", startUpdateCheck);
+
+export default startUpdateCheck;

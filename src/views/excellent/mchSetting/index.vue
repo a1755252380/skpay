@@ -149,7 +149,7 @@
 </template>
 
 <script>
-import { listMchSetting, getMchSetting, delMchSetting, addMchSetting, updateMchSetting } from "@/api/excellent/MchSetting";
+import { listMchSetting, getMchSetting, addMchSetting, updateMchSetting } from "@/api/excellent/MchSetting";
 import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
 import MchNumSelect from "@/components/Excellent/Mch/mchNumSelect.vue";
 export default {
@@ -439,16 +439,7 @@ export default {
         }
       });
     },
-    /** 删除按钮操作 */
-    handleDelete(row) {
-      const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认删除商户编号为"' + ids + '"的数据项？').then(function () {
-        return delMchSetting(ids);
-      }).then(() => {
-        this.getList();
-        this.$modal.msgSuccess("删除成功");
-      }).catch(() => { });
-    },
+
     /** 导出按钮操作 */
     handleExport() {
       this.download('excellent/MchSetting/export', {

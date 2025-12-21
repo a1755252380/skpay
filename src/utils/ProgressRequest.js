@@ -237,7 +237,7 @@ export function MultiPollingRequest(
   // 展平所有请求，并附带 methodName 用于分组
   const allTasks = [];
   requestList.forEach((item) => {
-    const methodName = item.method.name || "anonymousMethod";
+    const methodName = item.name || "anonymousMethod";
     item.params.forEach((param) => {
       allTasks.push({ method: item.method, methodName, param });
     });
