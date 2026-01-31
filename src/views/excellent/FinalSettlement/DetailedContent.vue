@@ -1,13 +1,12 @@
 <template>
   <el-dialog :title="'历史数据'" :visible.sync="DetailedContentShowData" width="80%" append-to-body>
 
-    <div class="fulltable_div" style="min-height: 70vh;">
+    <div class="fulltable_div" style="min-height: 60vh;">
       <el-form ref="DetailedContentSearch" size="small" :inline="true" label-width="120px">
 
         <el-form-item label="创建时间" prop="create_time">
           <TimeFrameVue v-model="timedata.create_time" @parseTime="parseTime" :ParameterIndex="'create_time'">
           </TimeFrameVue>
-
         </el-form-item>
 
         <el-form-item>
@@ -17,49 +16,39 @@
       </el-form>
 
 
-      <dynamicTableVue :tableData="DetailedContentList" :loading="DetailedContentLoading" ref="DetailedContentList"
-        :defaultSort="{ prop: 'create_time', order: 'descending' }" @cellDblclick="(row, column, cell, event) => {
+      <el-table v-AutoHeight="{
+        Ref: 'DetailedContentList', Height: 110
+      }" :data="DetailedContentList" v-loading="DetailedContentLoading" ref="DetailedContentList"
+        :default-sort="{ prop: 'create_time', order: 'descending' }" @cell-dblclick="(row, column, cell, event) => {
           this.$util.copyToClipboard(cell.innerText);
-        }" :cellClassName="'HoverTooltipCopy'">
+        }" :cell-class-name="'HoverTooltipCopy'" :height="500">
 
         <el-table-column label="商户号" align="center" prop="mch_num" fixed="left" />
         <el-table-column label="账户余额" align="center" prop="account_balance" :formatter="Formatter.TableAmount">
         </el-table-column>
-        <el-table-column label=" 账户可用余额" align="center" prop="account_balance" :formatter="Formatter.TableAmount">
-          <template slot-scope="scope">
+        <el-table-column label="代收可用余额" align="center" prop="account_available_balance"
+          :formatter="Formatter.TableAmount">
+          <!-- <template slot-scope="scope">
             {{ account_balance_Available(scope.row) }}
-          </template>
+          </template> -->
         </el-table-column>
+        <el-table-column label="代付可用金额" align="center" prop="account_payout_available_balance"
+          :formatter="Formatter.TableAmount" />
+        <el-table-column label="代付订单冻结金额" align="center" prop="payout_order_freeze_amount"
+          :formatter="Formatter.TableAmount">
+        </el-table-column>
+
         <el-table-column label="账户冻结金额" align="center" prop="account_freeze_balance"
           :formatter="Formatter.TableAmount" />
         <el-table-column label="待结算金额" align="center" prop="account_pending_settlement_balance"
           :formatter="Formatter.TableAmount" />
-        <el-table-column label="代收结算金额" align="center" prop="payin_success_settle_amount"
-          :formatter="Formatter.TableAmount" />
-        <el-table-column label="代付结算金额" align="center" prop="payout_success_settle_amount"
-          :formatter="Formatter.TableAmount" />
-
-
 
         <el-table-column label="资金调整金额" align="center" prop="funds_adjustment_amount"
           :formatter="Formatter.TableAmount" />
-        <!-- <el-table-column label="商户名称" align="center" prop="mch_name" /> -->
-        <!-- <el-table-column label="货币代号" align="center" prop="currency" /> -->
-        <!-- <el-table-column label="账户余额" align="center" prop="account_balance" :formatter="Formatter.TableAmount" />
-        <el-table-column label="待结算金额" align="center" prop="account_pending_settlement_balance"
-          :formatter="Formatter.TableAmount" />
-        <el-table-column label="账户可用余额" align="center" prop="account_available_balance"
-          :formatter="Formatter.TableAmount" />
-        <el-table-column label="账户冻结金额" align="center" prop="account_freeze_balance"
-          :formatter="Formatter.TableAmount" />
-        <el-table-column label="代付余额" align="center" prop="account_payout_balance" :formatter="Formatter.TableAmount" />
-        <el-table-column label="代付可用余额" align="center" prop="account_payout_available_balance"
-          :formatter="Formatter.TableAmount" />
-
         <el-table-column label="代付冻结金额" align="center" prop="payou_freeze_amount" :formatter="Formatter.TableAmount" />
-        <el-table-column label="代付冻结金额手续费" align="center" prop="payou_freeze_amount_service" width="180"
-          :formatter="Formatter.TableAmount" /> -->
 
+        <el-table-column label="代付退回金额" align="center" prop="refund_payout_amount" :formatter="Formatter.TableAmount">
+        </el-table-column>
         <el-table-column label="截止时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond"
           width="180">
 
@@ -68,7 +57,7 @@
 
 
 
-      </dynamicTableVue>
+      </el-table>
       <pagination ref="pagination" v-show="pageData.total > 0" :total="pageData.total" :page.sync="pageData.page"
         :limit.sync="pageData.limit" @pagination="handleCurrentChange" />
     </div>
@@ -79,7 +68,6 @@
 
 <script>
 import { listMchSettlement } from "@/api/excellent/FinalSettlement";
-import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
 import TimeFrameVue from '@/components/Excellent/SearchOption/TimeFrame.vue';
 
 export default {
@@ -202,7 +190,7 @@ export default {
         this.DetailedContentList = response.rows
         this.pageData.total = response.total;
         this.$nextTick(() => {
-          this.$refs.DetailedContentList.rebuildTable()
+          this.$refs.DetailedContentList.doLayout();
           this.DetailedContentLoading = false;
 
         })
@@ -225,7 +213,7 @@ export default {
     }
   },
   components: {
-    dynamicTableVue, TimeFrameVue
+    TimeFrameVue
   }
 };
 </script>

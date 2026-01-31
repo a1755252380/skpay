@@ -1,6 +1,6 @@
 import { MessageBox, Notification } from "element-ui";
 
-const CHECK_INTERVAL = 1000 * 60 * 3; // 3 分钟
+const CHECK_INTERVAL = 1000 * 30; // 30s
 const VERSION_KEY = "APP_LAST_VERSION";
 const NOTIFIED_KEY = "APP_UPDATE_NOTIFIED";
 const RELOAD_KEY = "APP_NEED_RELOAD";

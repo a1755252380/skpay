@@ -473,13 +473,10 @@ export default {
 
     //监听最低和最高额变化
     payOutLimitChange(value, index) {
-
       this.payoutRange = [];
     },
     payInLimitChange(value, index) {
-
       this.payinRange = [];
-
     }
   }
 };

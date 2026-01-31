@@ -31,7 +31,7 @@
       价格范围：[{{ Range.min }},{{ Range.max }})
     </div>
     <div>
-      <div class="form_range_input_label" style="margin: 12px 0;" v-show="value.length > 0">区间费率设置 <el-button
+      <div class="form_range_input_label" style="margin: 12px 0;" v-show="value.length > 0">{{ label }}设置 <el-button
           type="danger" @click="handleRange('clear')" size="mini">清空</el-button></div>
     </div>
     <div class="Rate_input_list" v-show="value.length > 0">
@@ -39,15 +39,15 @@
         :class="item.value ? 'Rate_input' : ' Rate_input Rate_input_error'">
         <div class="form_range_input_label" style="margin-right: 12px;">{{ item.label }} 元</div>
         <div>
-          <span class="form_range_input_label">费率：</span>
-          <el-input-number v-model="item.value" placeholder="请输入费率" :min="0.00" :max="1" :step="0.01" />
+          <span class="form_range_input_label">{{ label }}：</span>
+          <el-input-number v-model="item.value" :placeholder="`请输入${label}`" v-bind="inputConfig" />
 
         </div>
       </div>
 
     </div>
     <div v-show="value.length <= 0" class="form_card_tip center" style="min-height: 140px;">
-      请添加区间费率
+      请添加区间{{ label }}
     </div>
   </div>
 
@@ -72,7 +72,19 @@ export default {
     value: {
       type: Array,
       required: true
-    }
+    },
+    label: {
+      type: String,
+      default: '费率'
+    },
+    inputConfig: {
+      type: Object,
+      default: () => ({
+        min: 0,
+        max: 1,
+        step: 0.001,
+      })
+    },
   },
 
   data() {

@@ -65,6 +65,9 @@ importers:
       jsencrypt:
         specifier: 3.0.0-rc.1
         version: 3.0.0-rc.1
+      lodash-es:
+        specifier: ^4.17.22
+        version: 4.17.22
       moment:
         specifier: ^2.30.1
         version: 2.30.1
@@ -3757,6 +3760,9 @@ packages:
   locate-path@5.0.0:
     resolution: {integrity: sha512-t7hw9pI+WvuwNJXwk5zVHpyhIqzg2qTlklJOf0mVxGSbe3Fp2VieZcduNYjaLDoy6p9uGpQEGWG87WpMKlNq8g==}
     engines: {node: '>=8'}
+
+  lodash-es@4.17.22:
+    resolution: {integrity: sha512-XEawp1t0gxSi9x01glktRZ5HDy0HXqrM0x5pXQM98EaI0NxO6jVM7omDOxsuEo5UIASAnm2bRp1Jt/e0a2XU8Q==}
 
   lodash.debounce@4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
@@ -10774,6 +10780,8 @@ snapshots:
   locate-path@5.0.0:
     dependencies:
       p-locate: 4.1.0
+
+  lodash-es@4.17.22: {}
 
   lodash.debounce@4.0.8: {}
 

@@ -11,7 +11,6 @@ export function listChnlSetting(query) {
       state: null,
     };
   }
-  console.log();
 
   return request({
     url: "/chnl/setting/msg",

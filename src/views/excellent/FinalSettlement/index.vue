@@ -17,9 +17,9 @@
 
 
     <div class="CalculationFormula">
-      <strong>账户余额=账户可用余额+账户冻结金额（扣除的是账户可用余额）+待结算金额</strong>
+      <strong>账户可用余额=（代收可用余额 + 代收成功金额）+（代付可用余额 - 代付当日成功金额）-（代付冻结总金额-代付退回总金额）</strong>
       <!-- <strong>代付余额=代付可用余额+代付冻结金额</strong> -->
-      <strong>商户下发使用可用余额调整</strong>
+      <strong>商户下发使用代付可用余额调整</strong>
       <!-- <strong>（本模块依据<span class="redcolor">代收订单更新时间</span>和<span class="redcolor">代付订单创更新时间</span>）</strong> -->
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :search="false"
         v-if="!checkRole(['admin'])"></right-toolbar>
@@ -28,7 +28,7 @@
     </div>
 
     <el-table v-AutoHeight="{
-      Ref: 'mchSettlementListTable', Height: 100
+      Ref: 'mchSettlementListTable', Height: 30
     }" :data="mchSettlementList" @selection-change="handleSelectionChange" v-loading="loading"
       ref="mchSettlementListTable" @cell-dblclick="(row, column, cell, event) => {
         this.$util.copyToClipboard(cell.innerText);
@@ -39,32 +39,27 @@
       <!-- <el-table-column label="货币代号" align="center" prop="currency" /> -->
       <el-table-column label="账户余额" align="center" prop="account_balance" :formatter="Formatter.TableAmount" />
 
-      <el-table-column label="账户可用余额" align="center" prop="account_balance" :formatter="Formatter.TableAmount">
-        <template slot-scope="scope">
-          {{ account_balance_Available(scope.row) }}
-        </template>
+      <el-table-column label="代收可用金额" align="center" prop="account_available_balance"
+        :formatter="Formatter.TableAmount">
+
       </el-table-column>
+      <el-table-column label="代付可用金额" align="center" prop="account_payout_available_balance"
+        :formatter="Formatter.TableAmount" />
+      <el-table-column label="代付订单冻结金额" align="center" prop="payout_order_freeze_amount"
+        :formatter="Formatter.TableAmount">
+      </el-table-column>
+
+
+
       <el-table-column label="账户冻结金额" align="center" prop="account_freeze_balance" :formatter="Formatter.TableAmount" />
       <el-table-column label="待结算金额" align="center" prop="account_pending_settlement_balance"
         :formatter="Formatter.TableAmount" />
-      <el-table-column label="代收结算金额" align="center" prop="payin_success_settle_amount"
-        :formatter="Formatter.TableAmount" />
-      <el-table-column label="代付结算金额" align="center" prop="payout_success_settle_amount"
-        :formatter="Formatter.TableAmount" />
       <el-table-column label="资金调整金额" align="center" prop="funds_adjustment_amount"
         :formatter="Formatter.TableAmount" />
-      <!-- <el-table-column label="账户余额" align="center" prop="account_balance" :formatter="Formatter.TableAmount" />
-
-      <el-table-column label="账户可用余额" align="center" prop="account_available_balance"
-        :formatter="Formatter.TableAmount" />
-
-      <el-table-column label="代付余额" align="center" prop="account_payout_balance" :formatter="Formatter.TableAmount" />
-      <el-table-column label="代付可用余额" align="center" prop="account_payout_available_balance"
-        :formatter="Formatter.TableAmount" />
-
-      <el-table-column label="代付冻结金额" align="center" prop="payou_freeze_amount" :formatter="Formatter.TableAmount" />
-      <el-table-column label="代付冻结金额手续费" align="center" prop="payou_freeze_amount_service"
-        :formatter="Formatter.TableAmount" /> -->
+      <el-table-column label="代付冻结金额" align="center" prop="payou_freeze_amount" :formatter="Formatter.TableAmount">
+      </el-table-column>
+      <el-table-column label="代付退回金额" align="center" prop="refund_payout_amount" :formatter="Formatter.TableAmount">
+      </el-table-column>
       <el-table-column label="截止时间" align="center" prop="create_time" :formatter="Formatter.TableTimeSecond"
         width="180" />
       <el-table-column label="历史" align="center" class-name="small-padding ">

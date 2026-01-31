@@ -1,151 +1,113 @@
 <template>
-  <div class="app-container fulltable_div">
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="通道ID" prop="chnl_id">
-        <ChannelQuery v-model="queryParams.chnl_id"></ChannelQuery>
-        <!-- <el-input v-model="queryParams.chnl_name" placeholder="请输入通道名称" clearable @keyup.enter.native="handleQuery" /> -->
-      </el-form-item>
-      <!-- <el-form-item label="平台代号" prop="terraceSymbol">
+  <div class="fulltable_div">
+    <div v-if="!open" class="app-container ">
+      <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+        <el-form-item label="通道ID" prop="chnl_id">
+          <ChannelQuery v-model="queryParams.chnl_id"></ChannelQuery>
+          <!-- <el-input v-model="queryParams.chnl_name" placeholder="请输入通道名称" clearable @keyup.enter.native="handleQuery" /> -->
+        </el-form-item>
+        <!-- <el-form-item label="平台代号" prop="terraceSymbol">
         <el-input v-model="queryParams.terraceSymbol" placeholder="请输入平台代号" clearable
           @keyup.enter.native="handleQuery" />
       </el-form-item> -->
-      <el-form-item>
-        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-      </el-form-item>
-    </el-form>
-
-    <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-          v-hasPermi="['excellent:chnlSetting:add']">新增通道</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button type="primary" plain icon="el-icon-setting" size="mini" @click="openAllocationPoolDialog('payin1')"
-          v-hasPermi="['excellent:chnlSetting:add']">代收分配池1</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button type="primary" plain icon="el-icon-setting" size="mini" @click="openAllocationPoolDialog('payin2')"
-          v-hasPermi="['excellent:chnlSetting:add']">代收分配池2</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button type="primary" plain icon="el-icon-setting" size="mini" @click="openAllocationPoolDialog('payout')"
-          v-hasPermi="['excellent:chnlSetting:add']">代付分配池</el-button>
-      </el-col>
-      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
-    </el-row>
-
-    <dynamicTableVue :loading="loading" :tableData="chnlSettingList" :defaultSort="{ prop: 'id', order: 'ascending' }">
-      <!-- <el-table-column type="selection" width="30" align="center" /> -->
-      <el-table-column label="通道ID" align="center" prop="id" :formatter="Formatter.SettingChannelNameFormatter"
-        width="100" />
-      <!-- <el-table-column label="通道名称" align="center" prop="id" v-if="hasPermiVisible(['excellent:chnlSetting:edit'])" /> -->
-      <!-- <el-table-column label="平台代号" align="center" prop="terraceSymbol" /> -->
-
-      <el-table-column label="代收状态" align="center" prop="payin_state" width="100">
-        <template slot-scope="scope">
-          <el-switch v-model="scope.row.payin_state" active-color="#409EFF" inactive-color="#DCDFE6" :active-value="0"
-            :inactive-value="1" @change="ChangeState($event, scope.row, 2)">
-          </el-switch>
-
-        </template>
-      </el-table-column>
-      <el-table-column label="代付状态" align="center" prop="payout_state" width="100">
-        <template slot-scope="scope">
-          <el-switch v-model="scope.row.payout_state" active-color="#409EFF" inactive-color="#DCDFE6" :active-value="0"
-            :inactive-value="1" @change="ChangeState($event, scope.row, 1)">
-          </el-switch>
-
-        </template>
-      </el-table-column>
-
-      <el-table-column label="货币代号" align="center" prop="currency" width="100" />
-      <el-table-column label="结算模式" align="center" prop="settle_mode" width="100">
-        <template slot-scope="scope">
-          <el-tag v-if="scope.row.settle_mode === 0" type="success">实时结算</el-tag>
-          <el-tag v-else type="warning">延时结算</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="备注" align="center" prop="chnl_symbol" />
-
-
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="80"
-        v-if="hasPermiVisible(['excellent:chnlSetting:edit'])">
-        <template slot-scope="scope">
-          <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"
-            v-hasPermi="['excellent:chnlSetting:edit']">修改</el-button>
-        </template>
-      </el-table-column>
-    </dynamicTableVue>
-
-    <pagination ref="pagination" v-show="total > 0" :total="total" :page.sync="queryParams.page"
-      :limit.sync="queryParams.limit" @pagination="getList" />
-
-    <!-- 添加或修改支付通道对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="680px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px" class="Breakdown-el-form"
-        v-loading="UpdateLoading" label-position="top">
-        <el-form-item label="通道ID" prop="id" v-if="form.id">
-          <el-input v-model="form.id" placeholder="请输入通道名称" disabled />
-        </el-form-item>
-
-
-        <el-form-item label="货币代号" prop="currency">
-          <el-input v-model="form.currency" placeholder="请输入货币代号" disabled />
-        </el-form-item>
-
-        <el-form-item label="代收费率" prop="payin_rate">
-          <el-input-number v-model="form.payin_rate" placeholder="请输入代收费率" :min="0.0000" :precision="4" :step="0.0001"
-            class="w100_input" />
-          <!-- <el-input v-model="form.payin_rate" placeholder="请输入代收费率" /> -->
-        </el-form-item>
-        <el-form-item label="代付费率" prop="payout_rate">
-          <el-input-number v-model="form.payout_rate" placeholder="请输入代收费率" :min="0.0000" :precision="4" :step="0.0001"
-            class="w100_input" />
-
-        </el-form-item>
-
-
-        <el-form-item label="单笔代付手续费" prop="payout_fee_single">
-          <el-input-number v-model="form.payout_fee_single" placeholder="请输入单笔代付手续费" :min="0" class="w100_input" />
-          <!-- <el-input v-model="form.payout_fee_single" placeholder="请输入单笔代付手续费" /> -->
-
-        </el-form-item>
-        <el-form-item label="单笔代收最低限额" prop="payin_min_limit">
-          <el-input-number v-model="form.payin_min_limit" placeholder="请输入单笔代收最低限额" :min="0" class="w100_input" />
-          <!-- <el-input v-model="form.payin_min_limit" placeholder="请输入单笔代收最低限额" /> -->
-        </el-form-item>
-        <el-form-item label="单笔代付最低限额" prop="payout_min_limit">
-          <el-input-number v-model="form.payout_min_limit" placeholder="请输入单笔代付最低限额" :min="0" class="w100_input" />
-          <!-- <el-input v-model="form.payout_min_limit" placeholder="请输入单笔代付最低限额" /> -->
-        </el-form-item>
-        <el-form-item label="单笔代收最大限额" prop="payin_max_limit">
-          <el-input-number v-model="form.payin_max_limit" placeholder="请输入单笔代收最大限额" :min="0" class="w100_input" />
-          <!-- <el-input v-model="form.payin_max_limit" placeholder="请输入单笔代收最大限额" /> -->
-        </el-form-item>
-        <el-form-item label="单笔代付最大限额" prop="payout_max_limit">
-          <el-input-number v-model="form.payout_max_limit" placeholder="请输入单笔代付最大限额" :min="0" class="w100_input" />
-          <!-- <el-input v-model="form.payout_max_limit" placeholder="请输入单笔代付最大限额" /> -->
-        </el-form-item>
-        <el-form-item label="结算模式" prop="settle_mode">
-          <el-select v-model="form.settle_mode" placeholder="请选择通道结算模式" class="w100_input">
-            <el-option v-for="item in settleModeList" :key="item.value" :label="item.label"
-              :value="item.value"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="通道备注" prop="chnl_symbol">
-          <el-input type="textarea" :rows="4" v-model="form.chnl_symbol" placeholder="请输入通道备注" class="w100_input" />
-          <!-- <el-input v-model="form.payout_max_limit" placeholder="请输入单笔代付最大限额" /> -->
+        <el-form-item>
+          <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+          <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
-      </div>
-    </el-dialog>
+
+      <el-row :gutter="10" class="mb8">
+        <el-col :span="1.5">
+          <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
+            v-hasPermi="['excellent:chnlSetting:add']">新增通道</el-button>
+        </el-col>
+        <el-col :span="1.5">
+          <el-button type="primary" plain icon="el-icon-setting" size="mini" @click="openAllocationPoolDialog('payin1')"
+            v-hasPermi="['excellent:chnlSetting:add']">代收分配池1</el-button>
+        </el-col>
+        <el-col :span="1.5">
+          <el-button type="primary" plain icon="el-icon-setting" size="mini" @click="openAllocationPoolDialog('payin2')"
+            v-hasPermi="['excellent:chnlSetting:add']">代收分配池2</el-button>
+        </el-col>
+        <el-col :span="1.5">
+          <el-button type="primary" plain icon="el-icon-setting" size="mini" @click="openAllocationPoolDialog('payout')"
+            v-hasPermi="['excellent:chnlSetting:add']">代付分配池</el-button>
+        </el-col>
+        <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+      </el-row>
+
+      <el-table v-AutoHeight="{
+        Ref: 'myTable', Height: 60
+      }" v-table-move="['myTable']" v-loading="loading" :data="chnlSettingList" :height="200" border
+        :default-sort="{ prop: 'id', order: 'ascending' }" ref="myTable">
+        <!-- <el-table-column type="selection" width="30" align="center" /> -->
+        <el-table-column label="通道ID" align="center" prop="id" :formatter="Formatter.SettingChannelNameFormatter"
+          width="100" />
+        <!-- <el-table-column label="通道名称" align="center" prop="id" v-if="hasPermiVisible(['excellent:chnlSetting:edit'])" /> -->
+        <!-- <el-table-column label="平台代号" align="center" prop="terraceSymbol" /> -->
+
+        <el-table-column label="代收状态" align="center" prop="payin_state" width="100">
+          <template slot-scope="scope">
+            <el-switch v-model="scope.row.payin_state" active-color="#409EFF" inactive-color="#DCDFE6" :active-value="0"
+              :inactive-value="1" @change="ChangeState($event, scope.row, 2)">
+            </el-switch>
+
+          </template>
+        </el-table-column>
+        <el-table-column label="代付状态" align="center" prop="payout_state" width="100">
+          <template slot-scope="scope">
+            <el-switch v-model="scope.row.payout_state" active-color="#409EFF" inactive-color="#DCDFE6"
+              :active-value="0" :inactive-value="1" @change="ChangeState($event, scope.row, 1)">
+            </el-switch>
+
+          </template>
+        </el-table-column>
+
+        <el-table-column label="货币代号" align="center" prop="currency" width="100" />
+        <el-table-column label="结算模式" align="center" prop="settle_mode" width="100">
+          <template slot-scope="scope">
+            <el-tag v-if="scope.row.settle_mode === 0" type="success">实时结算</el-tag>
+            <el-tag v-else type="warning">延时结算</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="代收手续费" align="center" prop="payin_fee_single_interval" width="320">
+          <template slot-scope="scope">
+            <div style="" v-if="scope.row.payin_fee_single_interval">
+              <span v-for="(item, index) in JSON.parse(scope.row.payin_fee_single_interval)" :key="index"
+                class="table_expand_rate_item">
+                <span class="table_expand_rate_label"> {{ index }}：</span><span class="table_expand_rate_value">{{
+                  item }}</span>
+              </span>
+            </div>
+            <div style="" v-else>
+              -
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="备注" align="center" prop="chnl_symbol" />
+
+
+        <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="80"
+          v-if="hasPermiVisible(['excellent:chnlSetting:edit'])">
+          <template slot-scope="scope">
+            <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"
+              v-hasPermi="['excellent:chnlSetting:edit']">修改</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <pagination ref="pagination" v-show="total > 0" :total="total" :page.sync="queryParams.page"
+        :limit.sync="queryParams.limit" @pagination="getList" />
+    </div>
+
+
+    <!-- 通道信息编辑 -->
+    <UpdateAdd ref="updateAddVue" v-else :show="open" :id="UpdateFormId" @cancel="cancel" @refresh="refresh">
+    </UpdateAdd>
     <!-- 分配通道对话框 -->
     <AllocationPoolVue ref="allocationPoolVue" v-model="AllocationPool" :AllocationPoolType="AllocationPoolType">
     </AllocationPoolVue>
+
   </div>
 </template>
 
@@ -153,16 +115,14 @@
 import { listChnlSetting, getChnlSetting, delChnlSetting, addChnlSetting, updateChnlSetting } from "@/api/excellent/chnlSetting";
 import ChannelQuery from "../../../components/Excellent/Channel/ChannelQuery.vue";
 import dynamicTableVue from '@/components/Excellent/dynamicTable.vue';
-import moment from "moment";
 import AllocationPoolVue from './modules/AllocationPool.vue';
-
+import UpdateAdd from './modules/UpdateAdd.vue';
 export default {
   name: "ChnlSetting",
   data() {
     return {
       AllocationPoolType: 'payin1',
       AllocationPool: false,
-      UpdateLoading: false,
       // 遮罩层
       loading: true,
       // 选中数组
@@ -181,6 +141,8 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 更新添加表单ID
+      UpdateFormId: null,
       // 查询参数
       queryParams: {
         page: 1,
@@ -189,18 +151,8 @@ export default {
         terraceSymbol: null,
         state: null,
       },
-      // 表单参数
-      form: {},
-      settleModeList: [
-        {
-          label: '实时结算',
-          value: 0
-        },
-        {
-          label: '延时结算',
-          value: 1
-        },
-      ],
+
+
       // 表单校验
       rules: {
         payinMode: [
@@ -230,37 +182,11 @@ export default {
     // 取消按钮
     cancel() {
       this.open = false;
-      this.reset();
     },
-    // 表单重置
-    reset() {
-      this.form = {
-        id: null,
-        chnl_name: null,
-        terraceSymbol: null,
-        state: null,
-        payout_state: null,
-        payin_state: null,
-        currency: "INR",
-        chargeback: null,
-        payinMode: null,
-        payin_rate: null,
-        payout_rate: null,
-        payout_fee_single: null,
-        payinFeeSingle: null,
-        payin_min_limit: null,
-        payout_min_limit: null,
-        payin_max_limit: null,
-        payout_max_limit: null,
-        delFlag: null,
-        createBy: null,
-        createTime: null,
-        updateBy: null,
-        updateTime: null,
-        chnl_symbol: null,
-        settle_mode: null
-      };
-      this.resetForm("form");
+    // 刷新列表
+    refresh() {
+      this.open = false;
+      this.getList();
     },
     /** 搜索按钮操作 */
     handleQuery() {
@@ -269,7 +195,6 @@ export default {
     },
     /** 重置按钮操作 */
     resetQuery() {
-      this.resetForm("queryForm");
       this.handleQuery();
     },
     // 多选框选中数据
@@ -280,52 +205,17 @@ export default {
     },
     /** 新增按钮操作 */
     handleAdd() {
-      this.reset();
       this.open = true;
+      this.UpdateFormId = null
       this.title = "添加支付通道";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
-      this.reset();
-      this.UpdateLoading = true;
       this.open = true;
-      const id = row.chnl_name || this.ids
+      this.UpdateFormId = row.chnl_name
       this.title = "修改支付通道";
+    },
 
-      getChnlSetting(id).then(response => {
-        for (const key in this.form) {
-          this.form[key] = response.rows[0][key] != null ? response.rows[0][key] : this.form[key]
-        }
-        // this.form = response.data;
-        this.UpdateLoading = false;
-      });
-    },
-    /** 提交按钮 */
-    submitForm() {
-      this.$refs["form"].validate(valid => {
-        this.UpdateLoading = true;
-        if (valid) {
-          if (this.form.id != null) {
-            updateChnlSetting(this.form).then(response => {
-              this.$modal.msgSuccess("修改成功");
-              this.open = false;
-              this.getList();
-            }).finally(() => {
-              this.UpdateLoading = false;
-            });
-          } else {
-            this.form['chnl_name'] = String(moment().format('YYYY-MM-DD/HH:mm:ss'));
-            addChnlSetting(this.form).then(response => {
-              this.$modal.msgSuccess("新增成功");
-              this.open = false;
-              this.getList();
-            }).finally(() => {
-              this.UpdateLoading = false;
-            });
-          }
-        }
-      });
-    },
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
@@ -375,7 +265,23 @@ export default {
 
   },
   components: {
-    ChannelQuery, dynamicTableVue, AllocationPoolVue
+    ChannelQuery, dynamicTableVue, AllocationPoolVue, UpdateAdd
   }
 };
 </script>
+<style lang="scss" scoped>
+.table_expand_rate_item {
+  margin: 6px 0;
+  display: inline-block;
+  width: 145px;
+  font-weight: 600;
+
+  .table_expand_rate_label {
+    display: inline-block;
+    width: 100px;
+    color: #99a9bf;
+  }
+
+  .table_expand_rate_value {}
+}
+</style>

@@ -1,51 +1,52 @@
-.w100_input input,.w100_input{
-    width: 100% !important;
+.w100_input input,
+.w100_input {
+  width: 100% !important;
 }
 
 /* 表单不显示label */
-.NoShowLabel .el-form-item__label{
-   opacity: 0;
+.NoShowLabel .el-form-item__label {
+  opacity: 0;
 }
-.Breakdown-el-form{
-    display: grid;
-    gap: 0px 16px;;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+.Breakdown-el-form {
+  display: grid;
+  gap: 0px 16px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
 }
-.el-card__header{
+.el-card__header {
   font-weight: 600;
   font-size: 16px;
 }
 /* 强制居中弹窗 */
-.el-dialog{
-    display: flex !important;
-    display: -ms-flex !important; /* 兼容IE */
-    flex-direction: column !important;
-    -ms-flex-direction: column !important; /* 兼容IE */
-    margin:0 !important;
-    position:absolute !important;
-    top:50% !important;
-    left:50% !important;
-    transform:translate(-50%,-50%) !important;
-    max-height:calc(100% - 60px);
-    max-width:calc(100% - 60px);
-  }
-  .el-dialog .el-dialog__body{
-    max-height: 100%;
-    flex: 1;
-    -ms-flex: 1 1 auto; /* 兼容IE */
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-
-  .el-dialog__wrapper {
-    /*隐藏ie和edge中遮罩的滚动条*/
-    overflow: hidden;
-  }
-  .el-dialog:not(.is-fullscreen) {
-    margin-top: 0vh !important;
+.el-dialog {
+  display: flex !important;
+  display: -ms-flex !important; /* 兼容IE */
+  flex-direction: column !important;
+  -ms-flex-direction: column !important; /* 兼容IE */
+  margin: 0 !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  max-height: calc(100% - 60px);
+  max-width: calc(100% - 60px);
 }
-.el-dialog__title{
-  font-weight: 600 ;
+.el-dialog .el-dialog__body {
+  max-height: 100%;
+  flex: 1;
+  -ms-flex: 1 1 auto; /* 兼容IE */
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.el-dialog__wrapper {
+  /*隐藏ie和edge中遮罩的滚动条*/
+  overflow: hidden;
+}
+.el-dialog:not(.is-fullscreen) {
+  margin-top: 0vh !important;
+}
+.el-dialog__title {
+  font-weight: 600;
 }
 .rate_show {
   background: rgb(186, 231, 255);
@@ -69,11 +70,9 @@
   color: #000;
 }
 .el-popover {
-
   border-radius: 16px !important;
-
 }
-.click{
+.click {
   cursor: pointer;
 }
 .SettlementForm .el-table__empty-text {
