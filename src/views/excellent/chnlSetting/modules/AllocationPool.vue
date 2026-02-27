@@ -5,7 +5,10 @@
     <div v-loading="loading">
       <div class="FlexCenter">
         <div class="AllocationPoolLabel">通道名:</div>
-        <ChannelQuery style="padding: 0 8px;" v-model="SelectChnl" :showType="allocationPoolType"></ChannelQuery>
+        <el-select v-model="SelectChnl" placeholder="请选择" style="padding: 0 8px; " class="w100_input">
+          <el-option v-for="item in ChannelQueryListFiter" :key="item.id" :label="ChannelNameFormatterShow(item)"
+            :value="item.id"></el-option>
+        </el-select>
         <el-button :type="allocationPoolTypeColor" @click="addAllocationPool" icon="el-icon-plus">添加</el-button>
       </div>
       <div class="FlexCenter" style="margin-top: 12px;width: 100%;">
@@ -34,19 +37,17 @@
           <div class="SelectChnlContent">
             <el-tag v-for="item in changeChnlItem" :key="item" style="margin: 3px;" :type="allocationPoolTypeColor">{{
               item
-            }}</el-tag>
+              }}</el-tag>
           </div>
         </div>
         <div class="SelectChnl">
           <div class="SelectChnlLabel"> 通道:</div>
           <div class="SelectChnlContent">
-            <ChannelQuery v-model="changeChnl" placeholder="请选择通道池中的通道" style="width: 100%;"
-              :showType="allocationPoolType">
-            </ChannelQuery>
-            <!-- <el-select v-model="changeChnl" placeholder="请选择通道池中的通道" style="width: 100%;">
-              <el-option v-for="item in allocationPoolList" :key="item.id" :label="item.label"
+
+            <el-select v-model="changeChnl" placeholder="请选择通道池中的通道" style="width: 100%;">
+              <el-option v-for="item in ChannelQueryListFiter" :key="item.id" :label="ChannelNameFormatterShow(item)"
                 :value="item.id"></el-option>
-            </el-select> -->
+            </el-select>
           </div>
         </div>
       </div>
@@ -60,18 +61,15 @@
 </template>
 
 <script>
-import ChannelQuery from '@/components/Excellent/Channel/ChannelQuery.vue';
-import { listAllocationPool, addAllocationPool, delAllocationPool } from '@/api/excellent/chnlSetting';
+import { listAllocationPool, addAllocationPool, delAllocationPool, listChnlSetting } from '@/api/excellent/chnlSetting';
 import {
   listMchAccConfig,
   updateMchAccConfig,
 } from "@/api/excellent/mchAccConfig";
 import { mockRequest, PollingRequest, MultiPollingRequest } from "@/utils/ProgressRequest";
-import { mapState } from "vuex";
+import { SettingChannelNameFormatter } from "@/utils/Formatter";
 export default {
-  components: {
-    ChannelQuery
-  },
+
   name: 'AllocationPool',
   props: {
     value: Boolean, // 父组件 v-model
@@ -105,17 +103,26 @@ export default {
     allocationPoolTypeColor() {
       return this.allocationPoolType === 'payin1' || this.allocationPoolType === 'payin2' ? 'primary' : 'warning';
     },
-    ...mapState({
-      ChannelQueryList: state => state.Cache.channelList,
-    }),
+    //获取特定的通道数据
+    ChannelQueryListFiter() {
+      if (this.allocationPoolType === 'payin1' || this.allocationPoolType === 'payin2') {
+        return this.ChannelQueryList.filter(item => item.payin_state == 0)
+      }
+      if (this.allocationPoolType === 'payout') {
+        return this.ChannelQueryList.filter(item => item.payout_state == 0)
+      }
+      return this.ChannelQueryList
+    },
+
   },
   watch: {
-    computedVisible(val) {
+    async computedVisible(val) {
       if (val) {
         this.loading = true;
         this.SelectChnl = null;
         this.changeChnl = null;
         this.changeChnlItem = [];
+        await this.ChannelQuerySearch();
         this.getList();
       }
     }
@@ -130,6 +137,8 @@ export default {
       channelQueryVisible: false,
       // 通道选择弹窗选中的通道
       changeChnlItem: [],
+      // 通道列表
+      ChannelQueryList: [],
     };
   },
 
@@ -138,6 +147,12 @@ export default {
   },
 
   methods: {
+    //获取通道数据
+    ChannelQuerySearch() {
+      listChnlSetting().then(res => {
+        this.ChannelQueryList = res.rows.sort((a, b) => a.id - b.id);
+      });
+    },
     //取消切换通道
     cancelChannelQuery() {
       this.changeChnl = null;
@@ -365,7 +380,9 @@ export default {
         }, 300);
       });
     },
-
+    ChannelNameFormatterShow(item) {
+      return SettingChannelNameFormatter(item)
+    }
   },
 };
 </script>

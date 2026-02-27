@@ -346,6 +346,9 @@ export default {
       }
       this.BatchSearchOrdersShow = false
       this.loading = true
+      this.queryParams.utr_list = null
+      this.queryParams.merchant_order_id_list = null
+      this.queryParams.platform_order_id_list = null
       if (this.BatchSelect == 'utr') {
         this.queryParams.utr_list = this.BatchList.length > 0 ? this.BatchList : null
       }
