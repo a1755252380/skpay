@@ -18,8 +18,7 @@
   width: 100vw;
   height: 100vh;
   margin: 0;
-  background: url("../image/login-background.png") no-repeat center center;
-  background-size: cover;
+  background: #fff;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -35,7 +34,6 @@
   width: 180px;
   height: 180px;
   object-fit: contain;
-  animation: fadeIn 1s ease-in-out;
 }
 
 /* 加载动画（第一版：双层旋转 + 中心呼吸） */
