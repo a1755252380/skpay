@@ -4,7 +4,7 @@
     <transition name="sidebarLogoFade">
       <router-link v-if="collapse" key="collapse" class="sidebar-logo-link" to="/">
         <img :src="sideTheme === 'theme-dark' ? darkImg : logo" class="sidebar-logo" v-if="!collapse" />
-        <span v-else class="logo_title" :style="{ 'background': $store.state.settings.theme }"> B</span>
+        <span v-else class="logo_title" :style="{ 'background': $store.state.settings.theme }"> S</span>
 
         <!-- <img v-if="logo" :src="logo" class="sidebar-logo" />
         <h1 v-else class="sidebar-title"
@@ -13,7 +13,7 @@
       </router-link>
       <router-link v-else key="expand" class="sidebar-logo-link" to="/">
         <img :src="sideTheme === 'theme-dark' ? darkImg : logo" class="sidebar-logo" v-if="!collapse" />
-        <span v-else class="logo_title" :style="{ 'background': $store.state.settings.theme }"> B</span>
+        <span v-else class="logo_title" :style="{ 'background': $store.state.settings.theme }"> S</span>
         <!-- <img v-if="logo" :src="logo" class="sidebar-logo" />
         <h1 class="sidebar-title"
           :style="{ color: sideTheme === 'theme-dark' ? variables.logoTitleColor : variables.logoLightTitleColor }">{{
@@ -25,7 +25,7 @@
 
 <script>
 import logoImg from '@/assets/logo/logo2.png'
-import logoImgDark from '@/assets/logo/buddy_black.png'
+import logoImgDark from '@/assets/logo/logo2.png'
 import variables from '@/assets/styles/variables.scss'
 
 export default {
@@ -68,7 +68,7 @@ export default {
   position: relative;
   width: 100%;
   // height: 50px;
-  height: 100px;
+  height: 80px;
   line-height: 50px;
   background: #2b2f3a;
   text-align: center;
@@ -85,10 +85,10 @@ export default {
     //   margin-right: 12px;
     // }
     & .sidebar-logo {
-      width: 115%;
+      width: 110%;
       vertical-align: middle;
       margin-left: -10px;
-      margin-top: -32px;
+      margin-top: 0px;
       margin-bottom: 0px;
     }
 

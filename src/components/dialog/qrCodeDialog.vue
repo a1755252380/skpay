@@ -116,13 +116,11 @@ export default {
       this.dialogShow = false
     },
     getQrCode() {
-      // https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=
-      // otpauth://totp/buddypay%20Web%20Services:buddypay@196621413204?
-      // secret = KEZTINLGMFRWC2I =& issuer=buddypay % 20Web % 20Services
+
       this.loading = true
       // Base32 编码
-      const serviceName = "2-buddy";
-      const accountName = "www.2-buddy.in";
+      const serviceName = "sk-pay";
+      const accountName = "www.sk-pay.in";
       const otpauthUrl = `otpauth://totp/${encodeURIComponent(
         serviceName
       )}:${encodeURIComponent(

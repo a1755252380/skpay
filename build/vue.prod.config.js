@@ -18,7 +18,7 @@ module.exports = {
     progress: true,
     proxy: {
       [process.env.VUE_APP_ORDER_API]: {
-        target: "https://2-buddy.in",
+        target: "https://www.sk-pay.in",
         changeOrigin: true,
         pathRewrite: {
           ["^" + process.env.VUE_APP_ORDER_API]:

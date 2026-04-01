@@ -1,19 +1,134 @@
-
-#loader-wrapper {
+/* #loader-wrapper {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  width: 100vw;
   height: 100vh;
   margin: 0;
-  background: linear-gradient(200deg, #37e2b2, #2fa080);
-  font-family: "Londrina Sketch", sans-serif !important;
+  background: url("../image/login-background.png") no-repeat;
+  background-size: cover;
   position: relative;
-  overflow: hidden;
+  z-index: 9999;
+} */
+#loader-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  background: url("../image/login-background.png") no-repeat center center;
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
 }
 
+.logo-box {
+  margin-bottom: 30px;
+}
+
+.loading_logo {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  animation: fadeIn 1s ease-in-out;
+}
+
+/* 加载动画（第一版：双层旋转 + 中心呼吸） */
+.spinner {
+  position: relative;
+  width: 56px;
+  height: 56px;
+}
+
+.spinner::before,
+.spinner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid transparent;
+}
+
+.spinner::before {
+  border-top-color: #0dd3c2;
+  border-right-color: rgba(13, 211, 194, 0.7);
+  animation: spin 1s linear infinite;
+}
+
+.spinner::after {
+  inset: 6px;
+  border-bottom-color: rgba(13, 211, 194, 0.9);
+  border-left-color: rgba(255, 255, 255, 0.5);
+  animation: spinReverse 1.2s linear infinite;
+}
+
+.spinner-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: #0dd3c2;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px rgba(13, 211, 194, 0.9), 0 0 20px rgba(13, 211, 194, 0.6);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinReverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.4);
+    opacity: 0.6;
+  }
+}
+
+.loading-text {
+  margin-top: 16px;
+  color: #cbd5f5;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 body *:not(#loader-wrapper *) {
-  font-family: 'Noto Sans SC';
+  font-family: "Noto Sans SC";
 }
 .loader {
   display: flex;
@@ -37,10 +152,10 @@ body *:not(#loader-wrapper *) {
 
 @keyframes fadeIn {
   0% {
-      opacity: 0.6;
+    opacity: 0.6;
   }
   100% {
-      opacity: 1;
+    opacity: 1;
   }
 }
 
@@ -58,19 +173,19 @@ body *:not(#loader-wrapper *) {
 
 @keyframes jump {
   0% {
-      transform: translateY(0);
+    transform: translateY(0);
   }
   100% {
-      transform: translateY(-30px);
+    transform: translateY(-30px);
   }
 }
 
 @keyframes sway {
   0% {
-      transform: rotate(0deg);
+    transform: rotate(0deg);
   }
   100% {
-      transform: rotate(-8deg);
+    transform: rotate(-8deg);
   }
 }
 

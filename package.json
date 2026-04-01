@@ -1,8 +1,8 @@
 {
-  "name": "2-Buddy",
+  "name": "sk-pay",
   "version": "1.0.0",
-  "description": "2-Buddy管理系统",
-  "author": "2-Buddy",
+  "description": "sk-pay管理系统",
+  "author": "sk-pay",
   "license": "MIT",
   "scripts": {
     "dev": "vue-cli-service serve ",

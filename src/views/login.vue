@@ -1,79 +1,52 @@
 <template>
   <div class="login" @keyup.enter="handleLogin">
-    <div class="container">
-      <div class="panda">
-        <div class="ear left"></div>
-        <div class="ear right"></div>
-        <div class="face">
-          <div class="eye-shadow left"></div>
-          <div class="eye-white left">
-            <div class="eye-ball"></div>
-          </div>
-          <div class="eye-shadow right"></div>
-          <div class="eye-white right">
-            <div class="eye-ball"></div>
-          </div>
-          <div class="nose"></div>
-          <div class="mouth"></div>
-        </div>
-        <div class="body"></div>
-        <div class="foot left">
-          <div class="sole"></div>
-        </div>
-        <div class="foot right">
-          <div class="sole"></div>
-        </div>
-      </div>
-      <div class="login-box" id="login_div">
-        <div class="hand left"></div>
-        <div class="hand right"></div>
-        <h1>Buddy后台管理系统</h1>
-        <div class="input_div">
-          <div class="input_box">
-            <div class="ipt-box" v-show="codeNeed">
-              <input type="text" required v-model="loginForm.username">
-              <label>用户名</label>
-            </div>
+    <div class="login-wrapper">
+      <div class="login-card">
 
-
-
-            <div class="ipt-box" v-show="codeNeed">
-              <input :type="passwordVisible ? 'text' : 'password'" id="password" v-model="loginForm.password" required>
-              <label>密码</label>
-              <!-- 切换密码显示状态的图标 -->
-              <span @click="passwordVisible = !passwordVisible" class="password-toggle" v-show="loginForm.password">
-                <i :class="passwordVisible ? 'el-icon-view' : 'el-icon-view'"></i>
-              </span>
-            </div>
-
-            <div class="ipt-box code_input" v-show="!codeNeed">
-              <input v-model="loginForm.captcha_input" required>
-              <label>验证码</label>
-
-              <!-- 验证码图片 -->
-            </div>
-          </div>
-          <div class="login_btn">
-            <el-checkbox v-model="loginForm.rememberMe" style="margin:10px auto">记住密码</el-checkbox>
-            <button @click="handleLogin" :disabled="loading"> <template v-if="!loading">登
-                录</template>
-              <template v-else><i class="el-icon-loading"></i></template></button>
-          </div>
+        <div class="header">
+          <img src="../assets/logo/logo2.png" alt="logo" style="width: 100%;  " />
         </div>
 
+        <div class="form">
 
+          <div class="ipt-box" v-show="codeNeed">
+            <input v-model="loginForm.username" required />
+            <label>用户名</label>
+          </div>
+
+          <div class="ipt-box" v-show="codeNeed">
+            <input :type="passwordVisible ? 'text' : 'password'" v-model="loginForm.password" required />
+            <label>密码</label>
+
+            <span class="password-toggle" v-show="loginForm.password"
+              @click="passwordVisible = !passwordVisible">👁</span>
+          </div>
+
+          <div class="ipt-box" v-show="!codeNeed">
+            <input v-model="loginForm.captcha_input" required />
+            <label>验证码</label>
+          </div>
+
+          <div class="options">
+            <el-checkbox v-model="loginForm.rememberMe">
+              记住密码
+            </el-checkbox>
+          </div>
+
+          <button class="login-btn" @click="handleLogin" :disabled="loading">
+            <span v-if="!loading">登录</span>
+            <i v-else class="el-icon-loading"></i>
+          </button>
+
+        </div>
       </div>
     </div>
 
-
-
-    <!--  底部  -->
-    <div class="el-login-footer">
-      <span>Copyright © 2023-2025 Buddy.in All Rights Reserved.</span>
+    <div class="footer">
+      Copyright © 2023-2025 SKpay.in All Rights Reserved.
     </div>
   </div>
 </template>
-
 <script>
 import { getCodeImg, getCodeImgID, verifyArea } from "@/api/login";
 import Cookies from "js-cookie";
@@ -158,9 +131,9 @@ export default {
   methods: {
 
     getCookie() {
-      const username = Cookies.get("Buddy-username");
-      const password = Cookies.get("Buddy-password");
-      const rememberMe = Cookies.get('Buddy-rememberMe')
+      const username = Cookies.get("SKpay-username");
+      const password = Cookies.get("SKpay-password");
+      const rememberMe = Cookies.get('SKpay-rememberMe')
       this.loginForm = {
         username: username === undefined ? this.loginForm.username : username,
         password: password === undefined ? this.loginForm.password : decrypt(password),
@@ -176,13 +149,13 @@ export default {
           this.$util.startAnimation()
         }
         if (this.loginForm.rememberMe) {
-          Cookies.set("Buddy-username", this.loginForm.username, { expires: 30 });
-          Cookies.set("Buddy-password", encrypt(this.loginForm.password), { expires: 30 });
-          Cookies.set('Buddy-rememberMe', this.loginForm.rememberMe, { expires: 30 });
+          Cookies.set("SKpay-username", this.loginForm.username, { expires: 30 });
+          Cookies.set("SKpay-password", encrypt(this.loginForm.password), { expires: 30 });
+          Cookies.set('SKpay-rememberMe', this.loginForm.rememberMe, { expires: 30 });
         } else {
-          Cookies.remove("Buddy-username");
-          Cookies.remove("Buddy-password");
-          Cookies.remove('Buddy-rememberMe');
+          Cookies.remove("SKpay-username");
+          Cookies.remove("SKpay-password");
+          Cookies.remove('SKpay-rememberMe');
         }
 
         this.$router.push({ path: this.redirect || "/" });
@@ -222,440 +195,150 @@ export default {
 };
 </script>
 
-<style rel="stylesheet/scss" lang="scss">
-.input_div {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 12px 0 25px 0;
-  justify-content: space-between;
-  width: 65%;
-  align-items: center;
 
-  .input_box {
-    flex: 1;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-  }
-
-  .login_btn {
-    display: flex;
-    flex-direction: column;
-  }
+<style lang="scss" scoped>
+.form {
+  width: 100%;
 }
 
 .login {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
-  background-image: url("../assets/images/login-background.png");
+
+  background: url("../assets/images/login-background.png") no-repeat center top;
   background-size: cover;
 }
 
-.title {
-  margin: 0px auto 30px auto;
+/* 遮罩 */
+.login::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.6),
+      rgba(255, 255, 255, 0.2));
+}
+
+.login-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+/* 卡片 */
+.login-card {
+  width: 380px;
+  padding: 0 40px 40px;
+  border-radius: 18px;
+
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+
+  animation: fadeUp 0.6s ease;
+}
+
+.header {
   text-align: center;
-  color: #707070;
-  font-family: 'Rubik Mono One', "Noto Sans SC" !important;
-}
-
-.login-form {
-  border-radius: 6px;
-  background: #ffffff;
-  width: 400px;
-  padding: 25px 25px 5px 25px;
-
-  .el-input {
-    height: 38px;
-
-    input {
-      height: 38px;
-    }
-  }
-
-  .input-icon {
-    height: 39px;
-    width: 14px;
-    margin-left: 2px;
-  }
-}
-
-.login-tip {
-  font-size: 13px;
-  text-align: center;
-  color: #bfbfbf;
-}
-
-.login-code {
-  width: 33%;
-  height: 38px;
-  float: right;
-
-  img {
-    cursor: pointer;
-    vertical-align: middle;
-  }
-}
-
-.el-login-footer {
-  height: 40px;
-  line-height: 40px;
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  text-align: center;
-  color: #fff;
-  font-family: Arial;
-  font-size: 12px;
-  letter-spacing: 1px;
-}
-
-.login-code-img {
-  height: 38px;
-}
-</style>
-<style lang="scss" scoped>
-::v-deep .el-card {
-  border-radius: 16px;
-  box-shadow: 0px 1px 14px 0px rgba(0, 0, 0, 0.1)
-}
-
-.code_input {
-  display: flex;
-  align-items: center;
-}
-
-.login {
-  /* 100%窗口高度 */
-  height: 100vh;
-  /* 弹性布局 水平+垂直居中 */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  /* 渐变背景 */
-  background: linear-gradient(200deg, #37e2b2, #2fa080);
-}
-
-.image-slot {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.login {
-  .password-toggle {
-    position: absolute;
-    right: 0;
-    top: 7px;
-    cursor: pointer;
-  }
-
-  /* 开始画熊猫 */
-  .panda {
-    /* 相对定位 */
-    position: relative;
-    width: 200px;
-  }
-
-  /* 脸部 */
-  .face {
-    width: 200px;
-    height: 200px;
-    background-color: #fff;
-    border-radius: 100%;
-    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
-    position: relative;
-    z-index: 1;
-  }
-
-  /* 耳朵 */
-  .ear {
-    width: 70px;
-    height: 70px;
-    background-color: #000;
-    border-radius: 100%;
-    position: absolute;
-    top: -10px;
-  }
-
-  .ear.right {
-    right: 0;
-  }
-
-  /* 黑眼圈 */
-  .eye-shadow {
-    width: 50px;
-    height: 80px;
-    background-color: #000;
-    border-radius: 50%;
-    /* 绝对定位 */
-    position: absolute;
-    top: 40px;
-  }
-
-  .eye-shadow.left {
-    transform: rotate(45deg);
-    left: 30px;
-  }
-
-  .eye-shadow.right {
-    transform: rotate(-45deg);
-    right: 30px;
-  }
-
-  /* 眼白 */
-  .eye-white {
-    width: 30px;
-    height: 30px;
-    background-color: #fff;
-    border-radius: 100%;
-    position: absolute;
-    top: 68px;
-  }
-
-  .eye-white.left {
-    left: 38px;
-  }
-
-  .eye-white.right {
-    right: 38px;
-  }
-
-  /* 眼球 */
-  .eye-ball {
-    width: 20px;
-    height: 20px;
-    background-color: #000;
-    border-radius: 100%;
-    position: absolute;
-    left: 5px;
-    top: 5px;
-  }
-
-  /* 鼻子 */
-  .nose {
-    width: 35px;
-    height: 20px;
-    background-color: #000;
-    position: absolute;
-    left: 0;
-    right: 0;
-    margin: auto;
-    bottom: 65px;
-    border-radius: 42px 42px 60px 60px / 30px 30px 60px 60px;
-  }
-
-  /* 嘴巴 */
-  .mouth {
-    width: 68px;
-    height: 25px;
-    border-bottom: 7px solid #000;
-    border-radius: 50%;
-    position: absolute;
-    left: 0;
-    right: 0;
-    margin: auto;
-    bottom: 35px;
-  }
-
-  /* 身体 */
-  .body {
-    width: 250px;
-    height: 345px;
-
-    background-color: #fff;
-    position: relative;
-    left: -25px;
-    top: -60px;
-    border-radius: 100px 100px 100px 100px / 126px 126px 96px 96px;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-  }
-
-  /* 脚 */
-  .foot {
-    width: 82px;
-    height: 120px;
-    background-color: #000;
-    position: absolute;
-    bottom: 10px;
-    z-index: 3;
-    border-radius: 40px 40px 35px 40px / 26px 26px 63px 63px;
-    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.2);
-  }
-
-  .foot.left {
-    left: -80px;
-  }
-
-  .foot.right {
-    right: -80px;
-    transform: rotateY(180deg);
-  }
-
-  /* 脚掌-大椭圆 */
-  .foot::after {
-    content: "";
-    width: 55px;
-    height: 65px;
-    background-color: #222;
-    position: absolute;
-    border-radius: 50%;
-    left: 0;
-    right: 0;
-    margin: auto;
-    bottom: 10px;
-  }
-
-  /* 脚掌-三个小椭圆 */
-  .foot .sole,
-  .foot .sole::before,
-  .foot .sole::after {
-    width: 20px;
-    height: 30px;
-    background-color: #222;
-    position: absolute;
-    border-radius: 50%;
-    left: 0;
-    right: 0;
-    margin: auto;
-    top: 8px;
-  }
-
-  .foot .sole::before {
-    content: "";
-    left: -50px;
-  }
-
-  .foot .sole::after {
-    content: "";
-    left: 25px;
-  }
-
-  /* 手 */
-  .hand,
-  .hand::before,
-  .hand::after {
-    width: 40px;
-    height: 30px;
-    background-color: #000;
-    border-radius: 50px;
-    position: absolute;
-    top: 70px;
-    left: -20px;
-  }
-
-  .hand::before {
-    content: "";
-    top: 16px;
-    left: 0;
-  }
-
-  .hand::after {
-    content: "";
-    top: 32px;
-    left: 0;
-  }
-
-  .hand.right {
-    right: -20px;
-    left: auto;
-  }
-
-  /* 登录框 */
-  .login-box {
-    width: 400px;
-    height: 325px;
-    background-color: #fff;
-    border-radius: 3px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -110px);
-    z-index: 2;
-    /* 弹性布局 居中 垂直排列 */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    /* 设置过渡 */
-    transition: 0.3s;
-  }
 
   h1 {
     color: #1dc797;
-    font-weight: normal;
-    margin-bottom: 5px;
+    font-size: 28px;
   }
 
-  .ipt-box {
-    width: 100%;
-    margin-top: 25px;
-    position: relative;
+  p {
+    color: #666;
+  }
+}
+
+/* 输入 */
+.ipt-box {
+  position: relative;
+  margin-bottom: 28px;
+}
+
+.ipt-box input {
+  width: 100%;
+  height: 42px;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  background: transparent;
+  outline: none;
+}
+
+.ipt-box label {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  color: #999;
+  transition: 0.3s;
+}
+
+.ipt-box input:focus,
+.ipt-box input:valid {
+  border-color: #1dc797;
+}
+
+.ipt-box input:focus~label,
+.ipt-box input:valid~label {
+  top: -10px;
+  font-size: 12px;
+  color: #1dc797;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0;
+  top: 10px;
+  cursor: pointer;
+}
+
+.options {
+  margin-bottom: 20px;
+}
+
+/* 按钮 */
+.login-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #1dc797, #18a87d);
+  color: #fff;
+  cursor: pointer;
+  transition: 0.3s;
+
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(29, 199, 151, 0.4);
+}
+
+/* 动画 */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
   }
 
-  .ipt-box input {
-    width: 100%;
-    height: 35px;
-    border: none;
-    border-bottom: 1px solid #bbb;
-    text-indent: 5px;
-    outline: none;
-    transition: 0.3s;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
+}
 
-  .ipt-box label {
-    position: absolute;
-    left: 5px;
-    top: 5px;
-    font-size: 14px;
-    color: #888;
-    transition: 0.3s;
-    pointer-events: none;
-  }
-
-  /* 输入框选中或有值时输入框的样式 */
-  .ipt-box input:focus,
-  .ipt-box input:valid {
-    border-color: #1dc797;
-    box-shadow: 0 1px #1dc797;
-  }
-
-  /* 输入框选中或有值时label的样式 */
-  .ipt-box input:focus~label,
-  .ipt-box input:valid~label {
-    color: #1dc797;
-    font-size: 12px;
-    transform: translateY(-15px);
-  }
-
-  button {
-    width: 150px;
-    height: 40px;
-    background-color: #1dc797;
-    border: none;
-    border-radius: 3px;
-    // margin-top: 10px;
-    color: #fff;
-    letter-spacing: 10px;
-    text-indent: 10px;
-    cursor: pointer;
-    transition: 0.3s;
-  }
-
-  button:hover {
-    letter-spacing: 25px;
-    text-indent: 25px;
-    background-color: #2fa080;
-  }
-
-  /* 登录框向上举 */
-  .up {
-    transform: translate(-50%, -130px);
-  }
-
+.footer {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  color: #ddd;
+  font-size: 12px;
 }
 </style>
