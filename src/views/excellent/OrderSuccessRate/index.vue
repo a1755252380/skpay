@@ -12,8 +12,8 @@
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
         <el-button type="primary" icon="el-icon-refresh" size="mini" @click="AutoQuerySearch">{{ this.AutoQuery ?
           `${this.AutoQueryInterval}s` : 'AUTO'
-        }}</el-button>
-        <el-button icon="el-icon-refresh" type="warning" size="mini"
+          }}</el-button>
+        <el-button icon="el-icon-refresh" type="warning" size="mini" :disabled="loading"
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" @click="changeRate">{{ this.routeFlag ===
             'order'
             ? '通道成功率' :
@@ -456,14 +456,18 @@ export default {
             ...this.OrderSuccessRateList[index], // 保留原有数据
             ...newItem,                         // 用新数据覆盖
           });
+
         } else {
           // 如果没有匹配项，可以选择是否添加到 this.OrderSuccessRateList
           // this.OrderSuccessRateList.push(newItem); // 如果需要新增，取消注释
         }
       }
       this.handleSort().then(() => {
-        this.loading = false;
+        this.$nextTick(() => {
+          this.$refs[this.tableKey].doLayout()
+          this.loading = false;
 
+        })
       })
     },
     // 判断是否需要加载商户或通道列表
@@ -483,7 +487,6 @@ export default {
 
       // 4. 等待数据加载完成
       return new Promise((resolve) => {
-
         const unwatch = this.$watch(
           () => this.$store.state.Cache[targetList]?.length,
           (val) => {
