@@ -68,7 +68,7 @@ export default {
   watch: {
     Change(newval, oldval) {
       this.form['mch_number'] = newval['mch_num'];
-      this.showMsg.Balance = this.Formatter.FormatAmount(this.fundStateData == 'CollectionAndSettlement' ? newval['account_pending_settlement_balance'] : newval['account_payout_balance'])
+      this.showMsg.Balance = this.Formatter.FormatAmount(this.fundStateData == 'CollectionAndSettlement' ? newval['account_pending_settlement_balance'] : newval['account_available_balance'])
       this.form.operation = this.fundStateData == 'PositiveAdjustment' ? null : (this.fundStateData == 'CollectionAndSettlement' ? 4 : 5)
     }
   },

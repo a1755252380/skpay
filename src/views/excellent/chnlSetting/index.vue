@@ -17,10 +17,10 @@
       </el-form>
 
       <el-row :gutter="10" class="mb8">
-        <el-col :span="1.5">
+        <!-- <el-col :span="1.5">
           <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
             v-hasPermi="['excellent:chnlSetting:add']">新增通道</el-button>
-        </el-col>
+        </el-col> -->
         <el-col :span="1.5">
           <el-button type="primary" plain icon="el-icon-setting" size="mini" @click="openAllocationPoolDialog('payin1')"
             v-hasPermi="['excellent:chnlSetting:add']">代收分配池1</el-button>
