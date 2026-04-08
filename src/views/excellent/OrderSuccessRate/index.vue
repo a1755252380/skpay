@@ -12,7 +12,7 @@
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
         <el-button type="primary" icon="el-icon-refresh" size="mini" @click="AutoQuerySearch">{{ this.AutoQuery ?
           `${this.AutoQueryInterval}s` : 'AUTO'
-          }}</el-button>
+        }}</el-button>
         <el-button icon="el-icon-refresh" type="warning" size="mini" :disabled="loading"
           v-if="hasPermiVisible(['excellent:OrderRecords:platform'])" @click="changeRate">{{ this.routeFlag ===
             'order'
@@ -220,7 +220,10 @@ export default {
     this.channelQuery = null
     this.mchNumSelect = null
     this.SelectType = null
-    this.fetchChannelPool();
+    if (this.checkRole(['admin'])) {
+      this.fetchChannelPool();
+
+    }
     this.fetchMchSettings();
   },
 

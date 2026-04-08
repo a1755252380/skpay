@@ -14,8 +14,9 @@
 
         <el-form-item label="结算模式" prop="settle_mode">
           <el-select v-model="form.settle_mode" placeholder="请选择结算模式" class="w100_input">
-            <el-option label="实时结算" :value="0"></el-option>
+            <el-option label="账户可用余额实时结算" :value="0"></el-option>
             <!-- <el-option label="延时结算" :value="1"></el-option> -->
+            <el-option label="代付可用余额实时结算" :value="1"></el-option>
             <el-option label="手动结算" :value="2"></el-option>
           </el-select>
         </el-form-item>

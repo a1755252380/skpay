@@ -78,11 +78,11 @@
 
           <el-table-column label="代付通道" align="center" prop="payout_chnl_id" width="100"
             :formatter="Formatter.MerchantChannelOutNameFormatter" />
-          <el-table-column label="结算模式" align="center" prop="settle_mode">
+          <el-table-column label="结算模式" align="center" prop="settle_mode" width="180">
             <template slot-scope="scope">
-              <span v-if="scope.row.settle_mode === 0">实时结算</span>
-              <span v-else-if="scope.row.settle_mode === 1">延时结算</span>
-              <span v-else-if="scope.row.settle_mode === 2">手动结算</span>
+              <el-tag v-if="scope.row.settle_mode === 0" type="primary">账户可用余额实时结算</el-tag>
+              <el-tag v-else-if="scope.row.settle_mode === 1" type="primary">代付可用余额实时结算</el-tag>
+              <el-tag v-else-if="scope.row.settle_mode === 2" type="info">手动结算</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="账户状态" align="center" prop="state">
